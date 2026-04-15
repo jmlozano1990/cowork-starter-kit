@@ -1,0 +1,8 @@
+.council-link
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+~$*
+.env
+node_modules/

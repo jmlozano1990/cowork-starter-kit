@@ -1,0 +1,9 @@
+{
+  // markdownlint configuration for Claude Cowork Config
+  // Disable MD013 (line length) — preset files contain long lines in tables and instructions
+  "MD013": false,
+  // Allow HTML in markdown for connector notes
+  "MD033": false,
+  // Disable duplicate heading check — presets reuse heading names across files
+  "MD024": false
+}

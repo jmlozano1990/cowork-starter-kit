@@ -1,0 +1,68 @@
+name: Quality Checks
+
+on: [push, pull_request]
+
+jobs:
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2a759222d78cdaff96f # v19.1.0
+        with:
+          globs: "**/*.md"
+
+  link-check:
+    name: Link Check (Internal)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: lycheeverse/lychee-action@f81b5982fd8eb46cf4c7fbcd6fc56e75bab79bd7 # v2.3.0
+        with:
+          args: --no-progress --offline "**/*.md"
+          fail: true
+
+  link-check-external:
+    name: Link Check (External)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: lycheeverse/lychee-action@f81b5982fd8eb46cf4c7fbcd6fc56e75bab79bd7 # v2.3.0
+        with:
+          args: --no-progress "**/*.md"
+          fail: true
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        with:
+          scandir: "./scripts"
+
+  safety-rule-check:
+    name: Safety Rule Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check safety rule in all presets
+        run: |
+          SAFETY_RULE="Always ask for explicit confirmation before deleting"
+          MISSING=0
+          for f in presets/*/global-instructions.md; do
+            if ! grep -q "$SAFETY_RULE" "$f"; then
+              echo "MISSING safety rule: $f"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" -eq 1 ]; then
+            echo ""
+            echo "One or more presets are missing the required safety rule."
+            echo "Every preset's global-instructions.md must contain:"
+            echo "  'Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.'"
+            echo "See templates/global-instructions-base.md for the canonical text."
+            exit 1
+          fi
+          echo "Safety rule check passed — all presets include the required rule."
