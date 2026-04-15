@@ -1,9 +1,16 @@
 {
-  // markdownlint configuration for Claude Cowork Config
+  // markdownlint configuration for cowork-starter-kit
   // Disable MD013 (line length) — preset files contain long lines in tables and instructions
   "MD013": false,
   // Allow HTML in markdown for connector notes
   "MD033": false,
   // Disable duplicate heading check — presets reuse heading names across files
-  "MD024": false
+  "MD024": false,
+  // Disable MD036 — bold labels used intentionally as visual step markers in SETUP-CHECKLIST.md
+  "MD036": false,
+  // Disable MD040 — folder trees and ASCII diagrams do not require a language specifier
+  "MD040": false,
+  // Disable MD022/MD032 — ADR-style docs use compact heading/list formatting
+  "MD022": false,
+  "MD032": false
 }
