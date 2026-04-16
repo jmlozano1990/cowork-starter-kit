@@ -2,7 +2,7 @@
 
 > Set up your Claude Cowork workspace in 15 minutes. No code. No configuration files. Paste one file — Cowork does the rest.
 
-[![CI](https://github.com/JLCyb3r/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/JLCyb3r/cowork-starter-kit/actions/workflows/quality.yml)
+[![CI](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](CHANGELOG.md)
 
@@ -52,7 +52,7 @@ You                                Cowork
 
 ## Quick start
 
-1. **[Download ZIP](https://github.com/JLCyb3r/cowork-starter-kit/archive/refs/heads/main.zip)** — unzip anywhere on your computer
+1. **[Download ZIP](https://github.com/jmlozano1990/cowork-starter-kit/archive/refs/heads/main.zip)** — unzip anywhere on your computer
 2. Open Claude Cowork → create a new Project → point it at the unzipped folder
 3. Open your preset folder (`presets/<your-goal>/`), copy `project-instructions-starter.txt`, and paste it into Project Settings > Custom Instructions
 4. Type: **`/setup-wizard`**
@@ -90,6 +90,16 @@ Pick the one that matches your work. The wizard auto-selects the right preset an
 
 ---
 
+## v1.1 highlights
+
+- **Paste-and-go setup** — paste one file, start talking. No wizard interception, no generic setup. Cowork runs YOUR onboarding, not its own.
+- **11-step deep interview** — personalized per goal. Fast-track option at step 5 if you want to get started quickly.
+- **Proactive skills** — Cowork offers flashcards when you share study material, suggests synthesis when you reference multiple sources, drafts status updates when a deadline is near. Skills activate in context, not just when asked.
+- **`/setup-wizard`** — explicit command to run or redo setup anytime. Bypasses Cowork's intent classifier entirely.
+- **18 auto-discovering skills** — properly formatted so Cowork loads them as `/slash-commands` (e.g., `/flashcard-generation`, `/voice-matching`).
+
+---
+
 ## Safety first
 
 Every preset includes a non-negotiable rule: **Cowork will always ask for your confirmation before deleting, moving, or overwriting any file or folder.** This rule is built into every workspace this wizard generates and is enforced by CI on every community contribution.
@@ -98,7 +108,7 @@ Every preset includes a non-negotiable rule: **Cowork will always ask for your c
 
 ## Staying up to date
 
-This repo uses [semantic versioning](https://github.com/JLCyb3r/cowork-starter-kit/releases). When a new version ships, check the [Releases](https://github.com/JLCyb3r/cowork-starter-kit/releases) tab. The CHANGELOG lists which presets changed. To update: download the new preset folder and replace only the template files. Your `cowork-profile.md` and `project-instructions.txt` are yours and are never overwritten.
+This repo uses [semantic versioning](https://github.com/jmlozano1990/cowork-starter-kit/releases). When a new version ships, check the [Releases](https://github.com/jmlozano1990/cowork-starter-kit/releases) tab. The CHANGELOG lists which presets changed. To update: download the new preset folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours and are never overwritten.
 
 ---
 

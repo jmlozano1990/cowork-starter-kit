@@ -12,5 +12,9 @@
   "MD040": false,
   // Disable MD022/MD032 — ADR-style docs use compact heading/list formatting
   "MD022": false,
-  "MD032": false
+  "MD032": false,
+  // Disable MD041 — SKILL.md files use YAML frontmatter, not headings on line 1
+  "MD041": false,
+  // Disable MD060 — table separator style is consistent and valid
+  "MD060": false
 }
