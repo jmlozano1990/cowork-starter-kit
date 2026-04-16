@@ -1,6 +1,9 @@
-# Skill: Feedback Synthesis
+---
+name: feedback-synthesizer
+description: Combine feedback from multiple sources into a clear, prioritized creative direction for the next iteration
+---
 
-**Description:** Combines feedback from multiple sources into a clear, prioritized creative direction for the next iteration.
+## Feedback Synthesizer
 
 **When to use:** After receiving feedback from multiple reviewers, stakeholders, or collaborators — especially when feedback is mixed or contradictory.
 

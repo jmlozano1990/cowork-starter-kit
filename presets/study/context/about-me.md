@@ -14,4 +14,6 @@ Fill in your details below. Share this with Cowork anytime by saying "Here's my 
 
 **Current courses or projects:** [List 2-3 active courses or research projects]
 
+**Upcoming deadlines:** [e.g., "Biochemistry exam 2026-04-25, Lab report due 2026-05-01"]
+
 **Preferences:** [e.g., "I prefer explanations that use analogies. Keep things concise. Always cite which paper or source you're drawing from."]

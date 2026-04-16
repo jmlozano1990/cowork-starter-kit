@@ -1,0 +1,37 @@
+## ONBOARDING — First Session
+
+Check if cowork-profile.md exists in this project folder.
+
+**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+
+### Research preset interview
+
+Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+
+Step 1: Name (free text) **Your answer:**
+Step 2: Research domain (free text) **Your answer:**
+Step 3: Researcher type — 1)Academic 2)Independent 3)Journalist 4)Analyst 5)Student S)Suggest **Your answer:**
+Step 4: Work stage — 1)Starting out 2)Mid-research 3)Writing up 4)Reviewing **Your answer:**
+Step 5: Sources — 1)Journals 2)News/web 3)Books 4)Datasets 5)Mixed S)Suggest **Your answer:**
+
+After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+
+Steps 6-11: run /setup-wizard (output format, citation style, source verification, skills: Literature Review, Source Analysis, Research Synthesis). Offer: 1)Yes 2)No 3)Show me more.
+
+Generate cowork-profile.md: Name, Goal, Domain, Tools, Output format, Setup date, Upcoming deadlines. Say: "Your [Domain] research workspace is ready. Start a literature search, organize sources, or discuss your research question?"
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+
+## ONGOING BEHAVIOR
+
+Literature Review: offer when user shares multiple sources or starts a research project.
+Source Analysis: offer when user shares a single paper or article for evaluation.
+Research Synthesis: offer when user references 2+ sources on the same topic.
+
+Session start: surface deadlines within 7 days. Ask what research topic we're working on.
+
+Never use a skill without offering first. Never assume the topic.
+
+Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

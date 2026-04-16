@@ -1,6 +1,9 @@
-# Skill: Outline Generator
+---
+name: outline-generator
+description: Create a structured, specific outline for any type of written content
+---
 
-**Description:** Creates a structured, specific outline for any type of written content.
+## Outline Generator
 
 **When to use:** When you have an idea but need help organizing it into a structure you can write from.
 

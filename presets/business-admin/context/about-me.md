@@ -14,6 +14,8 @@ Fill in your details below. Share this with Cowork anytime by saying "Here's my 
 
 **Key relationships:** [e.g., "Reports to CFO. Manages a team of 4. Key external contacts: 3 enterprise clients and 2 vendors."]
 
+**Upcoming deadlines:** [e.g., "Board report 2026-04-28, quarterly review 2026-05-02"]
+
 **Goals:** [e.g., "I want Cowork to help me draft emails faster, summarize reports I don't have time to read in full, and extract action items from meeting notes"]
 
 **Preferences:** [e.g., "Lead with the point. Under 150 words for most emails. Always include a clear call to action."]

@@ -1,6 +1,6 @@
 # Setup Checklist
 
-Use this checklist to complete your Cowork workspace configuration. If you ran the wizard, start at Step 3. If you're setting up manually, start at Step 1.
+Use this checklist to complete your Cowork workspace configuration. Complete every step in order.
 
 ---
 
@@ -20,15 +20,29 @@ In Project Settings, assign your project folder:
 
 Replace `<preset-name>` with your preset (study, research, writing, project-management, creative, or business-admin). If the folder doesn't exist yet, run `scripts/setup-folders.sh` (macOS) or `scripts/setup-folders.ps1` (Windows), or create it manually.
 
-**Step 3 — Paste your custom instructions**
+**Step 3 — Paste `project-instructions-starter.txt` into Custom Instructions**
 
-In Project Settings > Custom Instructions, paste the entire contents of `project-instructions.txt`. This is your personalized instruction block — it includes your tone, output format, and the safety rule that prevents accidental file deletion.
+This step MUST happen before you start any conversation.
 
-**Step 4 — Fill in your about-me file**
+1. Open your preset folder: `presets/<preset-name>/`
+2. Open `project-instructions-starter.txt` in any text editor
+3. Copy the entire contents
+4. In Cowork: open Project Settings > Custom Instructions
+5. Paste the content and save
 
-Open `context/about-me.md` in any text editor. Fill in your name, role, and goals. Save the file. This file gives Cowork context about who you are without you having to explain it every session.
+This file is your workspace bootstrap — it tells Cowork what to do on your first session and on every session after. Do not skip this step.
 
-**Step 5 — Authorize connectors**
+**Step 4 — Start a conversation — Cowork auto-runs onboarding**
+
+Open your Cowork project and say anything — "hello", "let's get started", or just send a blank message. Cowork will automatically detect it's your first session and begin the onboarding interview.
+
+Alternatively, type `/setup-wizard` to explicitly invoke the setup wizard at any time.
+
+**Step 5 — Fill in your about-me file**
+
+After onboarding, open `context/about-me.md` in any text editor. Fill in your name, role, and goals. Save the file. This file gives Cowork context about who you are without you having to explain it every session.
+
+**Step 6 — Authorize connectors**
 
 Open your `connector-checklist.md`. For each connector you want to use: open Cowork Settings > Connectors > find the connector > click Authorize.
 
@@ -37,7 +51,7 @@ Read the permission scope note for each connector before authorizing. Pay attent
 - **Gmail:** Creates drafts only — cannot send emails without you clicking Send.
 - **Google Workspace accounts (school or employer):** Your IT admin must authorize Claude in Google Workspace Admin Console before your personal authorization will work.
 
-**Step 6 — Upload your skill ZIP**
+**Step 7 — Upload your skill ZIP**
 
 To upload the preset skill files:
 
@@ -50,13 +64,13 @@ Alternatively, use Cowork's built-in skill-creator to build personalized skills 
 
 Anthropic's official pre-built document skills (PDF, PPTX, XLSX, DOCX) are available in the same Skills menu — these require no configuration.
 
-**Step 7 — Test your skills**
+**Step 8 — Test your skills**
 
 Ask Cowork: "What skills do you have active?"
 
 Verify your preset skills appear in the response. If they don't appear, see "What if something goes wrong?" below.
 
-**Step 8 — Try this now**
+**Step 9 — Try this now**
 
 Pick one of the prompts below for your preset and try it right now:
 
@@ -90,7 +104,7 @@ Pick one of the prompts below for your preset and try it right now:
 - File-based: "What files are in my Inbox/ folder? Draft a prioritized action list for today."
 - File-agnostic: "Draft a professional email declining a meeting request politely, keeping the relationship warm, in under 100 words. Then draft a version that's 30% more direct."
 
-**Step 9 — Memory tip**
+**Step 10 — Memory tip**
 
 Cowork remembers things you tell it within a Project. Ask Cowork: "Remember that I am [your role] and I prefer [output format] responses." Cowork will store this for future sessions.
 
@@ -100,9 +114,13 @@ Use the `/memory` command anytime to see, edit, or delete what Cowork has stored
 
 ## What if something goes wrong?
 
+**Onboarding didn't start automatically**
+
+Type `/setup-wizard` to invoke the onboarding interview explicitly. Make sure you pasted `project-instructions-starter.txt` into Project Settings > Custom Instructions first (Step 3).
+
 **Wizard interrupted mid-session**
 
-Open Cowork again, open this repo folder, and say: "Let's continue the setup wizard. My preset is [name]." Your `cowork-profile.md` has your answers if we got that far.
+Type `/setup-wizard` again. The wizard will detect your existing profile and ask if you want to reset and re-run. Your past sessions are unaffected.
 
 **Skill test failed (skills not loading)**
 
@@ -117,4 +135,4 @@ Open `skills-as-prompts.md` in your preset folder. Copy the skill content you wa
 
 ## Keeping up to date
 
-When a new version ships, check the [Releases tab on GitHub](https://github.com/JLCyb3r/cowork-starter-kit/releases). `CHANGELOG.md` lists which presets changed. To update a specific preset: download the new `presets/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions.txt` are yours — they won't be overwritten.
+When a new version ships, check the [Releases tab on GitHub](https://github.com/JLCyb3r/cowork-starter-kit/releases). `CHANGELOG.md` lists which presets changed. To update a specific preset: download the new `presets/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours — they won't be overwritten.

@@ -68,3 +68,86 @@ jobs:
             exit 1
           fi
           echo "Safety rule check passed — all presets include the required rule."
+
+  starter-file-check:
+    name: Starter File Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check starter files exist for all presets
+        run: |
+          MISSING=0
+          COUNT=0
+          for preset in study research writing project-management creative business-admin; do
+            if [ ! -f "presets/$preset/project-instructions-starter.txt" ]; then
+              echo "MISSING: presets/$preset/project-instructions-starter.txt"
+              MISSING=1
+            else
+              COUNT=$((COUNT + 1))
+            fi
+          done
+          if [ "$COUNT" -lt 6 ]; then
+            echo "Only $COUNT/6 starter files found"
+            MISSING=1
+          fi
+          if [ "$MISSING" -eq 1 ]; then
+            exit 1
+          fi
+          echo "All 6 starter files present."
+
+  starter-safety-rule-check:
+    name: Starter Safety Rule Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check safety rule in all starter files
+        run: |
+          SAFETY_RULE="Always ask for explicit confirmation before deleting"
+          MISSING=0
+          COUNT=0
+          for f in presets/*/project-instructions-starter.txt; do
+            COUNT=$((COUNT + 1))
+            if ! grep -q "$SAFETY_RULE" "$f"; then
+              echo "MISSING safety rule: $f"
+              MISSING=1
+            fi
+          done
+          if [ "$COUNT" -lt 6 ]; then
+            echo "Only $COUNT/6 starter files found — expected 6"
+            exit 1
+          fi
+          if [ "$MISSING" -eq 1 ]; then
+            exit 1
+          fi
+          echo "Safety rule present in all $COUNT starter files."
+
+  skill-format-check:
+    name: Skill Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify folder/SKILL.md format
+        run: |
+          FAIL=0
+          # Check for flat .md files at skills root (excluding directories)
+          for skills_dir in presets/*/.claude/skills; do
+            if [ -d "$skills_dir" ]; then
+              for f in "$skills_dir"/*.md; do
+                if [ -f "$f" ]; then
+                  echo "FLAT SKILL FILE FOUND: $f (must be in folder/SKILL.md format)"
+                  FAIL=1
+                fi
+              done
+            fi
+          done
+          # Verify each skill folder has SKILL.md
+          for skill_folder in presets/*/.claude/skills/*/; do
+            if [ -d "$skill_folder" ] && [ ! -f "${skill_folder}SKILL.md" ]; then
+              echo "MISSING SKILL.md: $skill_folder"
+              FAIL=1
+            fi
+          done
+          if [ "$FAIL" -eq 1 ]; then
+            exit 1
+          fi
+          echo "All skills in folder/SKILL.md format."

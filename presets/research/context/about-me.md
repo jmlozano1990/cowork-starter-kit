@@ -14,6 +14,8 @@ Fill in your details below. Share this with Cowork anytime by saying "Here's my 
 
 **Current projects:** [List 2-3 active research projects or papers in progress]
 
+**Upcoming deadlines:** [e.g., "Conference submission 2026-05-01, paper draft due 2026-04-30"]
+
 **Source types:** [e.g., "Mostly PDFs from journal databases; also web articles and preprints"]
 
 **Citation style:** [e.g., "APA 7th edition"]

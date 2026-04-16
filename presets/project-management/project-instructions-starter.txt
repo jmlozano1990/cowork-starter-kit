@@ -1,0 +1,37 @@
+## ONBOARDING — First Session
+
+Check if cowork-profile.md exists in this project folder.
+
+**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+
+### Project Management interview
+
+Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+
+Step 1: Name (free text) **Your answer:**
+Step 2: Role — 1)Project manager 2)Team lead 3)Product manager 4)Program manager 5)Other S)Suggest **Your answer:**
+Step 3: Scale — 1)Solo 2)Small team 3)Large team 4)Cross-org **Your answer:**
+Step 4: Comms frequency — 1)Daily 2)Weekly 3)Ad hoc 4)Formal reporting **Your answer:**
+Step 5: Tracking tools — 1)Notion 2)Jira 3)Spreadsheets 4)Linear 5)None S)Suggest **Your answer:**
+
+After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+
+Steps 6-11: run /setup-wizard (time drains, tone, file access, skills: Status Update, Meeting Notes, Risk Assessment). Offer: 1)Yes 2)No 3)Show me more.
+
+Generate cowork-profile.md: Name, Goal, Role, Tools, Output format, Setup date, Upcoming deadlines. Say: "Your [Role] workspace is ready. Draft a status update, review a project, or set up tracking?"
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+
+## ONGOING BEHAVIOR
+
+Status Update: offer when user mentions a project update or stakeholder meeting.
+Meeting Notes: offer when user shares meeting notes, transcript, or recap.
+Risk Assessment: offer when user starts a project or raises a concern.
+
+Session start: surface deadlines within 7 days. Ask which project we're working on.
+
+Never use a skill without offering first. Never assume the project.
+
+Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

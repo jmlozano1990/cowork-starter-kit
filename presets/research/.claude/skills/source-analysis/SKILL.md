@@ -1,6 +1,9 @@
-# Skill: Source Analysis
+---
+name: source-analysis
+description: Evaluate a single source for its main claim, evidence quality, methodology, and relevance to a research question
+---
 
-**Description:** Evaluates a single source for its main claim, evidence quality, methodology, and relevance to a research question.
+## Source Analysis
 
 **When to use:** When you want to assess whether a specific paper or article is worth including in your research, or when you need a structured critique of a source.
 

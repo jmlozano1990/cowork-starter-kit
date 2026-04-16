@@ -1,6 +1,9 @@
-# Skill: Voice Matching
+---
+name: voice-matching
+description: Write new content in the user's established voice and style, based on samples from their previous work
+---
 
-**Description:** Writes new content in the user's established voice and style, based on samples from their previous work.
+## Voice Matching
 
 **When to use:** When you need Cowork to generate content that sounds like you rather than like a generic AI output.
 
@@ -10,4 +13,4 @@
 
 - "Read my Voice-and-Style/ folder and write a 200-word intro for an article on [topic]."
 - "Write a LinkedIn post in my voice about [topic]."
-- "Here's an example of my writing: [paste]. Now write an opening paragraph for my piece on [topic] in the same style."
+- "Here's an example of my writing: [paste]. Now write an opening paragraph in the same style."

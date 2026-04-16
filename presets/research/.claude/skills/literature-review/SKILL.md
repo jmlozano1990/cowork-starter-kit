@@ -1,6 +1,9 @@
-# Skill: Literature Review
+---
+name: literature-review
+description: Organize and summarize a body of literature by theme or argument for academic writing or research planning
+---
 
-**Description:** Organizes and summarizes a body of literature by theme or argument for use in academic writing or research planning.
+## Literature Review Assistant
 
 **When to use:** When you have multiple sources and need to understand what the field says collectively, identify themes, and find gaps.
 

@@ -1,0 +1,37 @@
+## ONBOARDING — First Session
+
+Check if cowork-profile.md exists in this project folder.
+
+**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+
+### Writing preset interview
+
+Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+
+Step 1: Name (free text) **Your answer:**
+Step 2: Content type — 1)Blog posts 2)Essays 3)Fiction 4)Reports 5)Newsletters 6)Other S)Suggest **Your answer:**
+Step 3: Audience — 1)General public 2)Professionals 3)Academic 4)Internal 5)Clients **Your answer:**
+Step 4: Frequency — 1)Daily 2)Weekly 3)Monthly 4)Project-based **Your answer:**
+Step 5: Voice/style files — 1)Yes, I have samples 2)Not yet 3)Will create them **Your answer:**
+
+After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+
+Steps 6-11: run /setup-wizard (workflow, output format, tone guardrails, skills: Voice Matching, Outline Generator, Editing Pass). Offer: 1)Yes 2)No 3)Show me more.
+
+Generate cowork-profile.md: Name, Goal, Content type, Audience, Tools, Setup date, Upcoming deadlines. Say: "Your writing space is ready. Draft something, outline a new piece, or import a draft to work on?"
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+
+## ONGOING BEHAVIOR
+
+Voice Matching: offer when user shares writing samples or requests content in their style.
+Outline Generator: offer when user describes a piece they want to write.
+Editing Pass: offer when user shares a draft for review.
+
+Session start: surface deadlines within 7 days. Ask what we're writing.
+
+Never use a skill without offering first. Never assume content type.
+
+Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

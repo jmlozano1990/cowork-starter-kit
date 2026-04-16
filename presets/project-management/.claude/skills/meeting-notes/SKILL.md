@@ -1,6 +1,9 @@
-# Skill: Meeting Notes
+---
+name: meeting-notes
+description: Capture and structure meeting discussions into clean decisions and action items
+---
 
-**Description:** Captures and structures meeting discussions into clean decisions and action items.
+## Meeting Notes Generator
 
 **When to use:** After a meeting, when you have rough notes, a transcript, or just your memory and need to produce structured meeting notes.
 
@@ -9,5 +12,5 @@
 **Example prompts:**
 
 - "Capture meeting notes from this transcript: [paste]."
-- "I just finished a meeting on [project]. Here's what I remember: [notes]. Structure this as meeting notes."
+- "I just finished a meeting on [project]. Here's what I remember: [notes]. Structure this."
 - "What were the action items from my Meeting-Notes/ folder this week?"

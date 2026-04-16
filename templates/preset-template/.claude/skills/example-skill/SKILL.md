@@ -1,6 +1,9 @@
-# Skill: [Skill Name]
+---
+name: example-skill
+description: One sentence — what this skill helps Cowork do
+---
 
-**Description:** One sentence — what this skill helps Cowork do.
+## [Skill Name]
 
 **When to use:** One sentence — what kind of task or prompt activates this skill.
 

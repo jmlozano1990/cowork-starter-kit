@@ -1,6 +1,9 @@
-# Skill: Document Summary
+---
+name: doc-summary
+description: Extract the key insight and supporting points from any business document for fast understanding and decision-making
+---
 
-**Description:** Extracts the key insight and supporting points from any business document for fast understanding and decision-making.
+## Document Summary
 
 **When to use:** When you need to quickly understand a long document or brief someone on its key findings without reading it in full.
 

@@ -1,263 +1,284 @@
-# Product Spec — Claude Cowork Config
+# Product Spec — Claude Cowork Config (v1.1)
 
 ## Problem
 
 Claude Cowork launched in January 2026 as Anthropic's desktop agent for knowledge workers. It gives users powerful capabilities — local file read/write/create/delete, Google Drive/Gmail/Slack connectors, persistent memory, plugins, skills, custom instructions — but the out-of-the-box experience offers zero guidance on how to configure any of it.
 
-The gap between "Claude Cowork installed" and "Claude Cowork working great for me" is wide. Non-technical users face a blank slate with no clear path to a useful setup. Power users invest a weekend or more in research, trial-and-error, and community guides before getting real value. Beginners give up before reaching the payoff.
+**v1.0 root cause failure (2026-04-15):** The v1.0 WIZARD.md was ignored by Cowork's native intent classifier. When users said "set up my workspace," Cowork ran its own built-in setup skill, asked one generic question, and installed a generic productivity plugin. WIZARD.md was never read. The trigger architecture was fundamentally broken.
 
-**Evidence:**
-- Community guides consistently report setup takes "a full weekend to build properly" (ryanstax.substack.com, 2026)
-- Most common beginner mistake: skipping context files, custom instructions, and folder setup — the three highest-leverage configuration moves (the-ai-corner.com, 2026)
-- Viral Reddit incident: user's Cowork deleted 11GB of files after a vague "clean up" prompt — caused by missing safety-scoped instructions (coworkhow.com, 2026)
-- "The improvement in output quality from setting up Global Instructions alone is larger than switching models" (the-ai-corner.com, 2026)
-
-Claude Cowork Config solves this by providing a goal-driven onboarding wizard that takes a beginner from "just installed" to "ready-to-use personalized workspace" in under 15 minutes, with zero code required.
+**v1.1 fix:** Three-layer trigger architecture where the primary path moves wizard logic into `project-instructions-starter.txt` — a file pasted into Cowork Project custom instructions *before* any conversation, making it system context that Cowork's intent classifier cannot intercept.
 
 ## Target Users
 
 **Primary: Alex — University Student (20, biochemistry)**
-Goal: Use AI to study smarter — research, note-taking, flashcard generation, citation management.
-Pain: Doesn't know where to start. Generic Claude responses feel like ChatGPT. Doesn't realize Cowork can read their PDFs and organize their notes folder.
-Gain: A `/Study` folder pre-configured with Cowork permissions, a focused academic tone, and starter skills for research synthesis and flashcard generation.
+Goal: Use AI to study smarter — research, note-taking, flashcard generation.
+Pain: Doesn't know where to start. Generic responses. Doesn't realize Cowork can read PDFs.
+Gain: Personalized workspace with proactive skill offers, academic tone, flashcard/synthesis skills.
 
-**Secondary: Maria — Knowledge Worker (35, researcher / writer / project manager)**
-Goal: Use AI as a work multiplier — literature review, report drafting, project tracking, email triage.
-Pain: Has tried multiple AI tools, knows they're powerful, but hasn't found a setup that fits her workflow. Spends time re-explaining context every session.
-Gain: A personalized workspace with persistent memory context, role-appropriate connectors (Google Drive, Gmail), and tone/output format locked to her professional standard.
+**Secondary: Maria — Knowledge Worker (35, researcher / writer / PM)**
+Goal: AI as a work multiplier. Persistent context, role-appropriate connectors, professional tone.
+Pain: Spends time re-explaining context every session.
 
 Full personas: see `docs/personas.md`
 
+## Configuration Surface Note
+
+This wizard configures Cowork **Project custom instructions** (scoped to one Project). It does NOT configure Global Instructions. All references to "instructions" mean Project custom instructions unless explicitly stated.
+
 ## Core Features (MVP)
 
-> **Configuration Surface Note:** This wizard configures Cowork **Project custom instructions** (scoped to one Project, only active when that project is open). It does NOT configure Global Instructions (account-wide). All references to "instructions" in this spec mean Project custom instructions unless explicitly stated otherwise.
+### F1 — Three-Layer Trigger Architecture [REVISED v1.1]
 
-### F1 — Goal-Type Wizard (Entry Point)
-A short guided interview (3–5 questions max) that identifies the user's primary use case and maps it to one of 6 goal presets: **Study, Research, Writing, Project Management, Creative, Business/Admin**.
+**Root cause fix:** WIZARD.md is not a reliable runtime path — Cowork's intent classifier intercepts "set up"-type phrases before reading project files. v1.1 introduces three layers:
 
-- AC: Wizard presents 6 goal cards with a 1-sentence description each. User can select one or type a custom goal.
-- AC: If user types a custom goal, the wizard matches it to the closest preset (fuzzy match) and confirms: "It sounds like [Research]. Is that right?"
-- AC: Wizard completes in ≤5 user interactions.
-- AC: Each goal type maps to a documented configuration profile (tone + skills + folder structure + connectors).
-- AC: WIZARD.md opens with a one-sentence model check: "For best results, use Claude Sonnet or higher. If you're on Claude Pro, tap the model selector (top-left) and select Sonnet before we begin. The wizard works on any model, but Haiku-class responses may require extra back-and-forth." This note is non-blocking.
-- AC: WIZARD.md includes this canonical 5-question interview script:
-  - **Q1 (Goal):** "Which best describes your main use for Cowork? [Study / Research / Writing / Project Management / Creative / Business/Admin] — or type your own."
-  - **Q2 (Output format):** "When Claude gives you information, do you prefer: detailed explanations, bullet points, or structured reports?"
-  - **Q3 (Role/context — preset-specific):** One question per preset (e.g. Study: "What subject are you studying?"; Research: "Are your sources mostly PDFs, web pages, or both?"; Writing: "What type of content do you create most?"; PM: "What tools does your team use for project tracking?"; Creative: "Do you work solo or with a team?"; Business/Admin: "What does a typical work day look like for you?")
-  - **Q4 (Tools):** "Which of these do you use? [Google Drive / Gmail / Slack / None / Not sure]" — maps to connector checklist
-  - **Q5 (Safety check):** Before asking Q5, WIZARD.md tells the user: "One important thing — Cowork can read, write, and delete files in any folder you give it access to. The next setting makes sure it always asks before doing anything like that." Then asks: "Does Cowork have access to any folders with files you'd never want deleted? [Yes / No / Not sure]" — the safety rule is always added regardless of answer; this just calibrates the safety language.
-- AC: Custom goal fuzzy matching uses Cowork's LLM judgment. WIZARD.md includes a confirmation step: "It sounds like [Research] — is that right? If not, I'll show you all 6 options."
-- AC: WIZARD.md tells Cowork exactly what to generate after Q5: copy the preset's `project-instructions.txt` template, substitute the user's role/context into the one-paragraph context summary, and save as `project-instructions.txt` in the output folder. All other output files are copied verbatim from the preset — they do not change based on answers except `cowork-profile.md`.
+1. **Primary — `project-instructions-starter.txt`:** A short bootstrap file (~200–300 words) the user pastes into Project Settings > Custom Instructions BEFORE starting any conversation. Contains a state machine check (does `cowork-profile.md` exist with real content?) and onboarding interview script. Custom instructions are injected as system context before Cowork's intent classifier runs — this cannot be intercepted.
 
-### F2 — Persona Depth Questions
-After goal selection, 2–3 follow-up questions calibrate the preset for the user's specific context (role, tools they use, output format preference).
+2. **Secondary — `/setup-wizard` skill:** A proper Cowork skill at `.claude/skills/setup-wizard/SKILL.md` (repo root, not inside any preset). Contains `name:` and `description:` YAML frontmatter. Provides a guaranteed explicit invocation path that bypasses Cowork's intent classifier. Used for first-run when instructions weren't pasted, or to redo setup.
 
-- AC: Questions are presented one at a time, not as a form.
-- AC: All questions have sensible defaults so user can skip with "I'm not sure / skip".
-- AC: Answers are stored in a `cowork-profile.md` file the wizard generates in the user's workspace.
-- AC: Profile file is human-readable plain text — no JSON, no config syntax.
-- AC: `cowork-profile.md` is generated from a fixed template (fill-in-the-blank format), not freeform LLM generation. Template fields: Name, Goal preset, Role/context (from Q4), Tools in use (from Q2), Output format preference (from Q3), Setup date. Human-readable, no JSON, no code.
+3. **Tertiary — WIZARD.md:** Documentation and script source only. NOT a runtime path. NOT a fallback. Kept for repo-browser context and contributor reference.
 
-### F3 — Project Custom Instructions Generator
-Produces a ready-to-paste custom instructions block for a Cowork Project, tailored to the user's goal and answers. This is not a global paste — it becomes the custom instructions for the user's Cowork Project (the project they set up in F4).
+**AC [v1.1]:**
+- `project-instructions-starter.txt` exists for all 6 presets at `presets/<name>/project-instructions-starter.txt`
+- Each starter file is ≤300 words (to stay within Cowork's custom instructions field limit — see A1)
+- Each starter file contains a Phase 1 onboarding block (state machine check + full interview script) and a Phase 2 ongoing behavior block (session-start rules, proactive skill triggers, safety rule)
+- State machine check: if `cowork-profile.md` does not exist (or contains `[Your name]`), auto-run onboarding; if it exists with real content, greet by name and skip onboarding
+- Each starter file includes the AskUserQuestion nudge: "For each wizard question, use AskUserQuestion to present the options as clickable buttons if available. If not available, use the numbered list format."
+- `.claude/skills/setup-wizard/SKILL.md` exists at repo root with valid YAML frontmatter (`name: setup-wizard`, `description:` present)
+- `/setup-wizard` skill includes reset confirmation: "This will reset your profile and re-run onboarding. Your past sessions are unaffected. Confirm? (Yes / No)"
+- WIZARD.md includes a top note clarifying its documentation role: "Users: start with `/setup-wizard` or paste `project-instructions-starter.txt`. This file is the script source, not the entry point."
+- SETUP-CHECKLIST.md reorders to: Step 1 = paste `project-instructions-starter.txt`, Step 2 = create project, Step 3 = assign folder — pasting instructions must precede any conversation
+- README.md Quick Start lists `/setup-wizard` as the primary call-to-action (Step 3)
 
-- AC: Output is a plain-text block the user can copy and paste directly into their Cowork Project's custom instructions field.
-- AC: Instructions include: tone directive, output format preference, safety rule ("Always ask before deleting files"), and a one-paragraph context summary about the user's role and goals.
-- AC: The safety rule (confirm before delete) is present in EVERY generated instructions block, regardless of goal preset.
-- AC: Instructions are ≤400 words (within Cowork's typical field limits).
-- AC: Wizard frames the output explicitly as "Project custom instructions" — not global settings — so the user pastes it in the right place.
-- AC: After generating `project-instructions.txt`, WIZARD.md includes this memory tip: "Cowork has a built-in Project memory. After pasting your custom instructions, try asking Cowork: 'Remember that I am [your role] and I prefer [output format] responses.' Cowork will store this for future sessions in this project."
-- AC: WIZARD.md clarifies: "`cowork-profile.md` is a reference file you can share with Cowork manually by saying 'Here's my profile:' and pasting it. It is not auto-loaded — it's yours to use as a quick context-setter."
+### F2 — Deep Interview (11 Steps Per Preset) [REVISED v1.1]
 
-### F4 — Cowork Project Folder Setup
-Creates (or documents) the recommended local folder for the user's Cowork Project, rooted at `~/Documents/Claude/Projects/<preset-name>/`. This is the designated folder path for a Cowork Project — the folder the user assigns when creating or configuring their project in Cowork.
+After goal selection, a structured per-preset interview calibrates the workspace. v1.1 deepens from 5 questions to ~11 steps covering knowledge questions, skill activations, tools, and space naming.
 
-- AC: Each preset ships with a documented folder tree (markdown format) rooted at `~/Documents/Claude/Projects/<preset-name>/`.
-- AC: Folder names follow Cowork conventions (no spaces in critical paths, numeric prefixes for ordering where useful).
-- AC: README.md is included at the folder root explaining each subfolder's purpose to the user.
-- AC: Folder structure is delivered as: (a) a shell script the user can run to create it, OR (b) a manual "create these folders" checklist — both options present.
-- AC: Wizard frames this step as "set up your Cowork Project folder" — not generic local organization — so the user understands it connects to their Cowork Project.
+**UX rules (all presets, all steps) [from @ux review]:**
+- Options use **numbered format (1, 2, 3...)** — not lettered (A, B, C)
+- "S) Suggest" appears on knowledge-gap questions only (study method, output format, tools) — NOT on personal preference questions (name, creative constraints)
+- Step counter hides denominator until after fast-track decision: show "Step 3" not "Step 3 of 11"
+- CTA: **`Your answer:`** on its own line (replaces `→ Type a number.`)
+- Multi-select example shows natural variations: `1, 3` or just `1 3`
+- "You choose" / "suggest" response: one concrete recommendation + one-sentence reason, then "Sound right?" — does not re-list options
+- Free-text tolerance: match intent, state interpretation in one sentence, proceed without re-asking
+- Skill options: 3 choices (not 4) — `1. Yes — activate  2. No — skip it  3. Show me more`
+- Skill presentation: show personalized example using answers from earlier steps, no description block (example alone conveys value)
+- "Show me more" latency: acknowledge immediately: "Generating an example — just a moment..."
+- After "you choose" recommendation, re-list option numbers inline before asking "Sound right?"
+- Time estimate at fast-track: "a few more minutes" (not an exact number)
 
-### F5 — Skill Starter Kit (Skill-Creator + Anthropic Pre-builts)
-Guides users to build 2–3 personalized skills live using Cowork's built-in skill-creator, with Anthropic's official pre-built document skills as zero-friction day-one defaults.
+**Fast-track at Step 5:** After Step 5, pause: "Your basic workspace is ready. 1) Yes, continue — deeper customization  2) Get started now — run /setup-wizard later"
 
-**Primary delivery — skill-creator wizard:** WIZARD.md guides the user through creating 2–3 skills conversationally, goal-specific and tailored to their actual workflow. Skills are built live inside Cowork's skill-creator, not copied from static files.
+**Per-preset step sequences:**
 
-**Secondary delivery — Anthropic pre-built skills:** WIZARD.md points users to Anthropic's official pre-built document skills (pptx, xlsx, docx, pdf) as ready-to-use defaults requiring no configuration.
+**Study (11 steps):**
+Step 1: Name (free text) | Step 2: Subject area | Step 3: Academic level (6 options + S) | Step 4: Upcoming deadlines (4 options) | Step 5: Study method (5 options + S) | FAST-TRACK PAUSE | Step 6: File types (multi-select) | Step 7: Output format (4 options + S) | Step 8: Academic integrity agreement | Step 9: Skill — Flashcard Generation (personalized example) | Step 10: Skill — Note-Taking | Step 11: Skill — Research Synthesis | Tools (multi-select) | Space name
 
-**ZIP upload guidance:** SETUP-CHECKLIST.md includes a step-by-step walkthrough for uploading skill ZIPs in Cowork (Settings > Customize > Skills > '+'), including the required folder structure: `skill-name/SKILL.md` at root, no double-nesting.
+**Research (11 steps):**
+Step 1: Name | Step 2: Research domain | Step 3: Researcher type (5 options + S) | Step 4: Stage of work (4 options) | Step 5: Source types (multi-select 5) | FAST-TRACK PAUSE | Step 6: Output format (4 options + S) | Step 7: Citation style (5 options + S) | Step 8: Source verification behavior | Step 9: Skill — Literature Review Assistant | Step 10: Skill — Source Analysis | Step 11: Skill — Research Synthesis | Tools (multi-select) | Space name
 
-**Safety note (inline in WIZARD.md):** The wizard includes one brief, reassuring note at the skill-creation step: "Skills can carry risks from untrusted sources. This wizard guides you to create skills yourself or use Anthropic's official pre-built skills — we don't reference external skill repositories in this step. If you ever install skills from other sources later, scan them first at SkillRisk.org." This note appears once — not as a warning banner, not as a blocker.
+**Writing (11 steps):**
+Step 1: Name | Step 2: Content type (6 options + S) | Step 3: Audience (5 options) | Step 4: Publishing frequency (4 options) | Step 5: Voice/style files (3 options) | FAST-TRACK PAUSE | Step 6: Workflow stage help (multi-select 5) | Step 7: Output format (3 options) | Step 8: Tone guardrails (4 options + S) | Step 9: Skill — Voice Matching | Step 10: Skill — Outline Generator | Step 11: Skill — Editing Pass | Tools (multi-select) | Space name
 
-- AC: WIZARD.md guides the user to create 2–3 personalized skills live via Cowork's skill-creator. Questions are conversational and goal-specific.
-- AC: WIZARD.md references Anthropic's official pre-built document skills (pptx, xlsx, docx, pdf) as day-one defaults.
-- AC: SETUP-CHECKLIST.md includes a step-by-step ZIP upload walkthrough: Settings > Customize > Skills > '+', with folder structure requirement (`skill-name/SKILL.md` at root, no double-nesting).
-- AC: Each skill file is plain-text, under 300 words, and follows the SKILL.md convention.
-- AC: Context files include: `about-me.md` (user fills in), `working-rules.md` (pre-filled with safe defaults), `output-format.md` (pre-filled per preset).
-- AC: The inline safety note is present in WIZARD.md exactly once at the skill step — brief and reassuring, not a warning wall.
-- AC: WIZARD.md NEVER references ClawHub or unvetted community skill repositories. Only Tier 1–2 sources: self-created (skill-creator) and Anthropic pre-builts.
-- AC: Static `.claude/skills/` preset files and the `skills-as-prompts.md` fallback approach are NOT included — skill-creator supersedes them.
-- AC: Each skill file in `presets/<name>/.claude/skills/` follows this exact format:
-  ```
-  # Skill: <Name>
-  **Description:** One sentence — what this skill helps Cowork do.
-  **When to use:** One sentence — what kind of task or prompt activates this skill.
-  **Instructions:** The skill prompt (≤250 words) — tell Claude how to approach this type of work.
-  **Example prompts:**
-  - [Example 1]
-  - [Example 2]
-  - [Example 3]
-  ```
-- AC: This format is also used in `templates/preset-template/.claude/skills/example-skill.md`.
+**Project Management (11 steps):**
+Step 1: Name | Step 2: Role (5 options + S) | Step 3: Project scale (4 options) | Step 4: Stakeholder communication (4 options) | Step 5: Tracking tools (5 options + S) | FAST-TRACK PAUSE | Step 6: Biggest time drain (5 options) | Step 7: Communication tone (3 options + S) | Step 8: File/folder access (5 options) | Step 9: Skill — Status Update Writer | Step 10: Skill — Meeting Notes Generator | Step 11: Skill — Risk Assessment | Tools (multi-select) | Space name
 
-### F6 — Connector Checklist
-A per-preset list of recommended Cowork connectors (Google Drive, Gmail, Slack, DocuSign, etc.) with plain-English descriptions of what each one enables.
+**Creative (11 steps):**
+Step 1: Name | Step 2: Creative medium (6 options + S) | Step 3: Work context (4 options) | Step 4: Creative partner role (5 options) | Step 5: Creative constraints (5 options) | FAST-TRACK PAUSE | Step 6: Feedback style (3 options) | Step 7: Inspiration sources (3 options) | Step 8: Output format (3 options) | Step 9: Skill — Ideation Partner | Step 10: Skill — Creative Brief | Step 11: Skill — Feedback Synthesizer | Tools (multi-select) | Space name
 
-- AC: Connector list is delivered as a markdown checklist the user can work through.
-- AC: Each connector entry includes: connector name, what it enables ("Google Drive: lets Claude read and create docs in your Drive"), and a "do you need this?" decision helper ("Only if you store working files in Drive").
-- AC: Wizard does NOT attempt to configure connectors automatically — it only generates the checklist and instructions (connector auth is handled by Cowork's native UI).
-- AC: Each connector entry includes the actual permission scope it requests. Example: "Google Drive: Cowork requests read/write access. Scope is limited to files you explicitly share or folders you grant access to — not your entire Drive by default."
-- AC: Each connector entry includes a one-sentence data boundary note (what Cowork can and cannot access).
-- AC: Gmail entry explicitly states: "Note: Claude creates email drafts only — it cannot send emails, even though the authorization screen mentions email permissions. Your emails are never sent without you clicking Send manually."
-- AC: Google Workspace / managed account entry notes: "If your Google account is managed by an organization (school or employer), your IT admin must authorize Claude in Google Workspace Admin Console before your personal authorization will work."
+**Business/Admin (11 steps):**
+Step 1: Name | Step 2: Role (5 options + S) | Step 3: Communication volume (4 options) | Step 4: Primary communication types (multi-select 5) | Step 5: Formality level (4 options) | FAST-TRACK PAUSE | Step 6: Report/summary format (3 options) | Step 7: Confidentiality sensitivity (3 options) | Step 8: Tools (multi-select) | Step 9: Skill — Email Drafter | Step 10: Skill — Report Summarizer | Step 11: Skill — Action Item Extractor | Space name
 
-### F7 — Output Package
-Everything the wizard produces is bundled into a single deliverable folder that the user copies into their Cowork workspace.
+**AC [v1.1]:**
+- Questions are presented one at a time
+- All questions have sensible defaults; user can skip with "I'm not sure / skip"
+- All options use numbered format (1, 2, 3) universally — "S) Suggest" appears only on knowledge-gap questions
+- Step counter shows "Step N" without denominator until after fast-track decision
+- CTA on every question is `**Your answer:**` on its own line
+- Fast-track pause appears after Step 5 for all 6 presets
+- Skill presentation shows 3 options (Yes / No / Show me more) with personalized example, no description block
+- `cowork-profile.md` includes `Upcoming deadlines:` field populated from deadlines step
+- `cowork-profile.md` is generated from a fixed template (not freeform), includes: Name, Goal preset, Role/context, Tools, Output format, Setup date, Upcoming deadlines
 
-- AC: Output folder structure is documented in `docs/OUTPUT-STRUCTURE.md` in the repo.
-- AC: Output includes: `cowork-profile.md`, `project-instructions.txt` (Cowork Project custom instructions), `working-rules.md`, `about-me.md`, `output-format.md`, skill files (for ZIP upload), `skills-as-prompts.md` (copied from preset — fallback skill content for manual use if skill upload isn't available), folder structure script, connector checklist.
-- AC: A `SETUP-CHECKLIST.md` is included at the root of the output, listing every manual step the user still needs to do in Cowork's native UI (paste instructions, authorize connectors, etc.).
-- AC: All files are plain text or markdown — no binary formats, no dependencies.
-- AC: SETUP-CHECKLIST.md contains at minimum these steps in order:
-  1. Open Cowork → Click "New Project" → Name it after your preset (e.g. "My Study Space")
-  2. In Project Settings → assign your project folder: `~/Documents/Claude/Projects/<preset-name>/`
-  3. In Project Settings → Custom Instructions → paste the entire contents of `project-instructions.txt`
-  4. Open `context/about-me.md` in any text editor → fill in your name, role, and goals → save
-  5. For each connector in your `connector-checklist.md`: open Cowork Settings → Connectors → authorize
-  6. Upload your skill ZIP: Cowork Settings → Customize → Skills → '+' → select the ZIP from your preset folder. ZIP must have `skill-name/SKILL.md` at root (no double-nesting).
-  7. Test your skills: ask Cowork "What skills do you have active?" — verify your preset skills appear
-  8. Try your first session (see "Try this now" prompt at bottom of checklist)
-  9. If anything didn't work, see the "What if something went wrong?" section
-- AC: SETUP-CHECKLIST.md includes a "Memory tip" note: "Cowork remembers things you tell it within a Project. Use the `/memory` command anytime to see, edit, or delete what it has stored."
-- AC: The final section of every preset's SETUP-CHECKLIST.md is "Try this now" — two prompts per preset: (a) a file-based prompt for users who already have content in their folder, (b) a file-agnostic prompt that works immediately with zero files, demonstrating the preset's value without any prior content.
-  - **File-agnostic prompts (b) — works on day one with zero content:**
-    - Study: "Ask Cowork: 'I'm studying [your subject]. Explain the concept of [any concept from your subject] as if I'm encountering it for the first time, then give me 3 practice questions I can answer to check my understanding.'"
-    - Research: "Ask Cowork: 'I'm starting a literature review on [your research topic]. What are the 5 most important questions I should be trying to answer, and what types of sources should I look for?'"
-    - Writing: "Ask Cowork: 'I need to write [type of content] about [any topic]. Give me 3 different opening paragraphs with different tones — formal, conversational, and punchy — so I can see which feels most like my voice.'"
-    - Project Management: "Ask Cowork: 'I'm managing a project to [describe any project]. What are the top 5 risks I should be tracking, and draft a one-paragraph status update I could send to a stakeholder today.'"
-    - Creative: "Ask Cowork: 'I'm working on [describe any creative project]. Give me 5 unexpected directions I could take this — include at least one that surprises me.'"
-    - Business/Admin: "Ask Cowork: 'Draft a professional email declining a meeting request politely, keeping the relationship warm, in under 100 words. Then draft a version that's 30% more direct.'"
-  - **File-based prompts (a) — primary for users with content:**
-    - Study: "Ask Cowork: 'Read the PDFs in my Papers/ folder and give me a one-paragraph summary of each one.'"
-    - Research: "Ask Cowork: 'Look at my Research/ folder. What sources do I have and what topics do they cover?'"
-    - Writing: "Ask Cowork: 'Read my voice-and-style.md and write me a 150-word sample in my voice about [any topic].'"
-    - Project Management: "Ask Cowork: 'What's in my Active-Projects/ folder? Summarize the status of each project in 2 sentences.'"
-    - Creative: "Ask Cowork: 'Read my inspiration/ folder and suggest 3 creative directions I could explore this week.'"
-    - Business/Admin: "Ask Cowork: 'What files are in my Inbox/ folder? Draft a prioritized action list for today.'"
-- AC: The file-based "Try this now" prompt uses real folder paths from the preset's folder structure document — it must produce a real result, not a generic answer.
-- AC: SETUP-CHECKLIST.md includes a "What if something goes wrong?" section with recovery for these scenarios:
-  - **Wizard interrupted mid-session:** "Open Cowork again, open this repo folder, and say: 'Let's continue the setup wizard. My preset is [name].' Your `cowork-profile.md` has your answers if we got that far."
-  - **Skill test failed (skills not loading):** "Open `skills-as-prompts.md` in your preset folder. Copy the skill content you want and paste it at the start of your message: 'Using this approach: [paste] — now help me with [task].'"
-  - **Connector auth failed:** "If Google Workspace/school/work account: your IT admin needs to authorize Claude first. For personal Google accounts, try disconnecting and re-authorizing. For other issues: support.claude.com"
-- AC: SETUP-CHECKLIST.md ends with a "Keeping up to date" note: "When a new version ships, check the Releases tab on GitHub. CHANGELOG.md lists which presets changed. To update a specific preset: download the new `presets/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions.txt` are yours — they won't be overwritten."
+### F3 — Project Custom Instructions Generator [REVISED v1.1]
 
-### F8 — README and Community Onboarding
-A high-quality README.md for the GitHub repo that serves as both product documentation and community growth hook.
+`project-instructions-starter.txt` is the primary output artifact. It replaces the old flat `project-instructions.txt` as the first thing a user pastes.
 
-- AC: README includes: what this is (1 paragraph), who it's for (2–3 sentences), how to use it (numbered steps, ≤8 steps), what you get (bulleted list per preset), and a "contribute a new preset" guide.
-- AC: README is shareable — no jargon, no code required to understand.
-- AC: README includes a visual (ASCII diagram or table) showing the wizard flow.
-- AC: "Star this repo if it helped you" CTA is present above the fold.
-- AC: README.md includes a "Versions & Updates" section (≤3 sentences) linking to GitHub Releases and explaining that only preset template files change — user-generated files are never overwritten.
-- AC: CONTRIBUTING.md includes an explicit PR review checklist for maintainers: (1) safety rule present verbatim in `project-instructions.txt` (from `templates/global-instructions-base.md`), (2) minimum file count met (≥3 skill files, ≥2 context files, ≥1 folder structure, ≥1 connector checklist), (3) at least one "Try this now" prompt present, (4) CI passes (lint + links + shellcheck), (5) skill files follow the format spec from F5.
-- AC: CONTRIBUTING.md links to `templates/preset-template/` as the required starting point for new presets.
-- AC: CONTRIBUTING.md instructs contributors to scan any externally sourced skill content at SkillRisk.org before submitting.
+**AC [v1.1]:**
+- `project-instructions-starter.txt` is ≤300 words per preset
+- Contains Phase 1 (onboarding block with state machine check) and Phase 2 (ongoing behavior: session-start rules, proactive skill triggers summary, safety rule)
+- The safety rule ("Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder") is present in every starter file, regardless of preset
+- Wizard frames the output as "Project custom instructions" — paste into Project Settings > Custom Instructions BEFORE any conversation
+- After wizard completion, Cowork generates `cowork-profile.md` from all answers and says: "Setup complete — your workspace is ready. What would you like to work on?" (does not auto-start tasks)
+- First-session completion prompt is **personalized per preset** (action-triggering, not generic "what would you like to do?"):
+  - Study: "Your [Subject] study space is ready. Want to start with a concept breakdown, a flashcard set, or share something you're reading?"
+  - Research: "Your [Domain] research workspace is ready. Want to start a literature search, organize sources, or discuss your research question?"
+  - Writing: "Your writing space is ready. Want to draft something, outline a new piece, or import a draft to work on?"
+  - Project Management: "Your [Role] workspace is ready. Want to draft a status update, review a project, or set up your tracking system?"
+  - Creative: "Your creative workspace is ready. Want to explore ideas, develop a concept, or get feedback on something you're working on?"
+  - Business/Admin: "Your workspace is ready. Want to draft an email, summarize a document, or work through your inbox?"
+- Returning-session greeting is deadline-aware: surfaces deadlines within 7 days and asks a contextually relevant opening question
 
-### F9 — Preset Library (6 Presets Shipped at Launch)
-Six fully documented configuration profiles, each covering: goal description, persona fit, Project custom instructions template, skill files, folder structure, connector checklist.
+### F4 — Cowork Project Folder Setup [UNCHANGED]
 
-Presets:
-1. **Study** — Students, exam prep, research-heavy coursework
-2. **Research** — Academic researchers, analysts, literature review
-3. **Writing** — Authors, content creators, journalists, bloggers
-4. **Project Management** — PMs, team leads, ops professionals
-5. **Creative** — Designers, storytellers, creative strategists
-6. **Business/Admin** — Executives, assistants, business owners handling email/scheduling/reporting
+Creates (or documents) the recommended local folder rooted at `~/Documents/Claude/Projects/<preset-name>/`.
 
-- AC: Each preset is a standalone folder in `/presets/<name>/` containing all configuration files.
-- AC: Each preset ships with at least 3 skill files, 2 context files, 1 folder structure, 1 connector checklist, and 1 `skills-as-prompts.md` file (fallback skill content for manual use if skill upload isn't available).
-- AC: All presets are validated: README opens, files parse as markdown, no broken relative links.
+- AC: Each preset ships with a documented folder tree (markdown format)
+- AC: Folder names follow Cowork conventions (no spaces in critical paths)
+- AC: README.md included at folder root explaining each subfolder's purpose
+- AC: Folder structure delivered as both a shell script and a manual checklist
+- AC: Wizard frames this step as "set up your Cowork Project folder"
+
+### F5 — Skill Starter Kit [REVISED v1.1]
+
+Skills convert from flat `.md` files to proper Cowork `folder/SKILL.md` format with YAML frontmatter. This makes skills first-class Cowork citizens that auto-discover as `/slash-commands`.
+
+**Skill file format (required for all presets):**
+```
+presets/<name>/.claude/skills/<skill-name>/SKILL.md
+```
+SKILL.md contains YAML frontmatter with `name:` and `description:` fields, plus skill body (instructions + examples, ≤250 words body).
+
+**Skill activation during onboarding:** After the user says "Yes" to a skill in the wizard, `project-instructions-starter.txt` instructs Cowork: "Run `/skill-creator` to validate the skill is properly installed. If `/skill-creator` is not available, confirm the skill file exists at `.claude/skills/<skill-name>/SKILL.md`."
+
+**AC [v1.1]:**
+- All preset skill files are in `folder/SKILL.md` format with valid YAML frontmatter — no flat `.md` skill files remain
+- Each preset ships with exactly 3 skills (per the step sequences in F2)
+- Each `SKILL.md` contains: `name:` (slug), `description:` (one sentence), and a skill body
+- `templates/preset-template/.claude/skills/example-skill/SKILL.md` uses this format (no flat example-skill.md)
+- After user activates a skill in onboarding, wizard instructs Cowork to run `/skill-creator` to validate/improve
+- WIZARD.md references Anthropic's official pre-built document skills (pptx, xlsx, docx, pdf) as zero-config day-one defaults
+- SETUP-CHECKLIST.md includes a step-by-step ZIP upload walkthrough: Settings > Customize > Skills > '+', folder structure requirement (`skill-name/SKILL.md` at root, no double-nesting)
+- `skills-as-prompts.md` is RETAINED in all 6 presets as copy-paste fallback (unchanged from v1.0)
+- Inline safety note present in WIZARD.md once at the skill step: brief, reassuring, not a warning wall
+- WIZARD.md NEVER references ClawHub or unvetted community skill repositories
+
+### F6 — Connector Checklist [UNCHANGED]
+
+Per-preset list of recommended Cowork connectors with plain-English descriptions.
+
+- AC: Connector list is a markdown checklist
+- AC: Each entry includes: connector name, what it enables, "do you need this?" decision helper
+- AC: Connector entries include actual permission scope and data boundary note
+- AC: Gmail entry states: "Note: Claude creates email drafts only — it cannot send emails without you clicking Send manually"
+- AC: Google Workspace entry notes IT admin requirement for managed accounts
+- AC: Wizard does NOT attempt to configure connectors automatically
+
+### F7 — Output Package [REVISED v1.1]
+
+The output package now leads with `project-instructions-starter.txt` as the first file to use.
+
+- AC: Output includes: `project-instructions-starter.txt`, `cowork-profile.md`, `working-rules.md`, `about-me.md`, `output-format.md`, skill files (folder/SKILL.md format), `skills-as-prompts.md`, folder structure script, connector checklist, `SETUP-CHECKLIST.md`
+- AC: `SETUP-CHECKLIST.md` step order: (1) Create Cowork Project, (2) Assign project folder, (3) **Paste `project-instructions-starter.txt` into Project Settings > Custom Instructions — before any conversation**, (4) Start conversation — Cowork auto-runs onboarding, (5) Complete remaining steps after onboarding
+- AC: All other SETUP-CHECKLIST.md ACs from v1.0 are retained (memory tip, "Try this now" prompts, "What if something goes wrong?" section, versioning note)
+- AC: `docs/OUTPUT-STRUCTURE.md` is updated to document `project-instructions-starter.txt` as the primary output artifact
+- AC: All files are plain text or markdown — no binary formats
+
+### F8 — README and Community Onboarding [REVISED v1.1]
+
+- AC: README includes updated ASCII flow diagram showing: "Paste project-instructions-starter.txt → Start conversation → Cowork auto-detects first session → run `/setup-wizard` to redo"
+- AC: README Quick Start Step 3 is: "Type `/setup-wizard`" as primary CTA
+- AC: All v1.0 README ACs retained (shareable, no jargon, ≤8 steps, star CTA above fold, versions section)
+- AC: CONTRIBUTING.md PR checklist updated: (1) `project-instructions-starter.txt` present, (2) starter file ≤300 words, (3) safety rule present in starter file verbatim, (4) all skills in `folder/SKILL.md` format (no flat .md skill files), (5) minimum file count met (≥3 skills, ≥2 context files, ≥1 folder structure, ≥1 connector checklist), (6) at least one "Try this now" prompt present, (7) CI passes
+
+### F9 — Preset Library (6 Presets) [REVISED v1.1]
+
+- AC: Each preset is a standalone folder in `/presets/<name>/`
+- AC: Each preset contains: `project-instructions-starter.txt`, ≥3 skills in `folder/SKILL.md` format, `global-instructions.md` (with proactive trigger rules), 2 context files, 1 folder structure doc, 1 connector checklist, `skills-as-prompts.md`
+- AC: `global-instructions.md` for each preset uses **proactive trigger rules format** (not passive skill list):
+  - For each skill: defines 2–3 explicit trigger conditions and an exact suggested offer phrase
+  - Session-start behavior block: check deadlines, surface within-7-days items, ask contextually relevant opening question
+  - "Never" block: do not silently use a skill, do not assume subject without asking, do not end without offering to save output
+- AC: All presets validated: README opens, files parse as markdown, no broken relative links
+
+### F10 — CI Quality Gates [NEW v1.1]
+
+Three new jobs added to `.github/workflows/quality.yml`:
+
+- AC: `starter-file-check` job: verifies `presets/*/project-instructions-starter.txt` exists for all 6 presets — blocks PR if absent
+- AC: `starter-safety-rule-check` job: greps all 6 starter files for the canonical safety rule text — blocks PR if absent
+- AC: `skill-format-check` job: verifies all files under `presets/*/.claude/skills/` follow `folder/SKILL.md` convention — fails if flat `.md` skill files are found at the skills directory root
 
 ## Out of Scope (v1)
 
-- Web application or GUI — this is a CLI wizard or interactive markdown/script experience only
-- Automated Cowork connector authorization (OAuth flows) — Cowork's native UI handles this
-- Cloud sync or hosted version — local delivery only
-- Plugin/sub-agent creation — preset skill files are instruction files only, not actual Cowork plugins
-- Automated file deletion or permission changes on the user's machine beyond folder creation
-- Integration with Cowork's API (no public API exists at time of writing — [UNTESTED])
-- Multi-language support (English-only v1)
-- Enterprise admin configuration presets (out of scope for community tool)
-- Personalization engine that learns over time — static presets only at launch
+- Web application or GUI
+- Automated Cowork connector authorization
+- Cloud sync or hosted version
+- Custom goal community config search path (deferred to v1.2)
+- Multi-language support (English-only)
+- Enterprise admin presets
+- Personalization engine that learns over time
 
 ## Technical Constraints
 
-- **Stack:** Shell script (bash) for folder creation + Python (optional) or pure markdown/interactive CLI for wizard flow. Zero-dependency delivery preferred — users should not need to install anything beyond what comes with macOS/Windows.
-- **Delivery:** Public GitHub repo. Users `git clone` or download ZIP. No package manager required.
-- **Platform:** macOS primary (Claude Cowork GA on macOS first), Windows secondary (PowerShell equivalents for folder scripts).
-- **File formats:** Markdown only for all config files. No YAML, TOML, JSON in user-facing files.
-- **Cowork configuration surface targeted:** Cowork Project custom instructions, Cowork skill-creator (built-in), Anthropic pre-built skills, ZIP skill upload, local Cowork Project folder (`~/Documents/Claude/Projects/<preset-name>/`), connector checklist (manual). Projects feature (launched March 2026) is required for F3 and F4. Static `.claude/skills/` filesystem delivery is NOT used — superseded by skill-creator and ZIP upload.
-- **Zero code barrier:** Every step must be executable by a user who has never opened a terminal. Where a terminal command is used, it must be wrapped in a plain-English explanation and a manual alternative must exist.
-- **Safety constraint:** Every generated instructions block MUST include the "confirm before delete" safety rule. This is non-negotiable given the documented 11GB deletion incident.
-- **Model floor:** The Cowork-as-wizard primary path is designed for Claude Sonnet 4.6 or better. Haiku-class models cannot reliably meet the ≤5-interaction AC or the fuzzy-match AC. WIZARD.md must surface a soft warning at session start. The bash-script and manual-checklist fallback paths are model-agnostic.
-- **Model recommendation for knowledge work:** WIZARD.md should mention the `opusplan` alias (Opus for planning + Sonnet for execution) as the recommended daily-driver model for the Research, Writing, and Project Management presets. Study and Creative presets work well on Sonnet alone.
+- **Stack:** Static markdown repo. `project-instructions-starter.txt` is the primary wizard runtime surface. No application runtime.
+- **Delivery:** Public GitHub repo. ZIP-downloadable. No package manager required.
+- **Platform:** macOS primary, Windows secondary.
+- **Word limit:** `project-instructions-starter.txt` must be ≤300 words per preset. If Cowork's actual field limit is shorter than expected (see A1), the Phase 2 ongoing behavior block may need to be trimmed or split.
+- **Skill format:** All preset skills must use `folder/SKILL.md` with YAML frontmatter. No flat `.md` skill files.
+- **Safety constraint:** Every `project-instructions-starter.txt` AND every `global-instructions.md` MUST contain the "confirm before delete" safety rule verbatim.
+- **AskUserQuestion:** The nudge "use AskUserQuestion to present options as clickable buttons" is a best-effort heuristic instruction. Numbered list format is the primary design target; buttons are a stretch/bonus. Never design an AC that requires buttons.
+- **`/skill-creator` dependency:** After skill activation, wizard instructs Cowork to run `/skill-creator`. If `/skill-creator` is unavailable or deprecated, fallback is to confirm file exists at `.claude/skills/<name>/SKILL.md`. This fallback must be present in all onboarding scripts.
+- **Model floor:** Designed for Claude Sonnet 4.6 or better. WIZARD.md surfaces a soft model warning. Bash/manual fallbacks are model-agnostic.
 
 ## User Stories
 
-- As a university student, I can answer 3 questions about my study goals, so that I get a pre-configured Cowork workspace that helps me research, take notes, and generate flashcards without figuring out settings myself.
-- As a knowledge worker, I can select my role type from a list, so that I get a Project custom instructions template that reflects my professional tone and output standards.
-- As a beginner who just installed Cowork, I can follow the SETUP-CHECKLIST.md step by step, so that I have a working personalized workspace in under 15 minutes.
-- As a non-technical user, I can read every configuration file in my output package, so that I understand what it does and can edit it without breaking anything.
-- As a community contributor, I can find the `CONTRIBUTING.md` guide, so that I can add a new preset for a use case not covered in v1.
-- As a researcher, I can use the Research preset, so that Cowork knows to produce structured literature summaries, use academic citation format, and ask for source folders before starting synthesis tasks.
-- As a project manager, I can use the PM preset, so that Cowork knows to produce status updates in my preferred format and connects to my Google Drive project folder.
+- As a university student, I can paste `project-instructions-starter.txt` before my first conversation, so that Cowork automatically runs a personalized setup interview without being intercepted by the native setup skill.
+- As a knowledge worker, I can type `/setup-wizard` explicitly, so that I get the full onboarding interview regardless of what Cowork's intent classifier would otherwise do.
+- As a user who completed setup, I can open a new session and have Cowork greet me by name and surface any deadlines within 7 days, so that I start every session with relevant context.
+- As a user who activates a skill during onboarding, I can trust that Cowork validates the skill via `/skill-creator`, so that it auto-discovers as a `/slash-command` rather than staying as a static prompt file.
+- As a beginner, I can stop at Step 5 (fast-track), so that I get a working workspace without completing the full 11-step interview.
+- As a community contributor, I can follow the CONTRIBUTING.md PR checklist, so that my preset includes all required files in the correct format and passes CI.
 
 ## Acceptance Criteria
 
-- [ ] Running the wizard produces all required output files (profile, project custom instructions, working-rules, about-me, output-format, setup checklist) and guides the user through live skill creation via skill-creator
-- [ ] Every generated Project custom instructions block contains the "confirm before delete" safety rule
-- [ ] Wizard completes in ≤5 user interactions from goal selection to output
-- [ ] All 6 presets are present as standalone folders in `/presets/`
-- [ ] Each preset contains: ≥3 skill files, ≥2 context files, 1 folder structure document, 1 connector checklist
-- [ ] All markdown files pass a markdown linter with zero errors
-- [ ] README.md explains the product in plain language with no jargon and ≤8 setup steps
-- [ ] Folder creation script runs successfully on macOS (bash) and produces the documented structure
-- [ ] Manual alternative exists for every automated step (no step requires terminal if user declines)
-- [ ] `SETUP-CHECKLIST.md` lists every post-wizard step the user must complete in Cowork's native UI
-- [ ] CONTRIBUTING.md is present and explains how to add a new preset
-- [ ] All preset files are plain markdown — no binary files, no code dependencies
-- [ ] Zero broken relative links in any markdown file (validated by linter or CI check)
+- [ ] `project-instructions-starter.txt` exists for all 6 presets and is ≤300 words each
+- [ ] Every `project-instructions-starter.txt` contains the safety rule verbatim
+- [ ] Every `project-instructions-starter.txt` contains the AskUserQuestion nudge
+- [ ] State machine check works: wizard auto-runs if `cowork-profile.md` absent, skips if present with real content
+- [ ] Fast-track pause appears after Step 5 for all 6 presets
+- [ ] All preset skill files are in `folder/SKILL.md` format with valid YAML frontmatter (no flat `.md` skill files)
+- [ ] `.claude/skills/setup-wizard/SKILL.md` exists at repo root with valid YAML frontmatter
+- [ ] All 6 presets' `global-instructions.md` use proactive trigger rules format (not passive skill list)
+- [ ] SETUP-CHECKLIST.md Step 1 is: paste `project-instructions-starter.txt` before any conversation
+- [ ] README.md Quick Start uses `/setup-wizard` as primary CTA
+- [ ] CI has 3 new jobs: starter-file-check, starter-safety-rule-check, skill-format-check
+- [ ] `cowork-profile.md` template includes `Upcoming deadlines:` field
+- [ ] All 6 presets' questions use numbered options (1, 2, 3) — not lettered (A, B, C)
+- [ ] Skill presentation shows 3 options with `**Your answer:**` CTA (not 4 options, not `→ Type a number.`)
+- [ ] `skills-as-prompts.md` present in all 6 presets (unchanged)
+- [ ] All 6 presets pass: README opens, files parse as markdown, zero broken relative links
+- [ ] CI safety-rule grep passes for all 6 `global-instructions.md` AND all 6 `project-instructions-starter.txt`
+- [ ] Smoke test documented as passing: paste starter file into fresh Cowork project, send any first message, verify (a) wizard auto-runs without native skill interception, (b) ≥5 questions appear, (c) `cowork-profile.md` created after completion
 
 ## Success Metrics
 
-- **Primary (North Star):** % of users who complete the full wizard AND confirm they used Cowork actively within 7 days — target ≥60% of completers. [UNTESTED — measurement proxy: GitHub README survey link or issue template]
-- **Secondary:** GitHub stars within 30 days of LinkedIn launch post — target ≥200 stars as community resonance signal
-- **Secondary:** % of preset downloads that include the Study and Research presets (validates primary persona fit) — target ≥50% of downloads include one of these two
-- **Secondary:** Community contributions (new presets submitted via PR) within 60 days — target ≥3 community presets
-- **Proxy (immediate):** Time-to-complete-setup for a test user following the README — target ≤15 minutes from clone to first Cowork session with personalized config active
+- **Primary (North Star):** % of users who complete the full wizard AND confirm they used Cowork actively within 7 days — target ≥60% of completers
+- **Secondary:** GitHub stars within 30 days of LinkedIn launch post — target ≥200
+- **Secondary:** % of preset downloads including Study or Research — target ≥50%
+- **Secondary:** Community preset contributions within 60 days — target ≥3
+- **Proxy:** Time-to-complete-setup for test user — target ≤15 minutes from clone to first personalized session
 
 ## Assumptions [confidence]
 
-See `docs/assumptions.md` for full register. Key assumptions:
+See `docs/assumptions.md` for full register. Key assumptions for v1.1:
 
-- [UNTESTED] Cowork's Project custom instructions field accepts plain-text blocks up to ~400 words without truncation
-- [SUPERSEDED] SKILL.md files in `.claude/skills/` — A2 is resolved. Cowork does NOT auto-discover filesystem skills. Architecture pivots to skill-creator + ZIP upload. See `docs/assumptions.md` A2.
-- [ESTIMATED] A non-technical user can follow a numbered setup checklist and configure their Cowork workspace in under 15 minutes
+- [UNTESTED] A1: Cowork's Project custom instructions field accepts ~400 words (≤300 word target provides safety margin)
+- [UNTESTED] B2: Users are willing to complete an 11-step interview; fast-track path at Step 5 mitigates drop-off risk
+- [UNTESTED] `/skill-creator` is a stable built-in Cowork slash command that produces valid `folder/SKILL.md` format
+- [UNTESTED] The AskUserQuestion nudge causes Cowork to render clickable button UI — numbered list format is the guaranteed fallback
 - [CONFIRMED] Cowork runs on macOS and Windows (GA April 2026)
-- [UNTESTED] The Projects feature (March 2026) is stable enough to build configuration guidance around
+- [CONFIRMED] v1.0 root cause: Cowork's intent classifier intercepts "set up"-type phrases before reading project files
 
-## Open Questions for @architect
+## Proposed Changes (v1.1 revisions to v1.0)
 
-1. What is the exact delivery mechanism — pure markdown wizard (user reads and applies), interactive bash script, or Python CLI? Recommend deciding at Phase 1.
-2. Should presets be versioned independently (semver per preset) or as a monorepo with a single version?
-3. Should the GitHub repo include a GitHub Actions CI check for markdown lint and broken links?
+| Area | Change | Rationale |
+|------|--------|-----------|
+| F1 | Three-layer trigger replaces WIZARD.md primary path | v1.0 root cause: WIZARD.md ignored by intent classifier |
+| F2 | 11-step deep interview replaces 5-question interview | Too shallow even if triggered; proactive skills require context |
+| F2 | Numbered options, `**Your answer:**` CTA, fast-track at Step 5 | UX fixes U1–U8 from @ux Phase 0b review |
+| F3 | `project-instructions-starter.txt` is primary output artifact | Must be pasted before any conversation to work |
+| F5 | Skills convert to `folder/SKILL.md` format with YAML frontmatter | Enables auto-discovery as `/slash-commands` in Cowork |
+| F5 | `/skill-creator` validation after skill activation | Converts static files to properly triggering skills |
+| F9 | `global-instructions.md` rewritten with proactive trigger rules | Passive skill list never triggered skills proactively |
+| F10 | 3 new CI jobs for starter files and skill format | Enforce new required files for community contributions |

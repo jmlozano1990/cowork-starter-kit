@@ -1,6 +1,9 @@
-# Skill: Action Items
+---
+name: action-items
+description: Identify and structure action items from a meeting, email thread, or document into a clear, owned list
+---
 
-**Description:** Identifies and structures action items from a meeting, email thread, or document into a clear, owned list.
+## Action Item Extractor
 
 **When to use:** After a meeting, when reading a long email thread, or when working through a document that contains tasks or decisions needing follow-up.
 

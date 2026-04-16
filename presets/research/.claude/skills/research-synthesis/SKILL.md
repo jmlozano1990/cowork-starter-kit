@@ -1,6 +1,9 @@
-# Skill: Research Synthesis
+---
+name: research-synthesis
+description: Combine insights from multiple sources into a structured, cited summary
+---
 
-**Description:** Combines insights from multiple sources into a structured, cited summary.
+## Research Synthesis
 
 **When to use:** When you have 2 or more papers, articles, or notes and want to understand what they say together — agreements, disagreements, and gaps.
 
@@ -8,6 +11,6 @@
 
 **Example prompts:**
 
-- "Synthesize the papers in my Papers/ folder on [topic]."
-- "I have three papers on protein folding. What do they agree on and where do they differ?"
+- "Synthesize the papers in my Literature/ folder on [topic]."
+- "I have three papers on [topic]. What do they agree on and where do they differ?"
 - "Give me a synthesis of these two articles: [paste text or list filenames]."

@@ -1,6 +1,9 @@
-# Skill: Editing Pass
+---
+name: editing-pass
+description: Review a draft and return specific, actionable editing suggestions at the level the writer requests
+---
 
-**Description:** Reviews a draft and returns specific, actionable editing suggestions at the level the writer requests.
+## Editing Pass
 
 **When to use:** When you have a draft and want targeted feedback — either light cleanup, clarity improvements, or structural rework.
 

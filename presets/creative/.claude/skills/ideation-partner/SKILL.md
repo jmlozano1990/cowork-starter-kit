@@ -1,6 +1,9 @@
-# Skill: Ideation
+---
+name: ideation-partner
+description: Generate a range of genuinely distinct creative directions for a project, brief, or open-ended creative problem
+---
 
-**Description:** Generates a range of genuinely distinct creative directions for a project, brief, or open-ended creative problem.
+## Ideation Partner
 
 **When to use:** When you need to explore directions — at the start of a project, when stuck, or when you want to push beyond the obvious.
 

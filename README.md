@@ -1,10 +1,10 @@
 # cowork-starter-kit
 
-> Set up your Claude Cowork workspace in 15 minutes. No code. No configuration files. Just answer 5 questions.
+> Set up your Claude Cowork workspace in 15 minutes. No code. No configuration files. Paste one file — Cowork does the rest.
 
 [![CI](https://github.com/JLCyb3r/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/JLCyb3r/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -18,36 +18,34 @@ This fixes that.
 
 ## How it works
 
-Open this folder in Cowork. Say "Help me set up." Cowork reads the wizard, asks you 5 questions, and generates your personalized workspace files — custom instructions, context files, starter skills, and a step-by-step checklist. Takes about 15 minutes. No terminal required.
+Paste one file into Cowork Project Settings before your first conversation. Cowork auto-detects it's your first session and runs a personalized onboarding interview — goal selection, deep customization, skill activation. Takes about 15 minutes. No terminal required.
 
 ```
-You                          Cowork
- |                              |
- |  "Help me set up"            |
- | ---------------------------> |
- |                              |  Reads WIZARD.md
- |                              |  Q1: What's your main goal?
- |  "Research"                  |
- | ---------------------------> |
- |                              |  Q2: How do you want answers?
- |  "Bullet points"             |
- | ---------------------------> |
- |                              |  Q3: Tell me about your work
- |  [your answer]               |
- | ---------------------------> |
- |                              |  Q4: Which tools do you use?
- |  "Google Drive, Gmail"       |
- | ---------------------------> |
- |                              |  Q5: Safety check
- |  [your answer]               |
- | ---------------------------> |
- |                              |  Generates your workspace:
- |                              |    project-instructions.txt
- |                              |    cowork-profile.md
- |                              |    context/ folder
- |                              |    connector-checklist.md
- |  "Done — follow checklist."  |
- | <--------------------------- |
+You                                Cowork
+ |                                    |
+ |  Paste project-instructions-       |
+ |  starter.txt into Project          |
+ |  Settings > Custom Instructions    |
+ | ---------------------------------> |
+ |                                    |  (injected as system context)
+ |                                    |
+ |  Start conversation                |
+ | ---------------------------------> |
+ |                                    |  Auto-detects first session
+ |                                    |  Runs onboarding interview
+ |                                    |  (up to 11 steps, fast-track at 5)
+ |  [your answers]                    |
+ | ---------------------------------> |
+ |                                    |  Generates your workspace:
+ |                                    |    cowork-profile.md
+ |                                    |    context/ folder
+ |                                    |    skill files
+ |                                    |    connector-checklist.md
+ |  "Your workspace is ready."        |
+ | <--------------------------------- |
+ |                                    |
+ |  Type /setup-wizard                |
+ | ---------------------------------> |  Explicit fallback — redo setup
 ```
 
 ---
@@ -56,9 +54,10 @@ You                          Cowork
 
 1. **[Download ZIP](https://github.com/JLCyb3r/cowork-starter-kit/archive/refs/heads/main.zip)** — unzip anywhere on your computer
 2. Open Claude Cowork → create a new Project → point it at the unzipped folder
-3. Say: **"Help me set up my workspace"**
+3. Open your preset folder (`presets/<your-goal>/`), copy `project-instructions-starter.txt`, and paste it into Project Settings > Custom Instructions
+4. Type: **`/setup-wizard`**
 
-That's it. Cowork takes it from there.
+That's it. Cowork runs the onboarding interview and builds your personalized workspace.
 
 > **No Cowork yet?** Use the manual path: open `SETUP-CHECKLIST.md` and follow every step by hand.
 
@@ -79,13 +78,15 @@ Pick the one that matches your work. The wizard auto-selects the right preset an
 
 **Each preset includes:**
 
-- `project-instructions.txt` — paste into Cowork Project Settings > Custom Instructions
+- `project-instructions-starter.txt` — paste into Project Settings > Custom Instructions BEFORE any conversation
+- `global-instructions.md` — proactive skill trigger rules (session behavior)
 - `context/about-me.md` — fill in your name, role, and goals
 - `context/working-rules.md` — safe defaults (includes confirm-before-delete rule)
 - `context/output-format.md` — pre-filled for your preset
 - `connector-checklist.md` — which connectors to authorize and why
 - `skills-as-prompts.md` — skill content as copy-paste prompts if skill upload is unavailable
 - `folder-structure.md` — recommended folder layout for your workspace
+- `.claude/skills/<skill-name>/SKILL.md` — 3 preset skills in Cowork-native format
 
 ---
 

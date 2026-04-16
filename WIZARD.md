@@ -1,6 +1,6 @@
 # Cowork Setup Wizard
 
-> **For Cowork:** When a user opens this folder and asks to set up their workspace, read this file and conduct the interview below conversationally. Generate the output files as instructed after collecting answers.
+> **Users:** Start with `/setup-wizard` or paste `project-instructions-starter.txt` into Project Settings > Custom Instructions. This file is the script source, not the entry point.
 
 ---
 

@@ -1,6 +1,9 @@
-# Skill: Risk Assessment
+---
+name: risk-assessment
+description: Identify and structure project risks with likelihood, impact, and mitigation for tracking and stakeholder communication
+---
 
-**Description:** Identifies and structures project risks with likelihood, impact, and mitigation for tracking and stakeholder communication.
+## Risk Assessment
 
 **When to use:** When starting a new project, doing a project health check, or when a new issue emerges that needs to be tracked.
 

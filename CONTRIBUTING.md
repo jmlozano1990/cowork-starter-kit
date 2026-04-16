@@ -18,13 +18,15 @@ All contributions start from the template. Do not create a preset folder from sc
 
 ## PR review checklist for maintainers
 
-Before merging a new preset PR, verify all 5 items:
+Before merging a new preset PR, verify all 7 items:
 
-- [ ] **Safety rule present verbatim** in `global-instructions.md` — must contain the exact sentence from `templates/global-instructions-base.md`: "Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder."
-- [ ] **Minimum file count met** — at least 3 skill files in `.claude/skills/`, at least 2 context files in `context/`, at least 1 `folder-structure.md`, at least 1 `connector-checklist.md`
+- [ ] **`project-instructions-starter.txt` present** — file exists at `presets/<name>/project-instructions-starter.txt`
+- [ ] **Starter file is ≤300 words** — run `wc -w presets/<name>/project-instructions-starter.txt` to confirm
+- [ ] **Safety rule present verbatim in starter file** — must contain: "Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder."
+- [ ] **All skills in `folder/SKILL.md` format** — no flat `.md` skill files at `presets/<name>/.claude/skills/` root; each skill is a folder with `SKILL.md` containing valid YAML frontmatter (`name:` and `description:` fields)
+- [ ] **Minimum file count met** — at least 3 skills in `.claude/skills/`, at least 2 context files in `context/`, at least 1 `folder-structure.md`, at least 1 `connector-checklist.md`
 - [ ] **"Try this now" prompts present** — `skills-as-prompts.md` includes at least one file-based and one file-agnostic example prompt
-- [ ] **CI passes** — all GitHub Actions jobs pass: markdown lint, link check, shellcheck, and the safety-rule grep
-- [ ] **Skill files follow the format spec** — each skill file in `.claude/skills/` uses the exact format from `templates/preset-template/.claude/skills/example-skill.md` (Name, Description, When to use, Instructions, Example prompts)
+- [ ] **CI passes** — all GitHub Actions jobs pass: markdown lint, link check, shellcheck, safety-rule grep, starter-file-check, starter-safety-rule-check, skill-format-check
 
 ---
 
@@ -43,12 +45,35 @@ npx markdownlint-cli2 "**/*.md"
 # ShellCheck (requires shellcheck installed)
 shellcheck scripts/setup-folders.sh
 
-# Safety rule grep (runs on all presets including yours)
+# Safety rule grep — global-instructions.md
 SAFETY_RULE="Always ask for explicit confirmation before deleting"
 for f in presets/*/global-instructions.md; do
   if ! grep -q "$SAFETY_RULE" "$f"; then
     echo "MISSING safety rule: $f"
   fi
+done
+
+# Safety rule grep — starter files (.txt)
+for f in presets/*/project-instructions-starter.txt; do
+  if ! grep -q "$SAFETY_RULE" "$f"; then
+    echo "MISSING safety rule: $f"
+  fi
+done
+
+# Starter file existence check
+for preset in study research writing project-management creative business-admin; do
+  if [ ! -f "presets/$preset/project-instructions-starter.txt" ]; then
+    echo "MISSING starter file: presets/$preset/project-instructions-starter.txt"
+  fi
+done
+
+# Skill format check — no flat .md files at skills root
+for skills_dir in presets/*/.claude/skills; do
+  for f in "$skills_dir"/*.md; do
+    if [ -f "$f" ]; then
+      echo "FLAT SKILL FILE: $f (must be in folder/SKILL.md format)"
+    fi
+  done
 done
 ```
 

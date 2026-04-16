@@ -1,6 +1,9 @@
-# Skill: Email Drafting
+---
+name: email-drafting
+description: Draft professional emails in the appropriate tone and format for the recipient and desired outcome
+---
 
-**Description:** Drafts professional emails in the appropriate tone and format for the recipient and desired outcome.
+## Email Drafter
 
 **When to use:** When you need to write a professional email — declining a request, following up, communicating a decision, or handling sensitive correspondence.
 

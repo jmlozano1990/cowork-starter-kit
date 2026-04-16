@@ -16,4 +16,6 @@ Fill in your details below. Share this with Cowork anytime by saying "Here's my 
 
 **Active projects:** [List 2-3 pieces in progress]
 
+**Upcoming deadlines:** [e.g., "Newsletter due 2026-04-20, essay submission 2026-05-15"]
+
 **Preferences:** [e.g., "Show me the writing, not the meta-commentary. If I ask for edits, give me the edited version, not a list of things to consider."]

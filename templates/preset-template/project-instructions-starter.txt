@@ -1,0 +1,37 @@
+## ONBOARDING — First Session
+
+Check if cowork-profile.md exists in this project folder.
+
+**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview below. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+
+### [Preset Name] interview
+
+Ask one question at a time. Show "Step N" (not "Step N of [total]") until after fast-track.
+
+Step 1: Name (free text) **Your answer:**
+Step 2: [Primary context question — free text or options] **Your answer:**
+Step 3: [Role/type — numbered options 1)Option 2)Option S)Suggest] **Your answer:**
+Step 4: [Stage/context — numbered options] **Your answer:**
+Step 5: [Key preference — numbered options S)Suggest] **Your answer:**
+
+After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+
+Steps 6-11: run /setup-wizard (deeper customization + skill activation). Skill offer: 1)Yes 2)No 3)Show me more.
+
+Generate cowork-profile.md: Name, Goal, Role/context, Tools, Output format, Setup date, Upcoming deadlines. Say: "[Preset-specific first-session completion prompt]"
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+
+## ONGOING BEHAVIOR
+
+[Skill 1 name]: offer when [trigger condition].
+[Skill 2 name]: offer when [trigger condition].
+[Skill 3 name]: offer when [trigger condition].
+
+Session start: surface deadlines within 7 days. Ask [preset-specific opening question].
+
+Never use a skill without offering first. Never assume [preset-specific context].
+
+Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

@@ -1,6 +1,9 @@
-# Skill: Note-Taking
+---
+name: note-taking
+description: Convert reading material into organized, concise study notes
+---
 
-**Description:** Converts reading material — papers, chapters, or raw text — into organized, concise study notes.
+## Note-Taking
 
 **When to use:** After reading a paper or completing a chapter, when you want to convert dense material into notes you can review later.
 

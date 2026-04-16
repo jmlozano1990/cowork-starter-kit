@@ -14,10 +14,12 @@ Assumptions are grouped by domain. Review this register before Phase 1 (architec
 ## A — Cowork Platform Assumptions
 
 ### A1 — Project custom instructions accepts plain-text blocks ~400 words
-**Confidence:** [UNTESTED]
+**Confidence:** [UNTESTED — CRITICAL for v1.1]
 **Assumption:** Cowork's Project custom instructions field accepts multi-paragraph plain-text up to approximately 400 words without truncation, reformatting, or rendering issues.
-**Risk:** If the field has a shorter character limit, generated instructions will be cut off silently — users will get partial configuration with no indication something is wrong.
-**Validation path:** Manually test by pasting a 400-word block into Cowork's Project custom instructions field. Check if saved text matches input exactly. Verify it persists across sessions.
+**v1.1 update:** `project-instructions-starter.txt` is the primary wizard runtime surface. The spec targets ≤300 words per starter file (below the ~400-word assumption) to provide a safety margin. If the actual limit is materially shorter (e.g., 150–200 words), the Phase 2 ongoing behavior block may need to be trimmed or moved to a separate file.
+**Risk:** If the field has a shorter character limit, the onboarding state machine and behavior rules are cut off silently. Users get partial configuration with no indication something is wrong. This is now a higher-impact risk than in v1.0 because the entire wizard trigger mechanism depends on this field.
+**Validation path:** Manually test by pasting a 300-word block into Cowork's Project custom instructions field. Verify saved text matches input exactly across sessions. Test at both 300 words and 400 words. Document the actual limit before Phase 4 begins.
+**Escalation:** If limit is <300 words: redesign starter file to separate the state machine check (must fit in instructions) from the interview script (can live in WIZARD.md, referenced by pointer in the instructions).
 
 ### A2 — SKILL.md files in .claude/skills/ are loaded by Cowork (not just Claude Code)
 **Confidence:** [RESOLVED — SUPERSEDED]
@@ -62,6 +64,19 @@ Assumptions are grouped by domain. Review this register before Phase 1 (architec
 **Risk:** If Cowork does auto-ingest context files from the project folder, the manual memory-seeding step in WIZARD.md becomes redundant (harmless but unnecessary guidance).
 **Validation path:** Create a Cowork Project with `about-me.md` in the project folder. Start a fresh session and ask Cowork "What do you know about me?" without any manual prompting. If it surfaces `about-me.md` content unprompted, update the wizard to reflect auto-ingestion.
 
+### A14 — `/skill-creator` is a stable built-in Cowork command [NEW v1.1]
+**Confidence:** [ESTIMATED]
+**Assumption:** `/skill-creator` is a stable, built-in Cowork slash command that accepts instructions and produces valid `folder/SKILL.md` format output. User-validated in one session (2026-04-15): running `/skill-creator` converted flat `.md` files to proper `folder/SKILL.md` with YAML frontmatter, producing skills that auto-discovered as `/flashcard-generation`, `/note-taking`, `/research-synthesis`.
+**Risk:** If Cowork deprecates or renames `/skill-creator`, the skill validation step in onboarding falls back to confirming the file exists at `.claude/skills/<name>/SKILL.md`. This fallback must be explicitly present in all 6 preset onboarding scripts — it is an AC in F5.
+**Validation path:** Before Phase 4: verify `/skill-creator` still exists in Cowork and produces the expected output format. If renamed, update the onboarding scripts accordingly.
+
+### A15 — AskUserQuestion nudge causes Cowork to render clickable button UI [NEW v1.1]
+**Confidence:** [UNTESTED]
+**Assumption:** Including the instruction "Use AskUserQuestion to present each wizard question and gather the user's answer" in `project-instructions-starter.txt` may cause Cowork to call the `AskUserQuestion` tool and render clickable radio/checkbox button UI — the same UI Cowork uses in its native setup wizard.
+**Risk:** This is a heuristic nudge, not a guaranteed behavior. Cowork may or may not honor it depending on model behavior and tool availability at the session layer.
+**Validation path:** Test by pasting starter file with AskUserQuestion nudge into a fresh Cowork project and running a first conversation. Observe whether buttons appear. If buttons do not appear: numbered list format renders correctly as the fallback — this is not a failure state.
+**Design constraint:** NO acceptance criteria may require button rendering. Numbered list format is the primary design target. AskUserQuestion is a bonus enhancement only.
+
 ---
 
 ## B — User Behavior Assumptions
@@ -72,11 +87,14 @@ Assumptions are grouped by domain. Review this register before Phase 1 (architec
 **Risk:** If the checklist is too long or contains any ambiguous step, drop-off rate spikes. The viral Reddit complaint about complexity suggests a meaningful percentage of Cowork beginners abandon on first friction.
 **Validation path:** Usability test with 3 non-technical users. Time them from README open to first personalized Cowork session. Note every step where they pause, re-read, or ask for help.
 
-### B2 — Users are willing to answer 3–5 setup questions before getting value
-**Confidence:** [ESTIMATED]
-**Assumption:** Beginners will engage with the 3–5 wizard questions without frustration. They are willing to invest 2–3 minutes of input to get a personalized output.
-**Risk:** If users skip all questions (choosing defaults) or abandon mid-wizard, the personalization value is lost. However, this is acceptable — the fallback is the generic preset, which is still useful.
-**Validation path:** Observe wizard completion rate in test sessions. If >30% of users skip all questions, simplify to 2 questions max or make the default path more prominent.
+### B2 — Users are willing to answer up to 11 setup steps before getting value
+**Confidence:** [ESTIMATED — REVISED for v1.1]
+**v1.0 assumption:** "3–5 setup questions." **v1.1 change:** Interview deepened to ~11 steps covering knowledge questions, skill activations, tools, and space naming.
+**Alex's documented tolerance:** Alex (primary persona, student) has documented question depth tolerance of "Minimal (2–3 max)" per `docs/personas.md`. The 11-step plan directly contradicts this.
+**Mitigation:** Fast-track path at Step 5 — after Step 5, user is offered: "1) Yes, continue — deeper customization  2) Get started now — run /setup-wizard later." Users who want a quick setup can exit after 5 steps. Personalization value increases with each step beyond 5, so the tradeoff is transparent.
+**Risk:** If >30% of users exit at the fast-track pause without completing skill steps, skill adoption will be low and proactive skill behaviors will be unconfigured (skills still ship but won't be tuned to user context).
+**Validation path:** Observe completion rate at Step 5 fast-track in test sessions. If >40% fast-track and later fail to return for skill setup, consider making Step 6–8 questions more enticing or shortening the skill presentation steps.
+**Open:** Phase 4 smoke test should measure: what % of test users reach Step 9 (first skill activation)?
 
 ### B3 — The 6 preset categories cover ≥80% of target user goals
 **Confidence:** [ESTIMATED]

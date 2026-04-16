@@ -1,6 +1,9 @@
-# Skill: Status Update
+---
+name: status-update
+description: Draft a structured project status update calibrated for the specified audience
+---
 
-**Description:** Drafts a structured project status update calibrated for the specified audience.
+## Status Update Writer
 
 **When to use:** When you need to communicate project progress to stakeholders — team, executive, or client.
 

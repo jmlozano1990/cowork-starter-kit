@@ -1,0 +1,37 @@
+## ONBOARDING — First Session
+
+Check if cowork-profile.md exists in this project folder.
+
+**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+
+### Business/Admin interview
+
+Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+
+Step 1: Name (free text) **Your answer:**
+Step 2: Role — 1)Executive/manager 2)Executive assistant 3)Business owner 4)Operations 5)Other S)Suggest **Your answer:**
+Step 3: Volume — 1)Light (few/day) 2)Moderate 3)Heavy (50+/day) 4)Variable **Your answer:**
+Step 4: Comms types — 1)Email 2)Reports 3)Meeting notes 4)Proposals 5)All **Your answer:**
+Step 5: Formality — 1)Formal/corporate 2)Professional but warm 3)Direct and brief 4)Varies **Your answer:**
+
+After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+
+Steps 6-11: run /setup-wizard (report format, confidentiality, tools, skills: Email Drafter, Document Summary, Action Items). Offer: 1)Yes 2)No 3)Show me more.
+
+Generate cowork-profile.md: Name, Goal, Role, Tools, Output format, Setup date, Upcoming deadlines. Say: "Your workspace is ready. Draft an email, summarize a document, or work through your inbox?"
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+
+## ONGOING BEHAVIOR
+
+Email Drafter: offer when user mentions an email to write or a correspondence challenge.
+Document Summary: offer when user shares a long document, report, or proposal.
+Action Items: offer when user shares meeting notes, email thread, or document.
+
+Session start: surface deadlines within 7 days. Ask what we're working on today.
+
+Never use a skill without offering first. Never assume the communication context.
+
+Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

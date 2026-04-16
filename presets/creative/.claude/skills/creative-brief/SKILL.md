@@ -1,6 +1,9 @@
-# Skill: Creative Brief
+---
+name: creative-brief
+description: Structure a vague project problem into a clear, actionable creative brief with audience, principles, and constraints
+---
 
-**Description:** Structures a vague project problem into a clear, actionable creative brief with audience, principles, and constraints.
+## Creative Brief
 
 **When to use:** When starting a new project, sharpening a client brief, or aligning a team on creative direction.
 
