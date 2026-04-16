@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.1-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -54,11 +54,12 @@ You                                Cowork
 
 1. **[Download ZIP](https://github.com/jmlozano1990/cowork-starter-kit/archive/refs/heads/main.zip)** — unzip anywhere on your computer
 2. Open Claude Cowork → create a new Project → point it at the unzipped folder
-3. Open your preset folder (`presets/<your-goal>/`), copy `project-instructions-starter.txt`, and paste it into Project Settings > Custom Instructions
-4. Type: **`/setup-wizard`**
+3. Start talking — the wizard runs automatically
 
-That's it. Cowork runs the onboarding interview and builds your personalized workspace.
+That's it. Cowork reads the project instructions and walks you through personalized setup.
 
+> **Alternative paths:** Type `/setup-wizard` to run or redo setup explicitly. Or paste your preset's `project-instructions-starter.txt` into Project Settings > Custom Instructions for preset-specific behavior from message one.
+>
 > **No Cowork yet?** Use the manual path: open `SETUP-CHECKLIST.md` and follow every step by hand.
 
 ---

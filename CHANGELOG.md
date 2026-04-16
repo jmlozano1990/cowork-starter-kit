@@ -4,6 +4,23 @@ All notable changes to this project are documented here. This project uses [Sema
 
 ---
 
+## [1.1.1] - 2026-04-16
+
+**Zero-paste setup** — adds `CLAUDE.md` at repo root so Cowork auto-runs the onboarding wizard when you open the project. No copy-paste required.
+
+**New files:**
+
+- `CLAUDE.md` — project instructions auto-loaded by Cowork; contains preset-agnostic onboarding state machine and safety rule
+
+**Updated files:**
+
+- `README.md` — Quick Start simplified to 3 steps (download, open, talk)
+- `SETUP-CHECKLIST.md` — paste step demoted to optional; wizard starts automatically
+- `.github/workflows/quality.yml` — new CI job: `claude-md-safety-rule-check`
+- `VERSION` — bumped to 1.1.1
+
+---
+
 ## [1.1.0] - 2026-04-16
 
 **Wizard Architecture Redesign** — fixes the v1.0 root cause failure where Cowork's intent classifier intercepted WIZARD.md before it could be read.

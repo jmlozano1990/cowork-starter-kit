@@ -151,3 +151,21 @@ jobs:
             exit 1
           fi
           echo "All skills in folder/SKILL.md format."
+
+  claude-md-safety-rule-check:
+    name: CLAUDE.md Safety Rule Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check CLAUDE.md exists and contains safety rule
+        run: |
+          if [ ! -f "CLAUDE.md" ]; then
+            echo "MISSING: CLAUDE.md at repo root"
+            exit 1
+          fi
+          SAFETY_RULE="Always ask for explicit confirmation before deleting"
+          if ! grep -q "$SAFETY_RULE" CLAUDE.md; then
+            echo "MISSING safety rule in CLAUDE.md"
+            exit 1
+          fi
+          echo "CLAUDE.md exists and contains safety rule."

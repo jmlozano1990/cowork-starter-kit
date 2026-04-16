@@ -20,23 +20,14 @@ In Project Settings, assign your project folder:
 
 Replace `<preset-name>` with your preset (study, research, writing, project-management, creative, or business-admin). If the folder doesn't exist yet, run `scripts/setup-folders.sh` (macOS) or `scripts/setup-folders.ps1` (Windows), or create it manually.
 
-**Step 3 — Paste `project-instructions-starter.txt` into Custom Instructions**
+**Step 3 — Start a conversation — the wizard runs automatically**
 
-This step MUST happen before you start any conversation.
-
-1. Open your preset folder: `presets/<preset-name>/`
-2. Open `project-instructions-starter.txt` in any text editor
-3. Copy the entire contents
-4. In Cowork: open Project Settings > Custom Instructions
-5. Paste the content and save
-
-This file is your workspace bootstrap — it tells Cowork what to do on your first session and on every session after. Do not skip this step.
-
-**Step 4 — Start a conversation — Cowork auto-runs onboarding**
-
-Open your Cowork project and say anything — "hello", "let's get started", or just send a blank message. Cowork will automatically detect it's your first session and begin the onboarding interview.
+Open your Cowork project and say anything — "hello", "let's get started", or just describe what you need. Cowork reads the project instructions (`CLAUDE.md`) and begins your personalized onboarding interview automatically.
 
 Alternatively, type `/setup-wizard` to explicitly invoke the setup wizard at any time.
+
+> **Optional — paste a preset starter file for preset-specific setup:**
+> If you already know your goal (e.g., Study) and want to skip the goal-selection question, open `presets/<preset-name>/project-instructions-starter.txt`, copy its contents, and paste into Project Settings > Custom Instructions before your first message.
 
 **Step 5 — Fill in your about-me file**
 
