@@ -1,10 +1,12 @@
-# User Personas — Claude Cowork Config
+# User Personas — Claude Cowork Config (v1.2)
 
 ## How to Use This Document
 
-These personas are the product's decision filter. Before adding a feature, removing an AC, or changing a preset, ask: does this serve Alex, Maria, or both? If it serves neither, it's out of scope.
+These personas are the product's decision filter. Before adding a feature, removing an AC, or changing a preset, ask: does this serve Alex, Maria, Sam, or Jordan? If it serves none of them, it's out of scope.
 
-Personas are derived from: Cowork community guides (2026), user feedback summaries (coworkhow.com), DataCamp tutorial audience analysis, and the brainstorm session with the project owner (2026-04-14).
+v1.2 adds **Jordan** — the "I don't know what I want" user — as a canonical fourth persona that drives the dynamic wizard's design. Jordan is not a new user type; Jordan is Alex, Maria, and Sam on their first day.
+
+Personas are derived from: Cowork community guides (2026), user feedback summaries (coworkhow.com), DataCamp tutorial audience analysis, brainstorm session with project owner (2026-04-14), and v1.1 production observations (2026-04-16).
 
 ---
 
@@ -12,65 +14,67 @@ Personas are derived from: Cowork community guides (2026), user feedback summari
 
 **Name:** Alex Chen
 **Age:** 20
-**Role:** Junior, biochemistry major (could also be: philosophy, history, law — any research-heavy coursework)
-**Institution:** Mid-size university, uses a MacBook
-**Cowork plan:** Claude Pro ($20/month) — recently upgraded after seeing a LinkedIn post about Cowork for students
+**Role:** Junior, biochemistry major
+**Cowork plan:** Claude Pro ($20/month)
 
 ### Context
 
-Alex has been using ChatGPT since high school. He switched to Claude Pro last semester because someone in his biochemistry Discord said it was better for scientific reasoning. He's heard Cowork can "read your PDFs and work in your files" but hasn't figured out how to set it up.
+Alex switched to Claude Pro after seeing a LinkedIn post about Cowork for students. He's heard Cowork can "read your PDFs and work in your files" but hasn't figured out how to set it up. His study folder is a mess. He knows he should organize it — he just doesn't know how.
 
-His study folder is a mess: PDFs of papers downloaded directly to Downloads, notes scattered across Notion and Apple Notes, half-finished summaries in Google Docs. He knows he should organize this. He just doesn't know how.
+He spends 3–4 hours a week re-explaining context to AI tools because there's no persistent memory.
 
-He spends 3–4 hours a week re-explaining context to AI tools because there's no persistent memory. Every new session starts from scratch.
+### v1.2 Context: Alex and the Wizard
+
+Alex is the primary design target for the dynamic wizard. He will NOT recognize himself in a preset menu. He will describe his situation in plain language: "I'm trying to get better at keeping up with my readings for biochem." The wizard must map that description to a Study workspace, suggest appropriate skills, and build the folder structure — without Alex needing to know what any of those things are.
+
+Alex is also the primary writing profile test case. He does not think of himself as "a writer" — he writes lab reports and literature summaries. The writing profile wizard must frame this as "I'll help your work sound like how you think, not like a robot summarized your notes."
 
 ### Goals (JTBD)
 
 **Functional jobs:**
-- Synthesize 15–20 research papers into a coherent literature summary for a class project
-- Generate flashcards from his lecture notes for active recall studying
+- Synthesize 15–20 research papers into a coherent literature summary
+- Generate flashcards from lecture notes for active recall studying
 - Format citations in APA/Chicago without doing it manually
-- Find connections between papers he's read that he might have missed
-- Draft and revise lab reports with the right academic tone
+- Find connections between papers he might have missed
+- Draft and revise lab reports with academic tone
 
 **Social jobs:**
 - Feel like a capable, effective student — not someone who's struggling
-- Produce work that impresses professors and peers
-- Feel like he's using tools at their full potential (not wasting his Pro subscription)
+- Produce work that impresses professors
+- Feel like he's using tools at their full potential
 
 **Emotional jobs:**
 - Reduce the anxiety of "I have 12 papers to read and a report due Friday"
-- Feel in control of his study process, not overwhelmed by it
-- Build confidence that he can tackle research-heavy assignments independently
+- Feel in control of his study process
+- Build confidence he can tackle research-heavy assignments independently
 
 ### Pains
 
-| Pain | Severity |
-|------|----------|
-| Doesn't know how to configure Cowork — starts sessions with no context | High |
-| Re-explains role, assignment, and tone preferences every session | High |
-| PDFs live in a disorganized Downloads folder — Cowork can't easily find them | Medium |
-| Doesn't know what "skills" or "context files" are | Medium |
-| Fears breaking something with the wrong Cowork command | Medium |
-| Never set up Global Instructions — every output is too generic | High |
+| Pain | Severity | v1.2 Impact |
+|------|----------|-------------|
+| Doesn't know how to configure Cowork | High | Dynamic wizard solves — no product knowledge required |
+| Re-explains context every session | High | cowork-profile.md + persistent instructions |
+| Outputs sound like generic AI (academic integrity concern) | High | writing-profile.md calibrates to his academic voice |
+| Doesn't know what skills are or how to find them | Medium | Curated Tier 1 suggestions, no GitHub browsing required |
+| Fears breaking something with a wrong command | Medium | Safety rule + confirm before delete |
+| Never set up instructions — every output is too generic | High | Dynamic wizard builds instructions from conversation |
 
-### Gains from Claude Cowork Config
+### Quote (v1.2 update)
 
-- A `/Study` folder structure that makes sense (Papers/, Notes/, Summaries/, Flashcards/)
-- A Global Instructions template that tells Cowork: "I'm a biochem student, academic tone, APA citations, always ask before moving files"
-- 3–4 starter skill files: ResearchSynthesis.md, FlashcardGenerator.md, CitationFormatter.md, LitReview.md
-- A `cowork-profile.md` that stores his degree, current courses, and study preferences so he doesn't re-explain every session
-- The safety rule baked in — he will never accidentally delete his thesis notes
+> "I just told it I was trying to keep up with my biochem readings and it figured out I needed a study workspace. I didn't have to pick from a menu or know any of the jargon. And my summaries actually sound like how I explain things, not like a textbook."
 
-### Quote
+### Writing Profile for Alex
 
-> "I know Cowork is powerful. I just need someone to tell me exactly how to set it up for studying. Like, what folders do I make? What do I put in the instructions? I've been putting it off for three weeks."
+- **Tone:** Semi-formal academic (not stuffy, but not casual)
+- **Audience:** Professors and lab partners
+- **Anti-AI guidance focus:** Avoid passive voice overuse, overly hedged language, generic transitions ("It is important to note...")
+- **Workspace-specific:** APA citation conventions, academic integrity framing (support learning, not shortcut)
 
 ### Usage Pattern
 
-- Uses Cowork 3–5 times per week, primarily for paper synthesis and note organization
-- Checks in with Cowork at the start of study sessions to plan the session
-- Most valuable use case: "Read these 8 PDFs and give me a structured summary with key arguments and gaps"
+- Cowork 3–5 times per week for paper synthesis and note organization
+- Most valuable: "Read these 8 PDFs and give me a structured summary with key arguments and gaps"
+- Fast-track: Will likely use fast-track pause after Step 6 and return for skills later
 
 ---
 
@@ -78,96 +82,185 @@ He spends 3–4 hours a week re-explaining context to AI tools because there's n
 
 **Name:** Maria Santos
 **Age:** 35
-**Role:** Research analyst at a mid-size consultancy (also applies to: academic researcher, science journalist, content strategist, senior project manager)
-**Cowork plan:** Claude Max ($100/month) — justified by billable hours saved
-**Setup:** MacBook Pro, Google Drive as primary file store, Slack for team comms, DocuSign for client contracts
+**Role:** Research analyst at a mid-size consultancy
+**Cowork plan:** Claude Max ($100/month)
 
 ### Context
 
-Maria has tried every AI tool in the last two years: ChatGPT, Gemini, Notion AI, Perplexity, and now Claude. She knows these tools are powerful. She's actually gotten value from them. But she's never fully cracked how to configure them to match her professional standard.
+Maria has tried every AI tool in the last two years. She's gotten real value from them. She's never fully cracked how to configure them to match her professional standard. Every time she uses Cowork, she pastes 3–4 paragraphs of context before the first task because there's nowhere to store it permanently.
 
-She's a meticulous researcher. Her deliverables need to be structured in a specific way: executive summary up front, detailed findings behind, all claims cited, no fluff. Every time she uses Cowork, she pastes 3–4 paragraphs of context before the first task because there's nowhere to store it permanently.
+She manages 4–5 active projects at once. She's tried Cowork Projects but hasn't set up per-project instructions because it takes time she doesn't have.
 
-She manages 4–5 active projects at once. Each has its own Drive folder. She's tried to use Cowork Projects but hasn't set up per-project instructions because it takes time she doesn't have.
+### v1.2 Context: Maria and the Wizard
+
+Maria will arrive knowing roughly what she wants ("something for research and project management") but not knowing how to configure it. The dynamic wizard recognizes her goal as a Research/PM hybrid and proposes a workspace that spans both presets. It then asks the writing profile questions — Maria will be the most engaged with this step, because every output she produces has to sound like a senior analyst, not a chatbot.
+
+Maria is also the primary persona for Tier 2 skill discovery. She'll ask "are there any other skills for analyst workflows?" and opt into advanced search with full awareness of the risk context.
 
 ### Goals (JTBD)
 
 **Functional jobs:**
-- Produce a structured literature review from 20+ source documents in 90 minutes, not 8 hours
-- Draft client-ready reports with her firm's standard format (executive summary, methodology, findings, recommendations)
-- Triage and prioritize her inbox to identify the 3 emails that need responses today
-- Track deliverable status across multiple projects without maintaining a separate tracker
-- Onboard to a new research topic quickly by synthesizing the key papers and debates
+- Produce a structured literature review from 20+ source documents in 90 minutes
+- Draft client-ready reports with her firm's standard format
+- Triage and prioritize her inbox to the 3 emails needing responses today
+- Track deliverable status across multiple projects
+- Onboard to a new research topic quickly
 
 **Social jobs:**
-- Maintain her reputation as a rigorous, fast researcher
-- Deliver work that impresses senior partners and clients
-- Be the person on the team who knows how to use AI tools most effectively
+- Maintain reputation as a rigorous, fast researcher
+- Deliver work that impresses senior partners
+- Be the team's AI tool power user
 
 **Emotional jobs:**
-- Reduce the "constant context tax" — the mental overhead of re-explaining who she is and how she works
+- Reduce the "constant context tax"
 - Feel like she has a reliable AI assistant, not a generic chatbot
-- Trust that Cowork won't do something destructive to her client files
+- Trust that Cowork won't modify her client files without approval
 
 ### Pains
 
-| Pain | Severity |
-|------|----------|
-| Re-explains her professional context (role, output format, tone) every session | High |
-| No per-project instructions — Generic output that doesn't match her firm's standard | High |
-| Doesn't know which connectors to prioritize (all look equally relevant) | Medium |
-| Has 3 half-configured Cowork setups from different experiments — wants a clean start | Medium |
-| Worried about Cowork modifying client files without explicit approval | High |
-| Hasn't found a way to store "how Maria works" persistently in Cowork | High |
+| Pain | Severity | v1.2 Impact |
+|------|----------|-------------|
+| Re-explains professional context every session | High | cowork-profile.md + writing-profile.md together eliminate this |
+| No per-project instructions — generic output | High | Dynamic wizard builds custom instructions per workspace |
+| Outputs don't match professional standard | High | Writing profile with sample analysis captures her firm's style conventions |
+| Doesn't know which connectors to prioritize | Medium | Goal-filtered connector checklist |
+| 3 half-configured setups from different experiments | Medium | /setup-wizard reset path; fresh start |
+| Worried about Cowork modifying client files | High | Safety rule non-negotiable |
 
-### Gains from Claude Cowork Config
+### Quote (v1.2 update)
 
-- A Research or Project Management preset that matches her workflow out of the box
-- A Global Instructions template that includes: "I'm a research analyst. All outputs should include an executive summary. Format citations as footnotes. Never modify files without explicit confirmation."
-- A connector checklist that says "For your role, prioritize Google Drive (primary file store) and Gmail (client email triage). Slack is optional if you don't use it for deliverables."
-- A `cowork-profile.md` storing her professional context — she fills it in once, Cowork reads it every session
-- Skill files for: LiteratureReview.md, ReportDrafting.md, ProjectStatus.md, EmailTriage.md
-- The safety rule — non-negotiable given her client file exposure
+> "The writing profile thing was what sold me. I pasted a paragraph from one of my reports and it said 'I notice you lead with the conclusion and use tight, declarative sentences.' That's exactly right. Now my Cowork outputs actually sound like I wrote them."
 
-### Quote
+### Writing Profile for Maria
 
-> "I've spent more time configuring AI tools than actually using them. I need someone to give me the right setup for a senior analyst — not a generic assistant. Just tell me what to put in the instructions and what folders to make."
+- **Tone:** Professional, authoritative, structured
+- **Audience:** Senior partners and clients
+- **Characteristic patterns:** Executive summary first, tight paragraphs, conclusion before reasoning, footnoted citations
+- **Anti-AI guidance focus:** Avoid filler phrases, hedged language, "In conclusion" openers, bullet-point overuse when prose is more authoritative
+- **Workspace-specific:** Executive summary format, footnote citation style, "never modify files" rule prominent
 
 ### Usage Pattern
 
-- Uses Cowork daily, 1–2 hours per day
-- Most valuable use case: "Read all the documents in /Project-Alpha/Research/ and produce a structured synthesis in the format of [example report]"
-- Second most valuable: "Go through my Gmail inbox and identify the 5 emails that require responses this week"
+- Cowork daily, 1–2 hours per day
+- Most valuable: "Read all documents in /Project-Alpha/Research/ and produce a structured synthesis"
+- Second most valuable: "Go through my Gmail inbox and identify the 5 emails needing responses this week"
+- Will use Tier 2 skill discovery; will read safety warnings carefully before installing
 
 ---
 
-## Tertiary Persona: Sam — The Creator (Not in MVP, but inform presets)
+## Tertiary Persona: Sam — The Creator
 
 **Name:** Sam Rivera
 **Age:** 28
-**Role:** Freelance writer / content strategist / newsletter author
-**Note:** Sam is real but not the primary design target. The Writing and Creative presets serve Sam. Do not over-optimize wizard flow for Sam at the expense of Alex and Maria.
+**Role:** Freelance writer / newsletter author
+**Note:** Writing and Creative presets. Do not over-optimize wizard flow for Sam at the expense of Alex and Maria.
 
-**Key needs:** Consistent voice/tone across all outputs, brand voice document that Cowork references, idea capture and outline generation, draft → edit → final workflow. Primary pain: every Cowork output sounds like generic AI, not like Sam.
+### Context
 
-**Key gain from Config:** A `voice-and-style.md` context file they fill in once, and a Writing preset that tells Cowork to reference it on every output.
+Sam's pain is specific and urgent: every Cowork output sounds like generic AI, not like Sam. The writing profile step in v1.2 directly solves Sam's core problem in a way v1.1 could not.
+
+Sam will be the most deliberate writing profile user — they will provide a writing sample, review the extracted patterns carefully, and likely refine before confirming.
+
+### v1.2 Context
+
+Sam is the validation case for the writing profile's optional sample analysis. If the sample analysis doesn't produce recognizable patterns for Sam, the feature has failed.
+
+### Goals (JTBD)
+
+**Functional jobs:**
+- Maintain consistent voice across all newsletter outputs
+- Generate outlines and drafts in their voice from notes
+- Get structural feedback that respects their style
+
+**Social jobs:**
+- Consistent brand voice — readers know it's Sam's writing, not AI
+
+**Emotional jobs:**
+- Feel like Cowork is a creative collaborator, not a ghost-writer who writes in the wrong voice
+
+### Pains
+
+| Pain | Severity | v1.2 Impact |
+|------|----------|-------------|
+| Every output sounds like generic AI | High | Writing profile with sample analysis = primary v1.2 gain for Sam |
+| No persistent brand voice document | High | writing-profile.md is exactly this |
+| Voice inconsistency across outputs | Medium | Profile referenced by global-instructions on every ≥100 word output |
+
+### Quote (v1.2 update)
+
+> "I pasted one paragraph from my newsletter and it caught that I start sentences with conjunctions and use em-dashes a lot. My outputs actually sound like my newsletter now."
+
+### Writing Profile for Sam
+
+- **Tone:** Conversational, distinct, personal
+- **Audience:** Newsletter readers
+- **Characteristic patterns:** Short paragraphs, em-dashes for asides, sentence-starting conjunctions, specific concrete examples over generalizations
+- **Anti-AI guidance focus:** Avoid formal academic transitions, passive voice, "it's important to" openers, comma-heavy long sentences
 
 ---
 
-## Persona Priority Matrix
+## New Persona: Jordan — "I Don't Know What I Want"
 
-| Decision | Alex | Maria | Sam |
-|----------|------|-------|-----|
-| Preset count at launch | 2 required (Study, Research) | 2 required (Research, PM) | 1 required (Writing) |
-| Wizard question depth | Minimal (2–3 max) | Can tolerate 3–4 | 2–3 |
-| Technical comfort | Low — must be zero-code | Medium — tolerates a checklist | Low-medium |
-| Safety sensitivity | Medium — student files | Very high — client files | Low |
-| Connector priority | Google Drive only | Drive + Gmail + Slack | Drive only |
-| Primary success metric | Completed setup, used within 7 days | Hours saved per week | Voice consistency across outputs |
+**Name:** Jordan (any age, any role)
+**This is a state, not a person.** Jordan is Alex, Maria, or Sam on their first session. They exist to ensure the dynamic wizard is designed for uncertainty.
 
-## Design Principles from Personas
+### What Jordan Represents
 
-1. **Lowest common denominator = Alex.** If Alex can do it, Maria can. Design every step for Alex's technical comfort level.
-2. **Safety is Maria's hard requirement.** The "confirm before delete" rule exists because of users like Maria. Never make it optional.
-3. **Context persistence is the #1 gain for both.** The `cowork-profile.md` and Global Instructions template are the product's core value. Everything else is supporting cast.
-4. **Maria wants professional quality; Alex wants to feel capable.** Both want outputs that feel personal, not generic. This is why presets exist — "generic AI" is the problem we're solving.
+Jordan just installed Cowork. Jordan knows AI is useful. Jordan has heard Cowork is powerful. Jordan has no idea how to get started. Jordan cannot identify with any preset in a menu — not because their goal is exotic, but because they don't know what a "preset" is or why they'd pick one.
+
+Jordan describes their situation:
+- "I want to use this for work stuff"
+- "Something to help me with my job"
+- "I'm a teacher and I want to use AI to help me plan lessons, grade, communicate with parents..."
+- "I'm trying to manage my job search"
+
+None of these are "Study" or "Research" or "Business/Admin" in the way a menu item presents them.
+
+### Why Jordan Is a Canonical Persona
+
+Every design decision that requires "the user knows what they want" fails Jordan. v1.2 exists because Jordan is not an edge case — Jordan is the median new Cowork user.
+
+### Jordan's Requirements from the Wizard
+
+1. The wizard must NOT require Jordan to identify a preset before asking questions
+2. The wizard must suggest options when Jordan is uncertain — not wait for Jordan to figure it out
+3. If Jordan's goal resembles a preset, the wizard can offer the preset as a shortcut — but Jordan never has to know the preset existed
+4. If Jordan's goal is novel (Career Manager, Home Renovation, Language Learning), the wizard must still produce a complete, useful workspace
+
+### Jordan's Success Criteria
+
+Jordan completes setup. Jordan's workspace matches what they actually wanted. Jordan does not know or care that it was built from a "preset scaffold" or a "novel-goal flow." Jordan just has a workspace that works.
+
+### Design Principle Derived from Jordan
+
+**The wizard must assume zero product knowledge at every step.** When the wizard says "skill," it immediately explains what a skill is. When it says "folder structure," it explains why you'd want one. When it suggests a connector, it explains what that connector will let you do. Every term is introduced with context the first time it appears.
+
+---
+
+## Persona Priority Matrix (v1.2)
+
+| Decision | Alex | Maria | Sam | Jordan |
+|----------|------|-------|-----|--------|
+| Wizard entry point | Dynamic description → Study scaffold | Dynamic description → Research/PM hybrid | Dynamic description → Writing scaffold | Dynamic description → anything |
+| Writing profile engagement | Medium (frames as "academic voice") | High (professional standard) | Very high (brand voice) | Unknown — wizard must make case |
+| Technical comfort | Low — zero-code required | Medium — tolerates checklist | Low-medium | Low — assume Alex level |
+| Safety sensitivity | Medium — student files | Very high — client files | Low | Unknown — default to high |
+| Skill discovery | Tier 1 curated only | Tier 1 + optional Tier 2 | Tier 1 curated only | Tier 1 curated only (can't opt into Tier 2 safely without safety literacy) |
+| Primary success metric | Workspace matched goal + used within 7 days | Hours saved + professional quality output | Voice consistency | Setup completed — workspace matched what they described |
+| Fast-track behavior | Will likely fast-track at Step 6 | Will complete all steps | Will complete writing profile but maybe fast-track skills | Will fast-track — come back later |
+
+---
+
+## Design Principles from Personas (v1.2)
+
+1. **Lowest common denominator = Jordan.** If Jordan can navigate a step without product knowledge, Alex can too. Maria is never blocked by a step designed for Jordan.
+
+2. **Safety is Maria's hard requirement, and Jordan's unspoken one.** Jordan doesn't know to ask for safety. We provide it by default because Jordan cannot protect themselves from a file deletion they didn't anticipate.
+
+3. **Context persistence is the #1 gain for Alex and Maria.** `cowork-profile.md` + `writing-profile.md` together eliminate the "constant context tax." Both files are created in every setup.
+
+4. **Voice is Sam's primary requirement and Maria's secondary.** The writing profile is not optional for Sam — it IS the product. For Maria, it elevates already-good work to something that sounds like her specifically.
+
+5. **Jordan must not feel lost when given options.** Every AskUserQuestion button set must include an "I'm not sure / help me decide" path. The wizard never dead-ends on uncertainty.
+
+6. **Skill discovery must protect Jordan by default.** Jordan cannot assess security risk. Tier 1 curated skills are Jordan's path. Tier 2 is only available after explicit opt-in with a clear explanation of what "community-sourced, unverified" means.

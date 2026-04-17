@@ -9,140 +9,152 @@ Every assumption in the product spec is catalogued here with:
 
 Assumptions are grouped by domain. Review this register before Phase 1 (architecture) and before any preset ships.
 
+Last updated: v1.2 — 2026-04-17T00:00:00Z
+
 ---
 
 ## A — Cowork Platform Assumptions
 
-### A1 — Project custom instructions accepts plain-text blocks ~400 words
-**Confidence:** [UNTESTED — CRITICAL for v1.1]
-**Assumption:** Cowork's Project custom instructions field accepts multi-paragraph plain-text up to approximately 400 words without truncation, reformatting, or rendering issues.
-**v1.1 update:** `project-instructions-starter.txt` is the primary wizard runtime surface. The spec targets ≤300 words per starter file (below the ~400-word assumption) to provide a safety margin. If the actual limit is materially shorter (e.g., 150–200 words), the Phase 2 ongoing behavior block may need to be trimmed or moved to a separate file.
-**Risk:** If the field has a shorter character limit, the onboarding state machine and behavior rules are cut off silently. Users get partial configuration with no indication something is wrong. This is now a higher-impact risk than in v1.0 because the entire wizard trigger mechanism depends on this field.
-**Validation path:** Manually test by pasting a 300-word block into Cowork's Project custom instructions field. Verify saved text matches input exactly across sessions. Test at both 300 words and 400 words. Document the actual limit before Phase 4 begins.
-**Escalation:** If limit is <300 words: redesign starter file to separate the state machine check (must fit in instructions) from the interview script (can live in WIZARD.md, referenced by pointer in the instructions).
+### A1 — Project custom instructions accepts ≤350 words
+**Confidence:** [UNTESTED — CRITICAL for v1.2]
+**Assumption:** Cowork's Project custom instructions field accepts multi-paragraph plain-text up to approximately 400 words without truncation, reformatting, or rendering issues. v1.2 targets ≤350 words (increased from v1.1's ≤300 to support dynamic wizard branching).
+**v1.2 update:** Dynamic wizard branches (suggestion flow, writing profile step) add ~30–50 words to each starter file. The ≤350 word target keeps files within the ~400-word assumption limit. If actual field limit is proven <300 words, revert to split architecture: state machine check in instructions (≤150 words), full wizard branches in WIZARD.md referenced by pointer.
+**Risk:** If the field has a shorter character limit, the dynamic wizard is truncated silently. Users see a partial wizard with no indication something is wrong. This is the highest-impact technical risk in v1.2.
+**Validation path:** Before Phase 4: manually paste a 350-word block into Cowork Project Settings > Custom Instructions. Verify saved text matches input exactly. Test at 300, 350, and 400 words. Document the actual limit.
+**Escalation:** If limit is <300 words: redesign starter file to ~150-word state machine check + pointer to WIZARD.md for interview script.
 
-### A2 — SKILL.md files in .claude/skills/ are loaded by Cowork (not just Claude Code)
-**Confidence:** [RESOLVED — SUPERSEDED]
-**Status:** Closed. Assumption invalidated and architecture updated accordingly.
-**Finding:** Confirmed that Cowork does NOT auto-discover SKILL.md files from a `.claude/skills/` filesystem directory the way Claude Code does. Static filesystem skill delivery delivers zero automatic value in Cowork.
-**Resolution:** F5 architecture pivots to:
-1. **Skill-creator (primary):** Users build 2–3 personalized skills live via Cowork's built-in skill-creator — conversational, goal-specific, no file management.
-2. **Anthropic pre-built skills (secondary):** Official pre-built document skills (pptx, xlsx, docx, pdf) as zero-configuration day-one defaults.
-3. **ZIP upload (tertiary):** SETUP-CHECKLIST.md documents the ZIP upload path (Settings > Customize > Skills > '+') for users who want to install packaged skills.
-**Risk eliminated.** The "cosmetic files" failure mode is removed. Skills are now delivered through Cowork's supported configuration surfaces.
-**No further validation required.** Static `.claude/skills/` preset files and the `skills-as-prompts.md` fallback are removed from scope.
+### A2 — SKILL.md files in .claude/skills/ are loaded by Cowork
+**Confidence:** [RESOLVED — SUPERSEDED by v1.1]
+**Status:** Closed. Confirmed that Cowork does NOT auto-discover SKILL.md files from filesystem. Static skill file delivery delivers zero automatic value in Cowork.
+**Resolution:** Skills delivered via: (1) `/skill-creator` wizard conversation (primary), (2) Anthropic pre-built skills (zero-config defaults), (3) ZIP upload via Settings > Customize > Skills > '+' (tertiary).
+**No further action required.**
 
 ### A3 — Projects feature (March 2026) is stable for documentation guidance
 **Confidence:** [ESTIMATED]
-**Assumption:** Cowork's Projects feature (launched March 20, 2026) is stable enough for us to write setup guidance around it. Non-enterprise users can create and manage projects with persistent instructions and memory.
-**Risk:** If Projects is still rough or changes behavior in a patch, our configuration guidance becomes misleading. Low risk — GA product with confirmed launch.
-**Validation path:** Manually walk through the Projects creation flow. Confirm: (1) project-scoped instructions persist, (2) memory is scoped per-project, (3) folder assignment works as documented.
+**Assumption:** Cowork's Projects feature (launched March 20, 2026) is stable enough for wizard guidance.
+**Risk:** Low — GA product confirmed.
+**Validation path:** Walk through Projects creation flow to confirm: project-scoped instructions persist, memory is scoped per-project, folder assignment works as documented.
 
-### A4 — Cowork connectors do not require developer credentials to authorize
+### A4 — Cowork connectors do not require developer credentials
 **Confidence:** [ESTIMATED]
-**Assumption:** Authorizing Cowork connectors (Google Drive, Gmail, Slack) is a pure OAuth flow in the native Cowork UI — no API keys, developer accounts, or terminal commands required from the user.
-**Risk:** If any connector requires technical setup (e.g., creating a Google Cloud project), our connector checklist will be misleading — we'd be pointing non-technical users at steps they can't complete.
-**Validation path:** Walk through connector authorization for Google Drive and Gmail in Cowork as a non-developer. Document the exact flow. Update connector checklist accordingly.
+**Assumption:** Authorizing Cowork connectors (Google Drive, Gmail, Slack) is a pure OAuth flow — no API keys or developer accounts required.
+**Risk:** If any connector requires technical setup, our connector checklist misleads non-technical users.
+**Validation path:** Walk through connector authorization for Google Drive and Gmail as a non-developer. Document exact flow.
 
-### A5 — Cowork respects a "confirm before delete" instruction in Project custom instructions
+### A5 — Cowork respects "confirm before delete" in Project custom instructions
 **Confidence:** [ESTIMATED]
-**Assumption:** Including "Always ask for explicit confirmation before deleting any file" in Project custom instructions causes Cowork to prompt the user before any deletion, every time.
-**Risk:** High. If this instruction is ignored or inconsistently applied, users remain exposed to the documented 11GB deletion scenario. This is a safety-critical assumption.
-**Validation path:** Set up a test workspace with the safety instruction active. Ask Cowork to "clean up" a folder containing test files. Verify Cowork prompts before deleting. Test with at least 3 phrasings of deletion requests ("clean up," "remove duplicates," "delete old files").
-**Escalation:** If this assumption fails, add a prominent warning to the README and SETUP-CHECKLIST.md that the safety rule is best-effort and users should always back up before running cleanup tasks.
+**Assumption:** Including the safety rule in Project custom instructions causes Cowork to prompt before any deletion.
+**Risk:** HIGH. If this instruction is ignored, users remain exposed to the documented 11GB deletion scenario. Safety-critical assumption.
+**Validation path:** Set up test workspace with safety instruction. Ask Cowork to "clean up" a folder. Verify Cowork prompts before deleting. Test with ≥3 deletion phrasings.
+**Escalation:** If assumption fails, add prominent WARNING to README and SETUP-CHECKLIST.md.
 
-### A6 — No public Cowork configuration API exists at v1 launch
-**Confidence:** [UNTESTED]
-**Assumption:** There is no programmatic API for configuring Cowork (no REST endpoint, no CLI, no SDK). All configuration requires manual UI interaction by the user.
-**Risk:** If a configuration API exists, we're underbuilding — we could automate setup instead of generating checklists. If no API exists (likely), our checklist approach is correct.
-**Validation path:** Review Anthropic developer docs and Claude Help Center for any Cowork configuration API. Check Claude Code docs for any shared configuration protocol.
-**Impact:** Low — our approach works either way. If API exists, it's an upgrade opportunity for v2.
+### A6 — No public Cowork configuration API exists
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** No programmatic API for configuring Cowork. All configuration requires manual UI interaction.
+**Risk:** Low — if API exists, our approach still works; API would be an upgrade for v2.
+**Validation path:** Review Anthropic developer docs and Claude Help Center for any Cowork configuration API.
 
 ### A13 — Cowork Project memory does not auto-ingest context files
-**Confidence:** [UNTESTED]
-**Assumption:** Cowork Project memory does not auto-ingest context files (`about-me.md`, `cowork-profile.md`). Users must manually seed memory by telling Cowork their role and preferences in a session.
-**Risk:** If Cowork does auto-ingest context files from the project folder, the manual memory-seeding step in WIZARD.md becomes redundant (harmless but unnecessary guidance).
-**Validation path:** Create a Cowork Project with `about-me.md` in the project folder. Start a fresh session and ask Cowork "What do you know about me?" without any manual prompting. If it surfaces `about-me.md` content unprompted, update the wizard to reflect auto-ingestion.
+**Confidence:** [UNTESTED — unchanged]
+**Assumption:** Cowork does not auto-ingest `about-me.md`, `cowork-profile.md`, or `writing-profile.md`. Users must manually seed memory.
+**Risk:** If Cowork does auto-ingest, our manual memory-seeding guidance is redundant (harmless but unnecessary).
+**Validation path:** Create Cowork Project with context files in project folder. Start fresh session and ask "What do you know about me?" without prompting. Document behavior.
 
-### A14 — `/skill-creator` is a stable built-in Cowork command [NEW v1.1]
-**Confidence:** [ESTIMATED]
-**Assumption:** `/skill-creator` is a stable, built-in Cowork slash command that accepts instructions and produces valid `folder/SKILL.md` format output. User-validated in one session (2026-04-15): running `/skill-creator` converted flat `.md` files to proper `folder/SKILL.md` with YAML frontmatter, producing skills that auto-discovered as `/flashcard-generation`, `/note-taking`, `/research-synthesis`.
-**Risk:** If Cowork deprecates or renames `/skill-creator`, the skill validation step in onboarding falls back to confirming the file exists at `.claude/skills/<name>/SKILL.md`. This fallback must be explicitly present in all 6 preset onboarding scripts — it is an AC in F5.
-**Validation path:** Before Phase 4: verify `/skill-creator` still exists in Cowork and produces the expected output format. If renamed, update the onboarding scripts accordingly.
+### A14 — `/skill-creator` is a stable built-in Cowork command
+**Confidence:** [ESTIMATED — carries from v1.1]
+**Assumption:** `/skill-creator` is stable and produces valid `folder/SKILL.md` output. User-validated in one session (2026-04-15).
+**Risk:** If deprecated or renamed, skill validation falls back to confirming file exists. Fallback path is a mandatory AC in F5.
+**Validation path:** Before Phase 4: verify `/skill-creator` still exists in Cowork and produces expected output format.
 
-### A15 — AskUserQuestion nudge causes Cowork to render clickable button UI [NEW v1.1]
-**Confidence:** [UNTESTED]
-**Assumption:** Including the instruction "Use AskUserQuestion to present each wizard question and gather the user's answer" in `project-instructions-starter.txt` may cause Cowork to call the `AskUserQuestion` tool and render clickable radio/checkbox button UI — the same UI Cowork uses in its native setup wizard.
-**Risk:** This is a heuristic nudge, not a guaranteed behavior. Cowork may or may not honor it depending on model behavior and tool availability at the session layer.
-**Validation path:** Test by pasting starter file with AskUserQuestion nudge into a fresh Cowork project and running a first conversation. Observe whether buttons appear. If buttons do not appear: numbered list format renders correctly as the fallback — this is not a failure state.
-**Design constraint:** NO acceptance criteria may require button rendering. Numbered list format is the primary design target. AskUserQuestion is a bonus enhancement only.
+### A15 — AskUserQuestion nudge causes Cowork to render clickable button UI
+**Confidence:** [UNTESTED — carries from v1.1]
+**Assumption:** The AskUserQuestion nudge MAY cause Cowork to render button UI.
+**Risk:** Best-effort heuristic. No AC may require button rendering. Numbered list is the guaranteed fallback.
+**Validation path:** Test by pasting starter file with nudge into fresh Cowork project. Observe whether buttons appear. Either outcome is acceptable.
 
 ---
 
 ## B — User Behavior Assumptions
 
 ### B1 — Non-technical users will follow a numbered checklist without abandoning
-**Confidence:** [ESTIMATED]
-**Assumption:** A non-technical user who downloads the repo can follow an 8-step numbered checklist and complete Cowork configuration in under 15 minutes without giving up.
-**Risk:** If the checklist is too long or contains any ambiguous step, drop-off rate spikes. The viral Reddit complaint about complexity suggests a meaningful percentage of Cowork beginners abandon on first friction.
-**Validation path:** Usability test with 3 non-technical users. Time them from README open to first personalized Cowork session. Note every step where they pause, re-read, or ask for help.
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** A non-technical user can follow the SETUP-CHECKLIST and complete setup in under 18 minutes (revised from 15 min to account for writing profile step).
+**Risk:** Checklist drop-off if any step is ambiguous.
+**Validation path:** Usability test with 3 non-technical users. Time from README open to first personalized session. Note every pause.
 
-### B2 — Users are willing to answer up to 11 setup steps before getting value
-**Confidence:** [ESTIMATED — REVISED for v1.1]
-**v1.0 assumption:** "3–5 setup questions." **v1.1 change:** Interview deepened to ~11 steps covering knowledge questions, skill activations, tools, and space naming.
-**Alex's documented tolerance:** Alex (primary persona, student) has documented question depth tolerance of "Minimal (2–3 max)" per `docs/personas.md`. The 11-step plan directly contradicts this.
-**Mitigation:** Fast-track path at Step 5 — after Step 5, user is offered: "1) Yes, continue — deeper customization  2) Get started now — run /setup-wizard later." Users who want a quick setup can exit after 5 steps. Personalization value increases with each step beyond 5, so the tradeoff is transparent.
-**Risk:** If >30% of users exit at the fast-track pause without completing skill steps, skill adoption will be low and proactive skill behaviors will be unconfigured (skills still ship but won't be tuned to user context).
-**Validation path:** Observe completion rate at Step 5 fast-track in test sessions. If >40% fast-track and later fail to return for skill setup, consider making Step 6–8 questions more enticing or shortening the skill presentation steps.
-**Open:** Phase 4 smoke test should measure: what % of test users reach Step 9 (first skill activation)?
+### B2 — Users are willing to complete a ≤12-step interview
+**Confidence:** [ESTIMATED — REVISED for v1.2]
+**v1.1 state:** 11-step interview with fast-track at Step 5.
+**v1.2 change:** Writing profile adds 1 step → 12 steps. Fast-track pause moves to after Step 6.
+**Alex's documented tolerance:** Alex has documented tolerance of "Minimal (2–3 max)." The 12-step plan directly contradicts this; fast-track mitigates. v1.2 fast-track pause is at Step 6 (after writing profile, before folder structure and skills).
+**Mitigation:** Fast-track at Step 6 is the key mitigation. Alex can exit with a working workspace and writing profile (steps 1–6) without completing folder structure and skill discovery.
+**Risk:** If >30% of users exit at fast-track without reaching skills steps, skill adoption will be low.
+**Validation path:** Smoke test: measure % of test users who reach Step 9+ (first skill activation). If >40% fast-track and don't return for skill setup, consider making skills step shorter or moving it earlier.
 
 ### B3 — The 6 preset categories cover ≥80% of target user goals
-**Confidence:** [ESTIMATED]
-**Assumption:** Study, Research, Writing, Project Management, Creative, and Business/Admin cover the most common knowledge worker use cases for Cowork. Fewer than 20% of users have a goal that doesn't fit any preset.
-**Risk:** If the categories are too narrow, users see nothing that fits and abandon. If too broad, each preset is too generic to add value.
-**Validation path:** GitHub issue analysis after launch — track how often users open issues titled "no preset for my use case" or similar. If >20% of issues are preset requests not covered by v1, prioritize v2 preset expansion.
+**Confidence:** [ESTIMATED — revised]
+**v1.2 update:** Dynamic wizard now handles novel goals (Career Manager, Home Renovation, Language Learning). The 80% coverage assumption is less critical — the wizard builds custom workspaces for the remaining 20%.
+**Risk:** Reduced from v1.1. If presets are narrow, wizard's novel-goal branch handles the gap.
+**Validation path:** Track novel-goal branches in test sessions and via GitHub issue analysis post-launch.
 
-### B4 — Users have a designated Cowork folder already set up (or will create one during onboarding)
-**Confidence:** [ESTIMATED]
-**Assumption:** Target users either already have Cowork installed with a designated workspace folder, or they are willing to create one during the wizard flow. The wizard does not need to install Cowork for them.
-**Risk:** If users arrive without Cowork installed, the wizard has no value. We assume the entry audience is "just installed Cowork, don't know what to do next."
-**Validation path:** Add "Have you installed Claude Cowork? Y/N" as wizard question 0 (before goal selection). If N, show a "Get Cowork first" message with the Anthropic link and exit gracefully.
+### B4 — Users have Cowork installed (or will install before using wizard)
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** Target audience is "just installed Cowork, don't know what to do next." Wizard does not install Cowork.
+**Validation path:** Consider adding "Have you installed Claude Cowork? Y/N" as wizard question 0.
+
+### B5 — Users are willing to answer writing profile questions in non-writing workspaces [NEW v1.2]
+**Confidence:** [UNTESTED — MEDIUM risk]
+**Assumption:** Users setting up a Study or PM workspace will answer 3–4 writing style questions even though they don't think of themselves as "writers." They understand that Cowork produces written output for all tasks.
+**Risk:** Users may skip the writing profile step ("I'm not a writer — skip"), resulting in `writing-profile.md` with only default values. The profile is still generated (not empty) but is less personalized.
+**Mitigation:** Wizard framing: "Even in a study/research workspace, I'll be writing summaries and explanations for you — this helps me match your style." The profile generates with substantive defaults even if questions are skipped.
+**Validation path:** In smoke test: for non-Writing presets, observe whether test users complete writing profile step or attempt to skip. If >40% skip, revise framing.
 
 ---
 
 ## C — Delivery & Community Assumptions
 
 ### C1 — GitHub + LinkedIn is sufficient for initial distribution
-**Confidence:** [ESTIMATED]
-**Assumption:** A well-positioned LinkedIn post targeting knowledge workers + a high-quality GitHub README will generate enough initial traction (≥200 stars, ≥100 wizard completions) to validate the concept without paid distribution.
-**Risk:** LinkedIn algorithm may not surface the post to the right audience. GitHub discoverability is low for non-developer tools — knowledge workers don't browse GitHub.
-**Validation path:** Track referral source for first 100 GitHub visitors via UTM parameters in the LinkedIn post URL. If <30% of traffic is from LinkedIn, diversify to Reddit (r/ClaudeAI, r/productivity) and Substack communities.
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** LinkedIn post + quality GitHub README generates ≥200 stars within 30 days.
+**Validation path:** Track referral source for first 100 GitHub visitors via UTM parameters.
 
-### C2 — Community contributors will add presets without significant guidance
-**Confidence:** [UNTESTED]
-**Assumption:** The open-source community will submit new preset PRs if CONTRIBUTING.md is clear and the preset format is simple enough.
-**Risk:** Preset contributions may be low-quality (incomplete skill files, wrong folder structure) or absent entirely.
-**Validation path:** First 60 days post-launch: monitor PR quality. If contributions are absent or low-quality, add a "preset template" generator script and a PR checklist.
+### C2 — Community contributors will add skills and presets
+**Confidence:** [UNTESTED — revised for v1.2]
+**v1.2 change:** Community contribution now includes two paths: (a) new preset PRs (same as v1.1), (b) skill entries to `curated-skills-registry.md`. The registry path is lower-friction than a full preset PR.
+**Assumption:** ≥10 community skill entries will be submitted to `curated-skills-registry.md` within 60 days.
+**Risk:** Registry remains sparse — users see fewer curated skill suggestions for novel goals.
+**Validation path:** Track PRs against `curated-skills-registry.md` in first 60 days. If contributions are absent, add a "contribute a skill" workflow to CONTRIBUTING.md with a template.
 
-### C3 — Users will not need to clone the repo — ZIP download is sufficient
-**Confidence:** [ESTIMATED]
-**Assumption:** Non-technical users will use GitHub's "Download ZIP" option rather than git clone. The repo structure must work when downloaded as a ZIP with no git history.
-**Risk:** If any wizard step depends on git (e.g., git submodules, git history for versioning), the ZIP experience breaks.
-**Validation path:** Download repo as ZIP and walk through full wizard flow. Verify no step requires git to be installed or the repo to be a git repo.
+### C3 — Users will use ZIP download, not git clone
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** Non-technical users use GitHub's "Download ZIP." Wizard works without git installed.
+**Validation path:** Download repo as ZIP and walk through full wizard flow. Verify no step requires git.
 
 ---
 
 ## D — Market/Timing Assumptions
 
-### D1 — Cowork's non-technical user base is large enough to sustain a community tool
-**Confidence:** [ESTIMATED]
-**Assumption:** Claude Pro/Max plans (the plans that include Cowork) have a meaningful non-technical knowledge worker user base — not just developers — who are actively trying to use Cowork for study, research, and writing.
-**Risk:** If the current Cowork user base is predominantly developers (who configure their own setups), there's no underserved audience for this tool.
-**Validation path:** Track GitHub referrals from Claude-related subreddits and knowledge worker communities vs. developer communities. If >70% of traffic is from developer sources, pivot preset focus to "non-developer team workflows" instead of individual student/researcher personas.
+### D1 — Cowork's non-technical user base is large enough
+**Confidence:** [ESTIMATED — unchanged]
+**Assumption:** Claude Pro/Max plans have a meaningful non-technical knowledge worker user base actively trying to use Cowork.
+**Validation path:** Track referral sources from Claude subreddits and knowledge worker communities vs. developer communities.
 
-### D2 — No competing product provides this exact wizard experience for Cowork specifically
-**Confidence:** [ESTIMATED]
-**Assumption:** No existing product (community repo, Anthropic-official, or third-party) provides a goal-driven configuration wizard specifically for Claude Cowork.
-**Risk:** If Anthropic ships a native onboarding wizard in a Cowork update, this repo becomes redundant.
-**Validation path:** Search GitHub, Product Hunt, and the Claude Help Center monthly. If Anthropic ships native onboarding, pivot repo to "advanced configuration" and "preset expansion beyond defaults."
-**Note:** Claude Cowork onboard (aiwithremy) focuses on Claude Code, not Cowork — confirmed gap as of April 2026.
+### D2 — No competing product provides this wizard experience for Cowork specifically
+**Confidence:** [ESTIMATED — carries from v1.1]
+**v1.2 update:** Claude Code skill ecosystem has grown (22,000+ star repos, skills.sh marketplace, Anthropic official skills registry). All of this targets Claude Code users (developers), NOT Cowork users (knowledge workers). Gap remains unserved.
+**Risk:** Anthropic ships native Cowork onboarding wizard. Mitigated by: pivot to "advanced configuration" and "preset expansion beyond defaults."
+**Validation path:** Search GitHub and Product Hunt monthly for Cowork-specific onboarding tools.
+
+### D3 — Skill security risk justifies curated-first approach [NEW v1.2]
+**Confidence:** [CONFIRMED]
+**Evidence:** Repello AI research (2026): 13.4% of community skills contain critical security issues. Snyk ToxicSkills research (2026): prompt injection in 36% of tested skills, 1,467 malicious payloads found. Cato Networks documented weaponized Claude skills using ransomware delivery.
+**Assumption:** A curated Tier 1 default is required, not optional. Tier 2 opt-in with explicit warnings is the appropriate middle ground.
+**Risk:** If we ship Tier 2 as default, we expose non-technical users (Alex, Maria) to 13.4% critical risk rate with no prior safety context. This is unacceptable.
+**Validation path:** Already confirmed by security research. No additional validation required — this is a design constraint, not a hypothesis.
+
+### D4 — `curated-skills-registry.md` is maintainable as a static file [NEW v1.2]
+**Confidence:** [UNTESTED — LOW risk]
+**Assumption:** A manually maintained markdown registry is sufficient for v1.2. Skills remain installable at their documented source URLs without a live API or package manager.
+**Risk:** Skills at external URLs become unavailable (repo deleted, renamed, rate-limited). Registry entries become stale.
+**Mitigation:** Vetting date in each registry entry. CONTRIBUTING.md instructs contributors to verify URL accessibility before submitting.
+**Validation path:** After 60 days post-launch, audit registry entries for broken URLs. If >15% are stale, evaluate adding an automated URL health check to CI.

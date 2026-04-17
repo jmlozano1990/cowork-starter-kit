@@ -1,192 +1,219 @@
 # Competitive Analysis — Claude Cowork Config
 
-## Research Date: 2026-04-14
+## Research Date: 2026-04-17
 
-## The Landscape
+## Scope for v1.2
 
-Claude Cowork Config sits at the intersection of three product categories:
-1. **AI workspace configuration tools** — how people set up their AI tools
-2. **Onboarding wizards for AI products** — guided setup experiences
-3. **Community template / preset libraries** — shareable configurations for AI tools
+v1.2 adds three new competitive surfaces that weren't relevant in v1.1:
+1. **Skill discovery and vetting** — the GitHub skill ecosystem and emerging registries
+2. **Anti-AI writing tools** — writing profile calibration competes with standalone humanizer tools
+3. **Dynamic workspace builders** — tools that guide users to a workspace vs. presenting a menu
 
-No direct competitor addresses all three for Claude Cowork specifically. The whitespace is real and current.
+v1.1 competitors (Cowork native, GPT Builder, Claude Code Onboard, Notion Templates, PromptBase) are carried forward with updates.
 
 ---
 
-## Competitor Profiles
+## Part 1 — v1.1 Competitors (Updated)
 
 ### 1. Claude Cowork Native Onboarding (Anthropic)
 
-**What it is:** The out-of-the-box Cowork setup flow included in the Claude desktop app.
-**What it does:** Provides basic account setup (folder designation, connector auth), a brief tutorial on capabilities, and access to Global Instructions. No goal-based personalization.
-**Target user:** All Cowork users.
-**Pricing:** Free (bundled with Cowork on Pro/Max/Team/Enterprise plans).
+**What it is:** Out-of-the-box Cowork setup — basic account flow, no goal-based personalization.
+**Update since v1.1:** No change observed. Anthropic has not shipped a native personalization wizard as of April 2026.
 
 | Dimension | Assessment |
 |-----------|-----------|
-| Goal detection | None — blank slate |
-| Skill/context file setup | None — user must create manually |
-| Folder structure guidance | None |
-| Connector guidance | Generic list, no per-goal recommendations |
-| Safety configuration | None — no "confirm before delete" enforced |
-| Personalization | Zero |
-| Non-technical user fit | Poor — configuration is left entirely to the user |
+| Dynamic goal discovery | None |
+| Skill discovery | None — user must search/find skills manually |
+| Writing profile / voice calibration | None |
+| Novel-goal workspace building | None |
+| Non-technical user fit | Poor — blank slate after account setup |
 
-**Whitespace:** Everything past basic account setup. Anthropic optimizes for capability demonstration, not guided configuration. The help center articles are documentation, not wizard flows.
+**Whitespace:** Everything past basic account setup remains unclaimed. v1.2's dynamic wizard and writing profile are unaddressed by Anthropic's native product.
 
-**Risk:** Anthropic could ship a native onboarding wizard at any time. Mitigated by: (a) it hasn't shipped despite 3+ months of user feedback, (b) community presets will compound faster than an official product can iterate.
+**Risk:** Unchanged. Anthropic could ship a wizard. Mitigated by: community preset library and curated skills registry compound faster than a first-party product can iterate.
 
 ---
 
 ### 2. ChatGPT Custom GPT Builder (OpenAI)
 
-**What it is:** A conversational GPT configuration tool that lets users create custom Claude variants (GPTs) with specific instructions, knowledge, and capabilities.
-**What it does:** Users describe what they want, GPT Builder generates system instructions, and users can publish GPTs to the GPT Store.
-**Target user:** Anyone wanting a specialized AI assistant; moderate technical comfort assumed.
-**Pricing:** Included in ChatGPT Plus ($20/month).
+**Update since v1.1:** GPT Builder added a "starter suggestions" flow in late 2025 — if users describe a vague goal, the builder now suggests GPT configurations. This is the closest analog to v1.2's dynamic wizard.
 
 | Dimension | Assessment |
 |-----------|-----------|
-| Goal detection | Conversational — user describes goal in natural language |
-| Skill/context file setup | Knowledge upload (PDFs, docs) |
-| Folder structure guidance | Not applicable — ChatGPT doesn't access local file systems |
-| Connector guidance | Limited (Browsing, DALL-E, Code Interpreter, Actions) |
-| Safety configuration | None specific |
-| Personalization | High — full system prompt customization |
-| Non-technical user fit | Moderate — conversational builder helps, but result quality depends on user's prompt quality |
+| Dynamic goal discovery | Yes (added late 2025) — conversational goal → GPT config |
+| Skill/file setup | Knowledge upload (PDFs, docs) |
+| Writing voice profile | None — no persistent voice calibration |
+| Local file access | None — ChatGPT doesn't access local filesystems |
+| Non-technical user fit | Moderate — builder helps, result depends on prompt quality |
 
-**Key difference:** GPT Builder is for creating a new AI assistant. Claude Cowork Config is for configuring your local AI agent's relationship with your files and workflows. These are fundamentally different surfaces.
+**Key difference (v1.2):** GPT Builder creates a new AI assistant. Claude Cowork Config configures your local AI agent's relationship with YOUR files. GPT Builder's "starter suggestions" is the closest UX analog — but it has no equivalent to Cowork's local file system, connectors, or persistent project context.
 
-**Whitespace:** Claude Cowork operates on local files and integrates with real productivity tools (Drive, Gmail). No ChatGPT equivalent. The "workspace as AI environment" model has no comparable analog in the GPT ecosystem.
+**What we can learn:** The "describe your goal, get suggested configuration" UX is validated by OpenAI's decision to add it. Our suggestion branch and dynamic wizard is aligned with the industry's UX direction.
 
 ---
 
 ### 3. Claude Code Onboard (aiwithremy — GitHub)
 
-**What it is:** A 10-minute guided onboarding for Claude Code that creates an AI workspace with one command. Includes Voice DNA (writing style capture), context files, project consolidation, and tool connections.
-**URL:** github.com/aiwithremy/claude-code-onboard
-**Target user:** Developers who just installed Claude Code.
-**Pricing:** Free, open-source.
+**Update since v1.1:** This project targets Claude Code developers. Unchanged audience gap — knowledge workers are still underserved.
 
-| Dimension | Assessment |
-|-----------|-----------|
-| Goal detection | None — single-path developer onboarding |
-| Skill/context file setup | Yes — context files, voice DNA |
-| Folder structure guidance | Yes — workspace setup |
-| Connector guidance | Yes — Gmail, Drive, Calendar, Notion, Slack |
-| Safety configuration | None documented |
-| Personalization | Moderate — writing style capture is high-value |
-| Non-technical user fit | Poor — requires terminal, developer-focused |
-
-**Key difference:** Targets Claude Code users (developers). Claude Cowork Config targets Cowork users (knowledge workers). Different product, different interface, different audience.
-
-**What we can learn:** The "Voice DNA" approach (capturing writing style from existing emails/messages) is high-value and worth considering for v2. Context file conventions from this project are battle-tested — adapt them for our presets.
+**What we can learn from its Voice DNA feature:** aiwithremy's "Voice DNA" captures writing style from existing emails/messages. v1.2's writing profile is inspired by this but implemented for non-technical Cowork users: shorter interview (3–4 questions) and optional sample paste rather than requiring email import.
 
 ---
 
-### 4. Notion AI Template Library (Notion)
+### 4. Notion AI Template Library
 
-**What it is:** Notion's collection of pre-built templates that include AI-powered automation. Templates cover study plans, research databases, content calendars, project trackers.
-**Target user:** Notion users who want structured AI-assisted workflows.
-**Pricing:** Templates free; Notion AI requires Business plan ($15+/month).
-
-| Dimension | Assessment |
-|-----------|-----------|
-| Goal detection | Browsing by category — no wizard |
-| Skill/context file setup | Not applicable — Notion-internal |
-| Folder structure guidance | Yes — Notion database structure |
-| Connector guidance | Not applicable |
-| Safety configuration | Not applicable |
-| Personalization | Low — user selects template, then customizes manually |
-| Non-technical user fit | Good — visual, no code, familiar UI |
-
-**Key difference:** Notion templates configure a Notion workspace. We configure a local AI agent's operating environment. Non-overlapping.
-
-**What we can learn:** Template browsing by goal category is the right UX pattern. The "what are you trying to do?" taxonomy (Study, Research, Writing, PM, Creative, Business) maps well to Notion's template categories — validating our 6-preset structure.
+**Update since v1.1:** No significant change. Browse-by-category model confirmed by our presets structure. Non-overlapping surface.
 
 ---
 
 ### 5. Prompt Template Marketplaces (PromptBase, FlowGPT)
 
-**What it is:** Marketplaces where users buy/download reusable prompt templates for various AI tools.
-**Target user:** Anyone wanting better AI prompts for specific tasks.
-**Pricing:** PromptBase: $1–$5 per prompt. FlowGPT: free community submissions.
-
-| Dimension | Assessment |
-|-----------|-----------|
-| Goal detection | Browse by category |
-| Skill/context file setup | Prompt text only — no file structure |
-| Folder structure guidance | None |
-| Connector guidance | None |
-| Safety configuration | None |
-| Personalization | None — buy and use as-is |
-| Non-technical user fit | Good — simple copy-paste |
-
-**Key difference:** Prompts are one-time inputs. Skills in Claude Cowork Config are persistent instruction files that shape all of Claude's behavior in a workspace. Fundamentally higher leverage.
-
-**What we can learn:** The per-task prompt structure is how most people think about AI customization. Our value prop is helping them upgrade from "prompts for tasks" to "instructions for the entire workspace" — that's the education angle for the LinkedIn post.
+**Update since v1.1:** skills.sh has emerged as a dedicated skills marketplace for Claude and other agents. This is more relevant than PromptBase — see Part 2 below.
 
 ---
 
-### 6. Existing Claude Community Guides (Substack, YouTube)
+## Part 2 — New Competitors for v1.2
 
-**What they are:** Power user guides published by community creators (ryanstax.substack.com, the-ai-corner.com, karozieminski.substack.com, etc.).
-**What they do:** Explain advanced Cowork configuration in article or video format. High-quality, detailed, but not actionable in isolation.
-**Target user:** Self-directed learners willing to invest 30–60 minutes reading/watching.
-**Pricing:** Free (some paywalled).
+### 6. skills.sh — Agent Skills Marketplace
+
+**What it is:** An open-source agent skills marketplace built on the universal SKILL.md format. Provides discovery, installation, and publishing infrastructure for skills across Claude Code, Cursor, Codex CLI, and others.
+**URL:** skills.sh
+**Target user:** Developers and power users who want to discover and install agent skills.
+**Pricing:** Free / open-source.
 
 | Dimension | Assessment |
 |-----------|-----------|
-| Goal detection | None — generic "best practices" |
-| Skill/context file setup | Yes, in article form — user must implement manually |
-| Folder structure guidance | Yes, in article form |
-| Connector guidance | Yes, in article form |
-| Safety configuration | Mentioned (viral deletion incident featured) |
-| Personalization | None — one-size-fits-all advice |
-| Non-technical user fit | Moderate — article format requires interpretation, implementation still on user |
+| Skill discovery | Yes — searchable marketplace |
+| Skill safety vetting | Limited — community reputation signals only |
+| Non-technical user UX | Poor — requires manual installation steps |
+| Cowork-specific guidance | None — Claude Code focus |
+| Writing profile / workspace building | None |
+| Goal-driven recommendations | None — browse by tag only |
 
-**Key difference:** These guides are the research. We're the implementation. The guides tell users WHAT to do; Claude Cowork Config DOES it for them (generates the files, the instructions, the structure).
+**Relationship to v1.2:** skills.sh is a potential SOURCE for v1.2's curated-skills-registry.md. Entries vetted from skills.sh can be added to our registry. We are not competing with skills.sh — we are providing a safer, goal-filtered entry point to the same ecosystem for non-technical Cowork users.
 
-**Partnership opportunity:** These community creators could become distributors. A "Use Claude Cowork Config to implement this guide in 10 minutes" CTA in their articles is a natural fit.
+**Key difference:** skills.sh is a marketplace. Claude Cowork Config is a wizard that recommends skills from the marketplace (and other sources) based on your specific goal, with safety filtering applied.
 
 ---
 
-## Feature Matrix
+### 7. Anthropic Official Skills (anthropics/skills on GitHub)
 
-| Feature | Cowork Native | GPT Builder | CC Onboard | Notion Templates | Claude Cowork Config (us) |
-|---------|:---:|:---:|:---:|:---:|:---:|
-| Goal-type detection | — | Conversational | — | Browse | Wizard (6 presets) |
-| Custom instructions generator | — | Yes | Partial | — | Yes |
-| Skill/context file generation | — | — | Yes | — | Yes |
-| Local folder structure | — | N/A | Yes | N/A | Yes |
-| Connector guidance | Generic | Limited | Yes | N/A | Per-goal checklist |
-| Safety configuration | — | — | — | — | Yes (every preset) |
-| Non-technical user path | Poor | Moderate | Poor | Good | Primary design target |
-| Zero-code delivery | Partial | Yes | No | Yes | Yes |
-| Open-source community presets | — | Via GPT Store | — | Yes | Yes |
-| Cowork-specific | Yes | No | No | No | Yes |
+**What it is:** Anthropic's official public repository for agent skills, alongside the MCP Registry (registry.modelcontextprotocol.io).
+**Status:** Active. The MCP Registry launched September 2025 with 10,000+ active public MCP servers and 97 million monthly SDK downloads as of March 2026.
+**Target user:** Developers building with Claude agents.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Official vetting | Yes — Anthropic-published |
+| Non-technical installation | Poor — GitHub-level; requires manual setup |
+| Cowork-specific skills | Limited — primarily developer-facing |
+| Goal-driven recommendations | None |
+
+**Relationship to v1.2:** Anthropic's official skills (pptx, xlsx, docx, pdf document skills) are Tier 1 defaults in v1.2's curated registry — zero-config, zero-risk. The MCP registry is a secondary source for future curated entries, not v1.2 scope.
+
+---
+
+### 8. Cowork Skills Community Libraries (GitHub)
+
+**Key repos researched:**
+- `travisvn/awesome-claude-skills` — curated list, 22,000+ stars (Claude Code focus)
+- `VoltAgent/awesome-agent-skills` — 1,000+ community skills, cross-platform
+- `EAIconsulting/cowork-skills-library` — 21 Cowork-specific skills (directly relevant)
+- `alirezarezvani/claude-skills` — 232+ skills, developer focus
+
+**Relevant finding: `EAIconsulting/cowork-skills-library`**
+This is the most directly relevant competitor. 21 Cowork skills from Everyday AI, explicitly positioned as "beginner to power user in 18 minutes, free forever."
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Cowork-specific | Yes — explicitly targets Cowork |
+| Safety vetting | None documented |
+| Wizard / goal-driven setup | None — user selects skills manually |
+| Writing profile | None |
+| Non-technical UX | Moderate — still requires manual browsing and installation |
+
+**Key difference:** Cowork Skills Library is a static skill collection. Claude Cowork Config is a wizard that recommends skills from (and could cross-reference) collections like this, filtered by the user's specific goal, with safety review applied. We are complementary — the Skills Library is a candidate SOURCE for our curated registry.
+
+**Security finding:** Snyk ToxicSkills research (2026) found prompt injection in 36% of tested skills and 1,467 malicious payloads across the GitHub skill ecosystem. 13.4% of all skills contain critical-level issues (Repello AI, 2026). This directly validates our Tier 1 curated default model — we should NOT default users to open GitHub search.
+
+---
+
+### 9. AI Writing Humanizer / Voice Calibration Tools
+
+**The anti-AI writing tool landscape:**
+
+| Tool | Approach | Target User | Limitation |
+|------|----------|-------------|------------|
+| Phrasly | Rewrites AI text using 500k human articles | Content marketers | Post-hoc rewriting, not pre-configuration |
+| BypassGPT | Pattern-matching rewrite to bypass detectors | Students, marketers | Ethical concerns; Turnitin now detects humanizer output (Aug 2025) |
+| Grammarly AI Humanizer | Vocabulary + grammar adjustment | General writers | No persistent voice profile |
+| SidekickWriter | Per-document voice matching pass | Fiction/book authors | Standalone tool, not workspace-integrated |
+| Undetectable AI | Algorithmic rewrite targeting detector bypass | Varies | Turnitin update (Aug 2025) specifically targets humanizer output |
+
+**Critical market context:** Turnitin rolled out a major update in August 2025 that now flags text processed through humanizer tools with cyan highlights. The "bypass detection" angle is increasingly risky and ethically problematic, especially for Alex (student persona).
+
+**v1.2 positioning on this:** Claude Cowork Config's writing profile is NOT a humanizer or detector-bypass tool. It is a persistent voice calibration layer. The goal is to produce writing that sounds like the user in the first place — not to rewrite AI output afterward. This is:
+1. Ethically cleaner (no "trick the detector" framing)
+2. More durable (not vulnerable to Turnitin's humanizer detection)
+3. More aligned with user goals (Maria wants outputs that sound like Maria, not outputs that pass a detector)
+
+**How we frame it:** "This profile helps me write in your voice — so your outputs sound like you, not like generic AI."
+We explicitly do NOT use the words "undetectable," "bypass," or "humanize." The academic integrity message for Alex's Study preset notes: "This workspace is designed to support your learning, not to submit AI output as your own work."
+
+**Key difference from standalone humanizers:** Our writing profile is persistent (set once, applies to every session), integrated (part of the workspace, not a separate tool), and honest (voice calibration, not detection evasion). This is a genuinely differentiated position in the landscape.
+
+---
+
+## Updated Feature Matrix
+
+| Feature | Cowork Native | GPT Builder | Cowork Skills Lib | skills.sh | AI Humanizers | Claude Cowork Config v1.2 |
+|---------|:---:|:---:|:---:|:---:|:---:|:---:|
+| Dynamic goal discovery | — | Yes (2025) | — | — | — | Yes (v1.2) |
+| Suggestion branch for vague goals | — | Partial | — | — | — | Yes |
+| Custom instructions generator | — | Yes | — | — | — | Yes |
+| Writing profile (persistent) | — | — | — | — | Partial (per-doc) | Yes — universal |
+| Anti-AI voice calibration | — | — | — | — | Yes (rewrite) | Yes (pre-calibration) |
+| Skill discovery + recommendations | — | Limited | Browse-only | Browse-only | — | Yes (curated + advanced) |
+| Skill safety vetting | — | — | — | — | — | Yes (Tier 1 curated + Tier 2 scan) |
+| Goal-filtered skill suggestions | — | — | — | — | — | Yes |
+| Local folder structure | — | N/A | — | — | — | Yes |
+| Connector guidance | Generic | Limited | — | — | — | Per-goal checklist |
+| Safety configuration | — | — | — | — | — | Yes (every preset) |
+| Non-technical user path | Poor | Moderate | Poor | Poor | Moderate | Primary design target |
+| Zero-code delivery | Partial | Yes | No | No | Yes | Yes |
+| Open-source community presets | — | Via GPT Store | Partial | Yes | — | Yes |
+| Cowork-specific | Yes | No | Yes | No | No | Yes |
+| Novel-goal (non-preset) support | — | Yes | — | — | — | Yes (v1.2) |
 
 Legend: — = not present, N/A = not applicable
 
 ---
 
-## Whitespace Summary
+## Whitespace Summary (v1.2)
 
-The gap Claude Cowork Config fills is specific and defensible:
+The gap Claude Cowork Config fills has widened since v1.1:
 
 **No existing product is:**
-1. Goal-driven (not generic)
-2. Cowork-specific (not Claude Code, not ChatGPT)
+1. Goal-driven with dynamic suggestions (not just a menu or a browse page)
+2. Cowork-specific for knowledge workers (not Claude Code, not ChatGPT, not generic)
 3. Non-technical-first (not a developer tool)
-4. Safety-conscious by default (not silent about deletion risks)
-5. Open-source and community-extensible
+4. Safety-conscious by default (the 13.4% critical skill risk is real and undisclosed by most discovery tools)
+5. Writing-voice-aware (persistent calibration, not per-document rewriting)
+6. Novel-goal capable (not locked to 6 preset categories)
+7. Open-source and community-extensible with a safety vetting layer
 
-The closest analog is the Claude Code Onboard project, but it explicitly targets developers. The closest UX analog is ChatGPT's GPT Builder, but it operates on a completely different surface (hosted chat assistant, not local file agent).
+The closest competitors for v1.2's NEW capabilities:
+- **Dynamic goal discovery:** GPT Builder (different surface entirely)
+- **Skill discovery:** skills.sh (developer audience, no Cowork-specific, no safety vetting)
+- **Writing voice:** SidekickWriter (different surface, per-document, not persistent)
+- **Cowork skills collection:** EAIconsulting/cowork-skills-library (no wizard, no safety vetting, no writing profile)
+
+No competitor combines all seven dimensions. The whitespace is real, growing, and defensible.
 
 ---
 
-## Positioning Statement
+## Positioning Statement (v1.2)
 
-**Claude Cowork Config is the only goal-driven configuration wizard for Claude Cowork that turns a beginner's blank-slate setup into a personalized, safety-configured AI workspace in under 15 minutes — no code required.**
+**Claude Cowork Config is the only guided workspace architect for Claude Cowork that builds a personalized, safety-configured AI workspace from any goal — even ones you can't name — and makes sure every output sounds like you, not like a chatbot.**
 
-Where community guides tell you what to do and native onboarding gives you nothing, Claude Cowork Config does it for you, for your specific goal, with safety guardrails baked in.
+Where the skill ecosystem is dangerous without guidance, native onboarding gives you nothing, and humanizer tools fight a losing battle against detection, Claude Cowork Config sets up your workspace right the first time: goal-driven, voice-calibrated, safety-vetted, non-technical.
