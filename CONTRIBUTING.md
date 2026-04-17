@@ -18,15 +18,48 @@ All contributions start from the template. Do not create a preset folder from sc
 
 ## PR review checklist for maintainers
 
-Before merging a new preset PR, verify all 7 items:
+Before merging a new preset PR, verify all 11 items:
 
 - [ ] **`project-instructions-starter.txt` present** — file exists at `presets/<name>/project-instructions-starter.txt`
-- [ ] **Starter file is ≤300 words** — run `wc -w presets/<name>/project-instructions-starter.txt` to confirm
+- [ ] **Starter file is ≤350 words** — run `wc -w presets/<name>/project-instructions-starter.txt` to confirm (raised from ≤300 in v1.2 for dynamic wizard branching)
 - [ ] **Safety rule present verbatim in starter file** — must contain: "Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder."
 - [ ] **All skills in `folder/SKILL.md` format** — no flat `.md` skill files at `presets/<name>/.claude/skills/` root; each skill is a folder with `SKILL.md` containing valid YAML frontmatter (`name:` and `description:` fields)
 - [ ] **Minimum file count met** — at least 3 skills in `.claude/skills/`, at least 2 context files in `context/`, at least 1 `folder-structure.md`, at least 1 `connector-checklist.md`
 - [ ] **"Try this now" prompts present** — `skills-as-prompts.md` includes at least one file-based and one file-agnostic example prompt
-- [ ] **CI passes** — all GitHub Actions jobs pass: markdown lint, link check, shellcheck, safety-rule grep, starter-file-check, starter-safety-rule-check, skill-format-check
+- [ ] **CI passes** — all GitHub Actions jobs pass: markdown lint, link check, shellcheck, safety-rule grep, starter-file-check, starter-safety-rule-check, skill-format-check, writing-profile-template-check
+- [ ] **`writing-profile.md` present** — file exists at `presets/<name>/context/writing-profile.md` with non-placeholder content in Tone & Voice and Anti-AI Guidance sections; must not be blank or contain only `[bracketed placeholders]`
+- [ ] **`curated-skills-registry.md` entry follows schema** — if the PR adds skills to `curated-skills-registry.md`, each entry must include: `name`, `description`, `source_url` (HTTPS only or `builtin`), `vetting_date` (ISO 8601), `tier` (1 or 2), `goal_tags`. PR description must include vetting evidence (source repo stars/health, last commit date, keyword scan result showing no flagged terms)
+- [ ] **CLAUDE.md sync** — if the PR modifies the wizard flow in any `project-instructions-starter.txt`, `CLAUDE.md` must be updated to match (and vice versa). All 7 wizard surfaces (CLAUDE.md + 6 starter files) must stay in sync. PRs that touch one must touch all.
+- [ ] **No `Sample:` or `Raw sample:` field** — `writing-profile.md` files must not store raw user writing samples; wizard instructions must extract patterns only
+
+---
+
+## CLAUDE.md changes — high-impact notice
+
+`CLAUDE.md` is auto-loaded as system context for any user who opens this repo folder in Cowork. It is a universal entry point — changes to it affect all users immediately, not just users of a specific preset.
+
+**PRs that modify `CLAUDE.md` must:**
+
+1. Also update all 6 `presets/*/project-instructions-starter.txt` files to match (wizard flow must stay in sync — ADR-010)
+2. Include a clear explanation of what changed and why in the PR description
+3. Be reviewed by a maintainer before merge — treat `CLAUDE.md` edits as security-relevant changes
+
+Similarly: PRs that modify wizard flow in any starter file must also update `CLAUDE.md`.
+
+---
+
+## Registry entries — `curated-skills-registry.md`
+
+When adding entries to `curated-skills-registry.md`:
+
+- `source_url` must use HTTPS (not `http://`). Use `builtin` only for Anthropic official skills — do not claim `builtin` for community-sourced skills.
+- **Pin to a specific commit SHA**, not a branch URL, to prevent URL rotation attacks:
+  - Correct: `https://github.com/org/repo/blob/a1b2c3d4e5f6/path/SKILL.md`
+  - Avoid: `https://github.com/org/repo/blob/main/path/SKILL.md`
+- `vetting_date` is the date you personally tested the specific SHA above
+- Include vetting evidence in your PR description: source repo stars, last commit date, keyword scan result
+
+The Tier 2 community skill search list in `WIZARD.md` is maintained by repo maintainers. Do not submit PRs that add new repos to that list — open an issue to request additions.
 
 ---
 

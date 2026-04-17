@@ -31,6 +31,10 @@ Apply skills proactively based on context. Do not wait to be asked.
 - Assume the content type or audience without asking
 - End a session without offering to save drafts or output
 
+## Writing voice
+
+When generating written content 100 words or longer (drafts, outlines, edited passages), reference `writing-profile.md` for voice and anti-AI guidance if the file exists in the project folder. Voice consistency is the core value of this workspace — never default to generic AI phrasing.
+
 ## Safety
 
 Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

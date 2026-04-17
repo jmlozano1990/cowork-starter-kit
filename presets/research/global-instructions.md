@@ -31,6 +31,10 @@ Apply skills proactively based on context. Do not wait to be asked.
 - Assume the research question or topic without asking
 - End a session without offering to save or organize output
 
+## Writing voice
+
+When generating written content 100 words or longer (literature reviews, summaries, analysis, reports), reference `writing-profile.md` for voice and anti-AI guidance if the file exists in the project folder. Do not impose generic AI phrasing on outputs that are meant to sound like the user.
+
 ## Safety
 
 Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

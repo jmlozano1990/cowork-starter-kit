@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -31,16 +31,19 @@ You                                Cowork
  |                                    |
  |  Start conversation                |
  | ---------------------------------> |
- |                                    |  Auto-detects first session
- |                                    |  Runs onboarding interview
- |                                    |  (up to 11 steps, fast-track at 5)
+ |                                    |  "What would you like to use
+ |                                    |  this workspace for?"
+ |  [your goal in your own words]     |
+ | ---------------------------------> |
+ |                                    |  Detects goal, proposes workspace
+ |                                    |  Asks profile + writing questions
  |  [your answers]                    |
  | ---------------------------------> |
  |                                    |  Generates your workspace:
  |                                    |    cowork-profile.md
+ |                                    |    writing-profile.md
  |                                    |    context/ folder
  |                                    |    skill files
- |                                    |    connector-checklist.md
  |  "Your workspace is ready."        |
  | <--------------------------------- |
  |                                    |
@@ -64,6 +67,20 @@ That's it. Cowork reads the project instructions and walks you through personali
 
 ---
 
+## What can you build?
+
+You don't need to know which preset fits your goal — the wizard figures it out. Here are three examples:
+
+| Goal you describe | What the wizard builds |
+|-------------------|----------------------|
+| "I'm a biochemistry student studying for finals" | Study workspace — flashcard generation, note-taking, research synthesis, academic writing profile |
+| "I'm managing a job search and want to track applications" | Career Manager workspace — application tracker, interview prep, resume tailor, professional writing profile |
+| "I want to plan a home renovation and stay organized" | Project workspace — task tracking, stakeholder updates, decision log, direct communication writing profile |
+
+The 6 presets (Study, Research, Writing, PM, Creative, Business/Admin) are accelerators — the wizard uses them as scaffolds when your goal matches. For anything else, it builds from scratch.
+
+---
+
 ## Six goal presets
 
 Pick the one that matches your work. The wizard auto-selects the right preset and personalizes it for you.
@@ -80,10 +97,11 @@ Pick the one that matches your work. The wizard auto-selects the right preset an
 **Each preset includes:**
 
 - `project-instructions-starter.txt` — paste into Project Settings > Custom Instructions BEFORE any conversation
-- `global-instructions.md` — proactive skill trigger rules (session behavior)
+- `global-instructions.md` — proactive skill trigger rules (session behavior) with writing profile integration
 - `context/about-me.md` — fill in your name, role, and goals
 - `context/working-rules.md` — safe defaults (includes confirm-before-delete rule)
 - `context/output-format.md` — pre-filled for your preset
+- `context/writing-profile.md` — goal-appropriate writing voice defaults (new in v1.2)
 - `connector-checklist.md` — which connectors to authorize and why
 - `skills-as-prompts.md` — skill content as copy-paste prompts if skill upload is unavailable
 - `folder-structure.md` — recommended folder layout for your workspace
@@ -91,13 +109,19 @@ Pick the one that matches your work. The wizard auto-selects the right preset an
 
 ---
 
-## v1.1 highlights
+## v1.2 highlights
 
-- **Paste-and-go setup** — paste one file, start talking. No wizard interception, no generic setup. Cowork runs YOUR onboarding, not its own.
-- **11-step deep interview** — personalized per goal. Fast-track option at step 5 if you want to get started quickly.
-- **Proactive skills** — Cowork offers flashcards when you share study material, suggests synthesis when you reference multiple sources, drafts status updates when a deadline is near. Skills activate in context, not just when asked.
-- **`/setup-wizard`** — explicit command to run or redo setup anytime. Bypasses Cowork's intent classifier entirely.
-- **18 auto-discovering skills** — properly formatted so Cowork loads them as `/slash-commands` (e.g., `/flashcard-generation`, `/voice-matching`).
+- **Dynamic goal discovery** — the wizard asks your goal in plain language instead of showing a preset menu. If you're not sure what you want, it suggests three concrete directions. If your goal matches a preset, it uses that as a scaffold. If not, it builds from scratch.
+- **Writing profile for every workspace** — 3–4 questions calibrate Cowork to your voice, not generic AI. Outputs sound like you. Every workspace now ships with a goal-appropriate `writing-profile.md`.
+- **Curated skills registry** — `curated-skills-registry.md` lists 18 vetted skills (3 per preset) with descriptions, source URLs, and goal tags. Advanced users can opt into Tier 2 community skill discovery with built-in safety checks.
+- **No-config open** — open the repo folder in Cowork and start talking. `CLAUDE.md` auto-runs the dynamic wizard. No paste required.
+
+Earlier highlights:
+
+- **Paste-and-go setup** — paste `project-instructions-starter.txt` into Project Settings > Custom Instructions before your first conversation for preset-specific behavior.
+- **Proactive skills** — Cowork offers flashcards when you share study material, suggests synthesis when you reference multiple sources, drafts status updates when a deadline is near.
+- **`/setup-wizard`** — explicit command to run or redo setup anytime.
+- **18 auto-discovering skills** — properly formatted as `/slash-commands` (e.g., `/flashcard-generation`, `/voice-matching`).
 
 ---
 

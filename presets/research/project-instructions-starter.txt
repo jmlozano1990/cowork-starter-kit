@@ -2,36 +2,56 @@
 
 Check if cowork-profile.md exists in this project folder.
 
-**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what to work on.
 
-**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+**If absent (or contains "[Your name]"):** Run onboarding. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
 
-### Research preset interview
+### Phase 1 — Goal Discovery
 
-Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+Ask: "Welcome! What would you like to use this workspace for? Describe your goal — or type 'not sure' for suggestions."
 
-Step 1: Name (free text) **Your answer:**
-Step 2: Research domain (free text) **Your answer:**
-Step 3: Researcher type — 1)Academic 2)Independent 3)Journalist 4)Analyst 5)Student S)Suggest **Your answer:**
-Step 4: Work stage — 1)Starting out 2)Mid-research 3)Writing up 4)Reviewing **Your answer:**
-Step 5: Sources — 1)Journals 2)News/web 3)Books 4)Datasets 5)Mixed S)Suggest **Your answer:**
+**If uncertain** ("not sure", "maybe", "something like"):
+"Three directions:
+1. Study / Learning — exam prep, coursework, reading
+2. Work / Projects — tracking, reports, stakeholder updates
+3. Writing / Creating — articles, content, storytelling
+Which fits? Or describe your goal."
 
-After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+**If goal matches a preset** (study, exam, research, writing, project, PM, creative, design, business, admin):
+"That sounds like [Preset]. Want me to customize it?
+1. Yes — use [Preset] as a scaffold  2. No — build from scratch"
 
-Steps 6-11: run /setup-wizard (output format, citation style, source verification, skills: Literature Review, Source Analysis, Research Synthesis). Offer: 1)Yes 2)No 3)Show me more.
+**Novel goal:** "I'll build a [goal] workspace from scratch." Continue.
 
-Generate cowork-profile.md: Name, Goal, Domain, Tools, Output format, Setup date, Upcoming deadlines. Say: "Your [Domain] research workspace is ready. Start a literature search, organize sources, or discuss your research question?"
+Hint: this starter is optimized for Research (literature review, academic research, analysis).
 
-Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+### Phase 2 — Profile
 
-## ONGOING BEHAVIOR
+- Step 1: Name (free text)
+- Step 2: Role or context (free text)
 
-Literature Review: offer when user shares multiple sources or starts a research project.
-Source Analysis: offer when user shares a single paper or article for evaluation.
-Research Synthesis: offer when user references 2+ sources on the same topic.
+### Phase 3 — Writing Profile
 
-Session start: surface deadlines within 7 days. Ask what research topic we're working on.
+Say: "Even in a research workspace, I produce text for you — these help me write in your voice, not like generic AI."
 
-Never use a skill without offering first. Never assume the topic.
+- Step 3: Tone — 1) Casual  2) Professional  3) Academic  4) Mixed
+- Step 4: Audience — 1) Peers/reviewers  2) Stakeholders  3) Students/public  4) Mixed
+- Step 5: Style — 1) Concise  2) Thorough  3) Domain jargon  4) S) Suggest
+- Step 6 (optional): "Paste a sentence from your writing to calibrate your voice — or 'skip'."
+  Extract 2+ patterns if provided; state explicitly; do NOT store raw sample text.
+
+Generate writing-profile.md: Tone & Voice, Style Preferences, Anti-AI Guidance, Workspace-Specific Rules, Pet Peeves.
+
+**Fast-track:** "Basic workspace ready. 1) Continue — folder structure and skills  2) Get started now — run /setup-wizard later"
+
+### Phase 4 — Full Setup
+
+Run /setup-wizard for skills (Literature Review, Source Analysis, Research Synthesis) and folder structure.
+
+Generate cowork-profile.md: Name, Goal, Domain, Setup date, Upcoming deadlines: (leave blank).
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<name>/SKILL.md.
+
+## Safety
 
 Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

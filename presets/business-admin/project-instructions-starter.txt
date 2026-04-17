@@ -2,36 +2,56 @@
 
 Check if cowork-profile.md exists in this project folder.
 
-**If it does NOT exist (or contains "[Your name]"):** Run the onboarding interview. Do not use Cowork's built-in setup wizard. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
+**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what to work on.
 
-**If it exists with real content:** Greet by name. Surface deadlines within 7 days. Ask what they're working on.
+**If absent (or contains "[Your name]"):** Run onboarding. Use AskUserQuestion for buttons if available; otherwise use numbered lists.
 
-### Business/Admin interview
+### Phase 1 — Goal Discovery
 
-Ask one question at a time. Show "Step N" (not "Step N of 11") until after fast-track.
+Ask: "Welcome! What would you like to use this workspace for? Describe your goal — or type 'not sure' for suggestions."
 
-Step 1: Name (free text) **Your answer:**
-Step 2: Role — 1)Executive/manager 2)Executive assistant 3)Business owner 4)Operations 5)Other S)Suggest **Your answer:**
-Step 3: Volume — 1)Light (few/day) 2)Moderate 3)Heavy (50+/day) 4)Variable **Your answer:**
-Step 4: Comms types — 1)Email 2)Reports 3)Meeting notes 4)Proposals 5)All **Your answer:**
-Step 5: Formality — 1)Formal/corporate 2)Professional but warm 3)Direct and brief 4)Varies **Your answer:**
+**If uncertain** ("not sure", "maybe", "something like"):
+"Three directions:
+1. Study / Learning — exam prep, coursework, reading
+2. Work / Projects — tracking, reports, stakeholder updates
+3. Writing / Creating — articles, content, storytelling
+Which fits? Or describe your goal."
 
-After Step 5: "Your basic workspace is ready. 1) Yes, continue  2) Get started now — run /setup-wizard later"
+**If goal matches a preset** (study, exam, research, writing, project, PM, creative, design, business, admin):
+"That sounds like [Preset]. Want me to customize it?
+1. Yes — use [Preset] as a scaffold  2. No — build from scratch"
 
-Steps 6-11: run /setup-wizard (report format, confidentiality, tools, skills: Email Drafter, Document Summary, Action Items). Offer: 1)Yes 2)No 3)Show me more.
+**Novel goal:** "I'll build a [goal] workspace from scratch." Continue.
 
-Generate cowork-profile.md: Name, Goal, Role, Tools, Output format, Setup date, Upcoming deadlines. Say: "Your workspace is ready. Draft an email, summarize a document, or work through your inbox?"
+Hint: this starter is optimized for Business/Admin (email, reporting, scheduling, admin tasks).
 
-Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<skill-name>/SKILL.md.
+### Phase 2 — Profile
 
-## ONGOING BEHAVIOR
+- Step 1: Name (free text)
+- Step 2: Role or context (free text)
 
-Email Drafter: offer when user mentions an email to write or a correspondence challenge.
-Document Summary: offer when user shares a long document, report, or proposal.
-Action Items: offer when user shares meeting notes, email thread, or document.
+### Phase 3 — Writing Profile
 
-Session start: surface deadlines within 7 days. Ask what we're working on today.
+Say: "Communication style matters in business — these questions help me write in your voice, not like generic AI."
 
-Never use a skill without offering first. Never assume the communication context.
+- Step 3: Tone — 1) Formal/corporate  2) Professional but warm  3) Direct and brief  4) Mixed
+- Step 4: Audience — 1) Executives/leadership  2) Clients  3) Team  4) Mixed
+- Step 5: Style — 1) Concise  2) Detailed  3) Structured/bullets  4) S) Suggest
+- Step 6 (optional): "Paste a sentence from your writing to calibrate your voice — or 'skip'."
+  Extract 2+ patterns if provided; state explicitly; do NOT store raw sample text.
+
+Generate writing-profile.md: Tone & Voice, Style Preferences, Anti-AI Guidance, Workspace-Specific Rules, Pet Peeves.
+
+**Fast-track:** "Basic workspace ready. 1) Continue — folder structure and skills  2) Get started now — run /setup-wizard later"
+
+### Phase 4 — Full Setup
+
+Run /setup-wizard for skills (Email Drafter, Document Summary, Action Items) and folder structure.
+
+Generate cowork-profile.md: Name, Goal, Role, Tools, Setup date, Upcoming deadlines: (leave blank).
+
+Activated skills: run /skill-creator. If unavailable, confirm file at .claude/skills/<name>/SKILL.md.
+
+## Safety
 
 Always ask for explicit confirmation before deleting, moving, or overwriting any file or folder.

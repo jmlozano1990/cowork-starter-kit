@@ -169,3 +169,79 @@ jobs:
             exit 1
           fi
           echo "CLAUDE.md exists and contains safety rule."
+
+  claude-md-word-count-check:
+    name: CLAUDE.md Word Count Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify CLAUDE.md does not exceed 400 words
+        run: |
+          if [ ! -f "CLAUDE.md" ]; then
+            echo "MISSING: CLAUDE.md at repo root"
+            exit 1
+          fi
+          WORD_COUNT=$(wc -w < CLAUDE.md)
+          if [ "$WORD_COUNT" -gt 400 ]; then
+            echo "CLAUDE.md exceeds 400 words: $WORD_COUNT words found"
+            echo "The 400-word ceiling is a security property (ADR-011) — keeps wizard bootstrap below long-form injection threshold."
+            echo "Target is <=350 words. Upper bound is 400."
+            exit 1
+          fi
+          echo "CLAUDE.md word count: $WORD_COUNT (limit: 400). Check passed."
+
+  writing-profile-template-check:
+    name: Writing Profile Template Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify writing profile template exists with required sections
+        run: |
+          if [ ! -f "templates/writing-profile-template.md" ]; then
+            echo "MISSING: templates/writing-profile-template.md"
+            exit 1
+          fi
+          FAIL=0
+          for section in "## Tone & Voice" "## Anti-AI Guidance" "## Workspace-Specific Rules"; do
+            if ! grep -qF "$section" "templates/writing-profile-template.md"; then
+              echo "MISSING section: $section"
+              FAIL=1
+            fi
+          done
+          if [ "$FAIL" -eq 1 ]; then
+            exit 1
+          fi
+          echo "Writing profile template present with all required sections."
+
+  registry-url-check:
+    name: Registry URL Integrity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify curated-skills-registry.md source_url values are HTTPS or builtin
+        run: |
+          if [ ! -f "curated-skills-registry.md" ]; then
+            echo "MISSING: curated-skills-registry.md at repo root"
+            exit 1
+          fi
+          FAIL=0
+          # Extract source_url column values from markdown table rows (pipe-delimited)
+          # Match lines with table data (start with |, have content)
+          while IFS= read -r line; do
+            # Extract value from source_url column position (column 3 in our schema tables)
+            # Look for lines that have a URL-like pattern or builtin
+            url=$(echo "$line" | grep -oP '(?<=\| )(https?://[^\s|]+|builtin)(?= \|)' || true)
+            if [ -z "$url" ]; then
+              continue
+            fi
+            # Allow builtin and https:// — reject http:// and other schemes
+            if echo "$url" | grep -q '^http://'; then
+              echo "INSECURE URL (http:// not allowed): $url"
+              echo "All source_url values must use HTTPS or be 'builtin'. See CONTRIBUTING.md."
+              FAIL=1
+            fi
+          done < curated-skills-registry.md
+          if [ "$FAIL" -eq 1 ]; then
+            exit 1
+          fi
+          echo "Registry URL check passed — all source_url values are HTTPS or builtin."
