@@ -218,33 +218,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Verify curated-skills-registry.md source_url values are HTTPS or builtin
+      - name: Verify curated-skills-registry.md source_url values are HTTPS github.com or builtin
         run: |
           if [ ! -f "curated-skills-registry.md" ]; then
             echo "MISSING: curated-skills-registry.md at repo root"
             exit 1
           fi
+          # Negative self-test — ensure the tightened regex rejects disallowed schemes before production scan
+          NEGATIVE_FIXTURE=$(cat <<'EOF'
+          | bad-skill | Tier 2 | Creative | [invalid](ftp://NEGATIVE-TEST-FIXTURE-v1.3.0) | fake |
+          EOF
+          )
+          FIXTURE_URL=$(echo "$NEGATIVE_FIXTURE" | grep -oP '(?<=\| )(https://github\.com/[^\s|]+|builtin)(?= \|)' || true)
+          if [ -n "$FIXTURE_URL" ]; then
+            echo "SELF-TEST FAILED: negative fixture matched the allowlist regex — tighten the pattern"
+            exit 1
+          fi
+          echo "Negative self-test passed — ftp:// fixture correctly rejected."
           FAIL=0
-          # Extract source_url column values from markdown table rows (pipe-delimited)
-          # Match lines with table data (start with |, have content)
+          # Extract source_url column values from markdown table rows (pipe-delimited).
+          # Allowlist: exact literal 'builtin' OR URLs starting with https://github.com/
+          # Reject: http://, ftp://, relative paths, bare domains, any other scheme.
           while IFS= read -r line; do
-            # Extract value from source_url column position (column 3 in our schema tables)
-            # Look for lines that have a URL-like pattern or builtin
             url=$(echo "$line" | grep -oP '(?<=\| )(https?://[^\s|]+|builtin)(?= \|)' || true)
             if [ -z "$url" ]; then
               continue
             fi
-            # Allow builtin and https:// — reject http:// and other schemes
-            if echo "$url" | grep -q '^http://'; then
-              echo "INSECURE URL (http:// not allowed): $url"
-              echo "All source_url values must use HTTPS or be 'builtin'. See CONTRIBUTING.md."
-              FAIL=1
+            if echo "$url" | grep -qF 'builtin'; then
+              continue
             fi
+            if echo "$url" | grep -qP '^https://github\.com/'; then
+              continue
+            fi
+            echo "REJECTED URL (must be https://github.com/... or 'builtin'): $url"
+            echo "All source_url values must start with https://github.com/ or be the literal 'builtin'."
+            echo "See CONTRIBUTING.md for the allowed URL scheme."
+            FAIL=1
           done < curated-skills-registry.md
           if [ "$FAIL" -eq 1 ]; then
             exit 1
           fi
-          echo "Registry URL check passed — all source_url values are HTTPS or builtin."
+          echo "Registry URL check passed — all source_url values are https://github.com/ or builtin."
 
   starter-file-word-count-check:
     name: Starter File Word Count Check
@@ -289,3 +303,85 @@ jobs:
             exit 1
           fi
           echo "Registry cardinality check passed: $DATA_ROWS entries found (minimum: 18)."
+
+  skill-depth-check:
+    name: Skill Depth Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Enforce 9-section structure and 60-line floor on depth-enforced preset skills
+        run: |
+          # ADR-016: skill-depth-check enforces the 9-section template for the listed presets.
+          # Widen ENFORCED_PRESETS when additional presets complete the B10 skill-input flow.
+          ENFORCED_PRESETS="study"
+
+          REQUIRED_SECTIONS=(
+            "## When to use"
+            "## Triggers"
+            "## Instructions"
+            "## Output format"
+            "## Quality criteria"
+            "## Anti-patterns"
+            "## Example"
+            "## Writing-profile integration"
+            "## Example prompts"
+          )
+          LINE_FLOOR=60
+          FAIL=0
+
+          for preset in $ENFORCED_PRESETS; do
+            skill_base="presets/${preset}/.claude/skills"
+            if [ ! -d "$skill_base" ]; then
+              echo "WARNING: skills directory not found for enforced preset '${preset}': $skill_base"
+              continue
+            fi
+            for skill_file in "${skill_base}"/*/SKILL.md; do
+              if [ ! -f "$skill_file" ]; then
+                continue
+              fi
+              skill_fail=0
+              # Check all 9 required section headers (order flexible, presence required)
+              for section in "${REQUIRED_SECTIONS[@]}"; do
+                if ! grep -qF "$section" "$skill_file"; then
+                  echo "MISSING section '$section' in: $skill_file"
+                  echo "  -> See templates/skill-template/SKILL.md for the required structure."
+                  skill_fail=1
+                fi
+              done
+              # Check 60-line floor
+              line_count=$(wc -l < "$skill_file")
+              if [ "$line_count" -lt "$LINE_FLOOR" ]; then
+                echo "TOO SHORT (${line_count} lines, minimum ${LINE_FLOOR}): $skill_file"
+                echo "  -> See templates/skill-template/SKILL.md for the required structure."
+                skill_fail=1
+              fi
+              if [ "$skill_fail" -eq 1 ]; then
+                FAIL=1
+              fi
+            done
+          done
+
+          if [ "$FAIL" -eq 1 ]; then
+            exit 1
+          fi
+          echo "Skill depth check passed — all enforced preset skills meet the 9-section template and ${LINE_FLOOR}-line floor."
+
+      - name: Advisory notice for unenforced presets
+        run: |
+          # S1: Emit advisory notices for presets NOT yet in the depth-enforcement allowlist.
+          # New SKILL.md files landing under these paths must meet the 9-section template
+          # before enforcement is widened to include the preset in ENFORCED_PRESETS above.
+          ENFORCED_PRESETS="study"
+          UNENFORCED_PRESETS=""
+          for preset_dir in presets/*/; do
+            preset=$(basename "$preset_dir")
+            if ! echo "$ENFORCED_PRESETS" | grep -qw "$preset"; then
+              UNENFORCED_PRESETS="$UNENFORCED_PRESETS $preset"
+            fi
+          done
+          if [ -n "$UNENFORCED_PRESETS" ]; then
+            for preset in $UNENFORCED_PRESETS; do
+              echo "::notice::Preset '${preset}' is NOT in the skill-depth-check enforcement allowlist. Any new SKILL.md files added under presets/${preset}/.claude/skills/ must conform to the 9-section template (templates/skill-template/SKILL.md) before the preset is added to ENFORCED_PRESETS."
+            done
+          fi
+          echo "Unenforced presets advisory complete."
