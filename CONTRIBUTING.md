@@ -31,6 +31,7 @@ Before merging a new preset PR, verify all 11 items:
 - [ ] **`curated-skills-registry.md` entry follows schema** — if the PR adds skills to `curated-skills-registry.md`, each entry must include: `name`, `description`, `source_url` (HTTPS only or `builtin`), `vetting_date` (ISO 8601), `tier` (1 or 2), `goal_tags`. PR description must include vetting evidence (source repo stars/health, last commit date, keyword scan result showing no flagged terms)
 - [ ] **CLAUDE.md sync** — if the PR modifies the wizard flow in any `project-instructions-starter.txt`, `CLAUDE.md` must be updated to match (and vice versa). All 7 wizard surfaces (CLAUDE.md + 6 starter files) must stay in sync. PRs that touch one must touch all.
 - [ ] **No `Sample:` or `Raw sample:` field** — `writing-profile.md` files must not store raw user writing samples; wizard instructions must extract patterns only
+- [ ] **Prior retro carry-forwards reviewed** — per `docs/retro-template.md` §Carry-Forward Review; every item from the previous cycle's Section 8 must have an explicit disposition before this PR closes
 
 ---
 

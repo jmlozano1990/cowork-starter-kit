@@ -138,6 +138,12 @@ Every preset includes a non-negotiable rule: **Cowork will always ask for your c
 
 ---
 
+## Next up — v1.3.0 Preset Skills Depth
+
+Preset skills are moving from 16-line stubs to structured, production-grade skills with 9 standard sections: triggers, instructions, output format, quality criteria, anti-patterns, worked examples, and writing-profile integration. The Study preset ships first in v1.3.0 as the pilot, starting with `flashcard-generation`; one preset is depth-upgraded per point release after that. Track progress on [Milestone #1](https://github.com/jmlozano1990/cowork-starter-kit/milestone/1) or follow the conversation in [Issue #2](https://github.com/jmlozano1990/cowork-starter-kit/issues/2).
+
+---
+
 ## Staying up to date
 
 This repo uses [semantic versioning](https://github.com/jmlozano1990/cowork-starter-kit/releases). When a new version ships, check the [Releases](https://github.com/jmlozano1990/cowork-starter-kit/releases) tab. The CHANGELOG lists which presets changed. To update: download the new preset folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours and are never overwritten.
