@@ -90,7 +90,7 @@ The 6 presets (Study, Research, Writing, PM, Creative, Business/Admin) are accel
 
 ## Six goal presets
 
-Pick the one that matches your work. The wizard auto-selects the right preset and personalizes it for you.
+You don't pick — you describe your goal in plain language and the wizard picks the right preset (or builds from scratch if nothing fits). These are the 6 scaffolds it can use:
 
 | Preset | Best for | What you get |
 |--------|----------|--------------|
