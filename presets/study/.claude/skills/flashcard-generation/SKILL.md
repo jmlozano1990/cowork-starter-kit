@@ -102,7 +102,8 @@ Tags: one space-separated tag string derived from the source topic (e.g. `biolog
 
 **Anki TSV block:**
 
-```
+<!-- markdownlint-disable MD010 -->
+```tsv
 What cellular process generates most ATP in eukaryotic cells?	Oxidative phosphorylation.	biology cell-biology mitochondria
 In which organelle does oxidative phosphorylation occur?	The mitochondrion.	biology cell-biology mitochondria
 Oxidative phosphorylation occurs across the {{c1::inner membrane}} of the mitochondrion.		biology cell-biology mitochondria
@@ -110,6 +111,7 @@ From which parent is mitochondrial DNA inherited?	The mother (maternally inherit
 According to endosymbiotic theory, what did mitochondria evolve from?	Endosymbiotic bacteria.	biology cell-biology mitochondria
 Mitochondria are found in most {{c1::eukaryotic}} cells.		biology cell-biology mitochondria
 ```
+<!-- markdownlint-enable MD010 -->
 
 *6 cards generated. Topic tag: `biology cell-biology mitochondria`.*
 

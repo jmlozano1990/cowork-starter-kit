@@ -1,10 +1,3 @@
-<!-- CONTRIBUTOR NOTICE: Before editing the placeholder text in this template, read
-     CONTRIBUTING.md §Placeholder authoring rules (arriving in v1.3.0 B2 commit).
-     The 5 rules govern how placeholders must be written to avoid shipping
-     unintended runtime instructions to Cowork. Key: use bracketed nouns, never
-     imperatives; never include Ignore/Disregard/Override/Instead/Always;
-     use HTML comments for guidance text; no safety-rule patterns; Example
-     placeholders must read as contributor-guidance, not Cowork instructions. -->
 ---
 name: [skill-slug]
 <!-- Replace: folder name in snake-case, e.g. flashcard-generation — must match the parent folder name exactly -->
@@ -17,6 +10,13 @@ description: [one sentence describing what this skill enables Cowork to do]
 #   - "[another signal phrase for the same skill]"
 #   - "[a third trigger phrasing — vary the wording]"
 ---
+<!-- CONTRIBUTOR NOTICE: Before editing the placeholder text in this template, read
+     CONTRIBUTING.md §Placeholder authoring rules (arriving in v1.3.0 B2 commit).
+     The 5 rules govern how placeholders must be written to avoid shipping
+     unintended runtime instructions to Cowork. Key: use bracketed nouns, never
+     imperatives; never include Ignore/Disregard/Override/Instead/Always;
+     use HTML comments for guidance text; no safety-rule patterns; Example
+     placeholders must read as contributor-guidance, not Cowork instructions. -->
 
 <!-- ══════════════════════════════════════════════════════════════════════════
      SECTION 1 — WHEN TO USE

@@ -1622,7 +1622,7 @@ Retro reads these three signals, writes findings to `docs/retro.md` under the v1
   | - [ ] <item>         | <Phase X Finding ID> | CRITICAL / MEDIUM / LOW | <disposition> | <spec section or deferral note> |
 
 - **CONTRIBUTING.md checklist row wording (appended to the existing numbered PR checklist):**
-  > [N+1]. Carry-forward items from prior retro reviewed and actioned or explicitly deferred with rationale. See [retro-template.md](docs/retro-template.md#carry-forward-review) for the review procedure.
+  > [N+1]. Carry-forward items from prior retro reviewed and actioned or explicitly deferred with rationale. See [retro-template.md](./retro-template.md#carry-forward-review) for the review procedure.
 
 ### `registry-url-check` tightening (B7)
 
