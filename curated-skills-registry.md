@@ -25,9 +25,9 @@ Each entry includes:
 
 | name | description | source_url | vetting_date | tier | goal_tags |
 |------|-------------|------------|--------------|------|-----------|
-| flashcard-generation | Converts study material or notes into active-recall flashcard sets | builtin | 2026-04-17 | 1 | study |
-| note-taking | Converts dense papers, PDFs, or lecture content into structured study notes | builtin | 2026-04-17 | 1 | study,research |
-| research-synthesis | Synthesizes multiple sources — what they agree on, where they differ, and key gaps | builtin | 2026-04-17 | 1 | study,research |
+| flashcard-generation | Generate Anki-ready flashcards from source material using spaced-repetition best practices (atomicity, cloze deletion, minimum information principle). | builtin | 2026-04-18 | 1 | study |
+| note-taking | Convert reading material into organized, concise study notes using a hybrid framework auto-selected from source type (Cornell, Outline, Zettelkasten, or Lightweight bulleted). | builtin | 2026-04-18 | 1 | study,research |
+| research-synthesis | Synthesize multiple sources into a structured literature-review matrix with cross-source synthesis paragraphs, auto-selecting mode from source count (1 = atomic note, 2 = compact matrix, ≥3 = full matrix). | builtin | 2026-04-18 | 1 | study,research |
 
 ### Research
 
