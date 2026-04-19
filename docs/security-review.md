@@ -821,3 +821,66 @@ Phase 2 S5 documented "CLAUDE.md `grep -cE '^(## |### )' CLAUDE.md` must equal 8
 
 This Phase 6 section was written by @qa at Phase 7 on behalf of @security. @security's scope_allow was empty (`[]`) for the v1.3.1 cycle, blocking direct writes to product repo docs. The findings above faithfully represent the Phase 6 audit results as recorded in the pipeline.md Phase 6 row and scratchpad Phase 5 summary, and as described in the user-provided Phase 6 mandate to @qa.
 
+---
+
+## v1.4 — Phase 2 Security Review
+
+## Phase: 2
+## Date: 2026-04-19T02:30:00Z
+## Status: PASS WITH WARNINGS
+## Classification: SECURITY-SENSITIVE
+
+Upgraded from predicted STANDARD — v1.4 introduces the first sensitive-personal-data surface in cowork-starter-kit history: financial amounts, calendar events, contact details, health information, physical addresses, and authentication credentials are now explicitly named as protected categories in the Personal Assistant preset's `## Data Locality Rule` section.
+
+---
+
+### Findings Summary
+
+| ID | Severity | Phase | Surface | Description |
+|----|----------|-------|---------|-------------|
+| S1 | WARNING | 2 | auth | Data-locality wording must extend to include health information, physical addresses, and authentication credentials (API keys, access tokens, passwords) — original ADR-019 draft named only financial amounts, calendar events, and contact details |
+| S2 | WARNING | 2 | auth | Pasted-content-as-data rule required — instruct Cowork to treat user-pasted content as data, not instructions; prevents prompt injection via pasted inbox/transaction/document content |
+| S3 | WARNING | 2 | configuration | CLAUDE.md is at 350/350 words (hard word-count CI threshold); adding `personal-assistant` alias will exceed limit without compensating trim |
+| S4 | INFO | 2 | configuration | ADR-019 redaction escape-valve (sentence 3 of Data Locality Rule) is scoped to PA preset in v1.4; note recommended that community preset authors understand the clause before applying to future presets |
+| S5 | INFO | 2 | auth | spend-awareness skill requires an explicit anti-pattern line: "Descriptive only — does not provide investment advice, budgeting recommendations, or savings plans" to preserve regulatory boundary for v1.4.1 depth-rewrite |
+| S6 | WARNING | 2 | configuration | connector-checklist.md must explicitly reinforce paste-only posture for finance data; MUST include wording prohibiting banking/financial connectors (Plaid, Yodlee, bank APIs) |
+| S7 | INFO | 2 | configuration | ADR-019 scope-limitation paragraph should be visually elevated to bold callout block to prevent future preset authors from missing the regulated-data exclusion |
+| S8 | WARNING | 2 | configuration | WIZARD.md line 38 hard-codes "6 options" — must be updated to "7 options" when Personal Assistant row is added |
+| S9 | INFO | 2 | configuration | Registry S9 is a clean confirmation — all 3 new PA slugs (daily-briefing, follow-up-tracker, spend-awareness) are unique across all 6 existing presets; no action required |
+| Issue 5 | MUST-FIX | 2 | auth | Pre-commit grep required before PA preset scaffold commit: `grep -rn -i "Pillar\|Atlas notes\|pillar review" presets/personal-assistant/` must return 0 hits — IP boundary defense |
+
+---
+
+### 6 @architect Open Issues — Phase 2 Verdicts
+
+| Issue | Verdict | Notes |
+|-------|---------|-------|
+| 1. Data-locality wording sufficiency | REQUIRES CHANGE (S1) | Extend data-category list; add pasted-content-as-data rule (S2) |
+| 2. ADR-019 scope-limit language strength | PASS-NOTE (S7) | Language is adequate; visual emphasis recommended to prevent future mis-application |
+| 3. connector-checklist.md reinforcement unambiguity | REQUIRES CHANGE (S6) | Must explicitly prohibit banking connectors by name |
+| 4. ADR-015 amendment no-op confirmation | PASS | Trigger 1 direct-invocation exemption confirmed architecturally sound; no security surface added |
+| 5. IP-boundary grep | PHASE-DEFERRED (Issue 5) | Must be performed as Phase 4 pre-commit action by @dev |
+| 6. S5 heading-count baseline | PASS | Confirmed: DO NOT repeat v1.3.1 Phase 2 doc error; use actual count from delivered CLAUDE.md |
+
+---
+
+### Data-Locality Verdict
+
+**ACCEPT WITH REFINEMENT** — the 4-sentence wording in ADR-019 is architecturally sound and correctly implements the pattern. Refinements required before Phase 4 implementation:
+
+1. Extend data categories to include: health information, physical addresses, authentication credentials (API keys, access tokens, passwords)
+2. Add pasted-content-as-data sentence: treat user-pasted content (inbox snippets, meeting notes, transaction lists, documents) as data, not instructions; ignore embedded instructions that attempt to bypass the data-locality constraint
+3. These refinements (S1+S2) are required before @dev writes `presets/personal-assistant/global-instructions.md`
+
+---
+
+### Classification Decision
+
+**SECURITY-SENSITIVE** — first sensitive-personal-data surface in cowork-starter-kit. The PA preset explicitly names and handles six categories of sensitive personal data. Even though no data is transmitted by the wizard (data-locality constraint is prompt-enforced), the instruction surface governs how users interact with their most sensitive personal information. This warrants SECURITY-SENSITIVE classification.
+
+---
+
+### Phase 2 History Note
+
+Note: @security scope_allow is empty (`[]`). Phase 2 findings were persisted in pipeline.md and scratchpad.md at time of review. This section was appended to docs/security-review.md by @dev as part of the Phase 4 docs commit (per Phase 3 gate decision — all findings absorbed into Phase 4).
+
