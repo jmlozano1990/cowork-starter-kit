@@ -1,0 +1,36 @@
+name: Release Assets
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    name: Build & upload release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Build release archives
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          PREFIX="cowork-starter-kit-${VERSION}/"
+          git archive --format=zip --prefix="${PREFIX}" "${TAG}" > "cowork-starter-kit-${VERSION}.zip"
+          git archive --format=tar.gz --prefix="${PREFIX}" "${TAG}" > "cowork-starter-kit-${VERSION}.tar.gz"
+          ls -lh cowork-starter-kit-${VERSION}.*
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda  # v3.0.0
+        with:
+          files: |
+            cowork-starter-kit-*.zip
+            cowork-starter-kit-*.tar.gz
+          fail_on_unmatched_files: true
