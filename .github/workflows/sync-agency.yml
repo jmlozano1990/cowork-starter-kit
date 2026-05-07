@@ -1,0 +1,358 @@
+name: Sync Agency Upstream
+
+# ADR-022: Hybrid cron (monthly) + manual dispatch.
+# Fetches allowlisted files from msitarzewski/agency-agents at pinned SHA,
+# runs S1 content-scan, updates cowork.lock.json + THIRD-PARTY-NOTICES.md,
+# opens PR labeled 'agency-sync'. NEVER auto-merges.
+# First run MUST be treated as SECURITY-SENSITIVE — full audit ≥3 files per
+# allowed category required before merging (see docs/security-review.md S1,
+# Open Issue #3).
+
+on:
+  # Monthly at 09:00 UTC on the 1st (S7: predictable schedule, mitigated by 24h soak before merge)
+  schedule:
+    - cron: "0 9 1 * *"
+  # Manual trigger for bootstrap run and ad-hoc bumps
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual sync (e.g., 'bootstrap', 'security patch')"
+        required: false
+        default: "manual sync"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-upstream:
+    name: Sync agency-agents upstream
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream latest HEAD SHA
+        id: upstream
+        env:
+          UPSTREAM_REPO: msitarzewski/agency-agents
+        run: |
+          # Resolve latest HEAD SHA on upstream main branch
+          # Uses GitHub API to avoid git clone (no runtime git clone per ADR-020)
+          LATEST_SHA=$(curl -sf \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${UPSTREAM_REPO}/git/ref/heads/main" \
+            | jq -r '.object.sha')
+
+          if [ -z "$LATEST_SHA" ] || [ "$LATEST_SHA" = "null" ]; then
+            echo "ERROR: Failed to resolve upstream HEAD SHA" >&2
+            echo "Upstream repo may be unavailable. Manual intervention required." >&2
+            exit 1
+          fi
+
+          echo "latest_sha=${LATEST_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Upstream HEAD: ${LATEST_SHA}"
+
+      - name: Check if lock file needs update
+        id: check
+        run: |
+          PINNED=$(jq -r '.pinned_commit_sha' cowork.lock.json)
+          LATEST="${{ steps.upstream.outputs.latest_sha }}"
+
+          echo "pinned_sha=${PINNED}" >> "$GITHUB_OUTPUT"
+          echo "latest_sha=${LATEST}" >> "$GITHUB_OUTPUT"
+
+          if [ "$PINNED" = "$LATEST" ]; then
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            echo "Lock file is current (SHA: ${LATEST}). No update needed."
+          else
+            echo "needs_update=true" >> "$GITHUB_OUTPUT"
+            echo "Update needed: ${PINNED} -> ${LATEST}"
+          fi
+
+          # Bootstrap state: zero-SHA is allowed only on this job (not on main branch direct push)
+          if [ "$PINNED" = "0000000000000000000000000000000000000000" ]; then
+            echo "bootstrap_state=true" >> "$GITHUB_OUTPUT"
+            echo "Bootstrap state detected — first sync run."
+          else
+            echo "bootstrap_state=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch upstream LICENSE and verify hash
+        if: steps.check.outputs.needs_update == 'true'
+        id: license
+        env:
+          UPSTREAM_REPO: msitarzewski/agency-agents
+          NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+        run: |
+          # Fetch LICENSE from upstream at pinned SHA
+          LICENSE_URL="https://raw.githubusercontent.com/${UPSTREAM_REPO}/${NEW_SHA}/LICENSE"
+          curl -sf "$LICENSE_URL" -o /tmp/upstream-LICENSE
+
+          if [ ! -f /tmp/upstream-LICENSE ]; then
+            echo "ERROR: Failed to fetch upstream LICENSE" >&2
+            exit 1
+          fi
+
+          NEW_LICENSE_SHA256=$(sha256sum /tmp/upstream-LICENSE | awk '{print $1}')
+          echo "new_license_sha256=${NEW_LICENSE_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "Upstream LICENSE SHA-256: ${NEW_LICENSE_SHA256}"
+
+          # Check if license changed vs current lock file
+          OLD_LICENSE_SHA256=$(jq -r '.license_file_sha256' cowork.lock.json)
+          ZERO_SHA="0000000000000000000000000000000000000000000000000000000000000000"
+
+          if [ "$OLD_LICENSE_SHA256" != "$ZERO_SHA" ] && [ "$OLD_LICENSE_SHA256" != "$NEW_LICENSE_SHA256" ]; then
+            echo "::error::LICENSE hash changed! Old: ${OLD_LICENSE_SHA256} New: ${NEW_LICENSE_SHA256}"
+            echo "Upstream may have re-licensed. Run /legal review before merging this PR."
+            echo "license_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "license_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch allowlisted files and run content-scan (S1)
+        if: steps.check.outputs.needs_update == 'true'
+        id: fetch_files
+        env:
+          UPSTREAM_REPO: msitarzewski/agency-agents
+          NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+        run: |
+          mkdir -p /tmp/fetched-files
+
+          # Read allowed categories from allowlist
+          ALLOWED_CATEGORIES=$(jq -r '.allowed_categories[]' .cowork-allowlist.json)
+          BLOCKED_PATTERNS=$(jq -r '.blocked_patterns[].pattern' .cowork-allowlist.json)
+          BLOCKED_FILES=$(jq -r '.blocked_files[].path' .cowork-allowlist.json)
+
+          # S1: 8-pattern regex set for content-scan (extracted from docs/security/upstream-content-scan-rules.md)
+          # Patterns are listed verbatim from the security rules document
+          SCAN_PATTERNS=(
+            "ignore (previous|all|prior) instructions?"
+            "disregard (your|all|any|previous|prior)? ?(instructions?|rules?|guidelines?|context)"
+            "override (your|all|any|previous|prior)? ?(instructions?|rules?|guidelines?|context|settings?)"
+            "you are now |act as (a |an )?(different|new|unrestricted|jailbreak|dan|system|root)"
+            "new (system )?(instruction|prompt|directive|rule)s?:"
+            "forget (the |your |all |these )?(rules?|instructions?|guidelines?|constraints?|training)"
+            "pretend (you (are|have no|don't have)|this is not|there (are|is) no) ?(instructions?|rules?|restrictions?|guidelines?)?"
+            "jailbreak|do anything now|stan (mode|prompt)|developer mode (enabled|on|activated)"
+          )
+
+          FLAGGED_FILES=""
+          NEW_FILES_JSON="[]"
+          REQUIRES_REVIEW=false
+
+          for category in $ALLOWED_CATEGORIES; do
+            # Fetch the category directory listing via GitHub API
+            CATEGORY_URL="https://api.github.com/repos/${UPSTREAM_REPO}/contents/${category}?ref=${NEW_SHA}"
+            CATEGORY_LISTING=$(curl -sf \
+              -H "Accept: application/vnd.github.v3+json" \
+              "$CATEGORY_URL" || echo "[]")
+
+            if [ "$CATEGORY_LISTING" = "[]" ] || [ -z "$CATEGORY_LISTING" ]; then
+              echo "No files found for category: ${category} (skipping)"
+              continue
+            fi
+
+            # Extract file paths from listing
+            echo "$CATEGORY_LISTING" | jq -r '.[] | select(.type == "file") | .path' | \
+            while IFS= read -r file_path; do
+              filename=$(basename "$file_path")
+
+              # Check blocked files (exact path match)
+              if echo "$BLOCKED_FILES" | grep -qxF "$file_path"; then
+                echo "BLOCKED (exact path): $file_path"
+                continue
+              fi
+
+              # Check blocked patterns (filename glob match)
+              PATTERN_BLOCKED=false
+              while IFS= read -r pattern; do
+                if echo "$filename" | grep -qiE "^$(echo "$pattern" | sed 's/\*/.*/')\$"; then
+                  echo "BLOCKED (pattern '$pattern'): $file_path"
+                  PATTERN_BLOCKED=true
+                  break
+                fi
+              done <<< "$BLOCKED_PATTERNS"
+              if [ "$PATTERN_BLOCKED" = "true" ]; then
+                continue
+              fi
+
+              # Only process .md files
+              if [[ "$filename" != *.md ]]; then
+                continue
+              fi
+
+              # Fetch file content
+              FILE_URL="https://raw.githubusercontent.com/${UPSTREAM_REPO}/${NEW_SHA}/${file_path}"
+              curl -sf "$FILE_URL" -o "/tmp/fetched-files/${filename}" || {
+                echo "WARNING: Failed to fetch ${file_path} — skipping"
+                continue
+              }
+
+              # Compute SHA-256
+              FILE_SHA256=$(sha256sum "/tmp/fetched-files/${filename}" | awk '{print $1}')
+
+              # S1 Content scan — run all 8 patterns
+              FILE_FLAGGED=false
+              for pattern in "${SCAN_PATTERNS[@]}"; do
+                if grep -iEq "$pattern" "/tmp/fetched-files/${filename}"; then
+                  echo "::warning::CONTENT-SCAN HIT — pattern '${pattern}' in ${file_path}"
+                  FLAGGED_FILES="${FLAGGED_FILES}|${file_path}:${pattern}"
+                  FILE_FLAGGED=true
+                  REQUIRES_REVIEW=true
+                fi
+              done
+
+              REQUIRES_REVIEW_FLAG="false"
+              if [ "$FILE_FLAGGED" = "true" ]; then
+                REQUIRES_REVIEW_FLAG="true"
+              fi
+
+              # Add to files JSON
+              FILE_ENTRY=$(jq -n \
+                --arg path "$file_path" \
+                --arg sha "$FILE_SHA256" \
+                --arg spdx "MIT" \
+                --arg cat "$category" \
+                --arg rv "$REQUIRES_REVIEW_FLAG" \
+                '{path: $path, sha256: $sha, spdx: $spdx, category: $cat, requires_review: ($rv == "true")}')
+              NEW_FILES_JSON=$(echo "$NEW_FILES_JSON" | jq ". + [$FILE_ENTRY]")
+
+              echo "Fetched: ${file_path} (sha256: ${FILE_SHA256:0:8}...)"
+            done
+          done
+
+          echo "requires_review=${REQUIRES_REVIEW}" >> "$GITHUB_OUTPUT"
+          echo "flagged_files=${FLAGGED_FILES}" >> "$GITHUB_OUTPUT"
+
+          # Write files JSON to temp file for next step
+          echo "$NEW_FILES_JSON" > /tmp/new-files.json
+          echo "Files fetched: $(jq length /tmp/new-files.json)"
+
+      - name: Update cowork.lock.json
+        if: steps.check.outputs.needs_update == 'true'
+        env:
+          NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+          NEW_LICENSE_SHA256: ${{ steps.license.outputs.new_license_sha256 }}
+        run: |
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          NEW_FILES=$(cat /tmp/new-files.json)
+
+          jq \
+            --arg sha "$NEW_SHA" \
+            --arg ts "$NOW" \
+            --arg lsha "$NEW_LICENSE_SHA256" \
+            --argjson files "$NEW_FILES" \
+            '.pinned_commit_sha = $sha | .pinned_at = $ts | .license_file_sha256 = $lsha | .files = $files' \
+            cowork.lock.json > /tmp/updated-lock.json
+
+          mv /tmp/updated-lock.json cowork.lock.json
+          echo "Lock file updated: pinned_commit_sha=${NEW_SHA}"
+
+      - name: Regenerate THIRD-PARTY-NOTICES.md (ADR-025)
+        if: steps.check.outputs.needs_update == 'true'
+        env:
+          NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+          NEW_LICENSE_SHA256: ${{ steps.license.outputs.new_license_sha256 }}
+        run: |
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          LICENSE_TEXT=$(cat /tmp/upstream-LICENSE)
+
+          cat > THIRD-PARTY-NOTICES.md << NOTICES_EOF
+# Third-Party Notices
+
+This repository distributes content from third-party sources under their
+original licenses. Each source's copyright notice and full license text is
+preserved below. Per-file attribution is injected at install time by the
+cowork-starter-kit wizard (see \`docs/architecture.md\` ADR-024).
+
+This file is regenerated automatically by \`.github/workflows/sync-agency.yml\`
+on every upstream SHA bump. Direct edits will be overwritten — to update
+notices, update the lock file via \`/sync-agency\`.
+
+Last regenerated: ${NOW}
+Lock file: cowork.lock.json (pinned commit: ${NEW_SHA})
+
+---
+
+## msitarzewski/agency-agents
+
+- **Source:** https://github.com/msitarzewski/agency-agents
+- **License:** MIT
+- **Copyright:** Copyright (c) msitarzewski/agency-agents contributors
+- **Pinned commit:** ${NEW_SHA}
+- **License file SHA-256:** ${NEW_LICENSE_SHA256} (from \`cowork.lock.json\` \`license_file_sha256\`)
+
+### Full License Text
+
+${LICENSE_TEXT}
+
+### Distribution Notes
+
+Content from this source is distributed in user workspaces via the
+cowork-starter-kit wizard. Per-file attribution is injected at install time
+(see \`docs/architecture.md\` ADR-024 for the attribution block format).
+Content is pinned to the commit SHA above and verified against the lock file
+at install time (see ADR-020).
+
+Files distributed from this source: see \`cowork.lock.json\` \`files\` array.
+NOTICES_EOF
+          echo "THIRD-PARTY-NOTICES.md regenerated."
+
+      - name: Create Pull Request
+        if: steps.check.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@271a8d0340b12a86b6d29af5d5a6a5e6c45dccbc # v7.0.6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: agency-sync/${{ steps.upstream.outputs.latest_sha }}
+          commit-message: |
+            chore(agency-sync): bump upstream SHA ${{ steps.check.outputs.pinned_sha }}...${{ steps.upstream.outputs.latest_sha }}
+          title: |
+            chore(agency-sync): bump upstream SHA ${{ steps.check.outputs.pinned_sha }}...${{ steps.upstream.outputs.latest_sha }}
+          body: |
+            ## Agency-Agents Upstream Sync
+
+            | Field | Value |
+            |-------|-------|
+            | Old SHA | `${{ steps.check.outputs.pinned_sha }}` |
+            | New SHA | `${{ steps.upstream.outputs.latest_sha }}` |
+            | License changed | ${{ steps.license.outputs.license_changed }} |
+            | Content-scan hits | ${{ steps.fetch_files.outputs.requires_review }} |
+            | Bootstrap state | ${{ steps.check.outputs.bootstrap_state }} |
+
+            ### Files Changed
+
+            See `cowork.lock.json` diff for full file list with SHA-256 checksums.
+
+            ### Content-Scan Results (S1)
+
+            ${{ steps.fetch_files.outputs.requires_review == 'true' && '**WARNING: One or more files triggered content-scan patterns. Review required before merge.**' || 'No content-scan hits detected.' }}
+
+            Flagged files: `${{ steps.fetch_files.outputs.flagged_files }}`
+
+            ### Reviewer Checklist (MANDATORY — 2 approvals required per CODEOWNERS)
+
+            - [ ] Review `cowork.lock.json` diff — verify no unexpected files added
+            - [ ] Spot-check ≥3 files per allowed category against S1 regex patterns (see `docs/security/upstream-content-scan-rules.md`)
+            - [ ] Verify `nexus-strategy.md` is absent from updated lock file
+            - [ ] Review any files with `requires_review: true` in lock file
+            - [ ] If LICENSE hash changed: route to `/legal` review before merge
+            - [ ] Review `THIRD-PARTY-NOTICES.md` changes — verify timestamps and SHA match
+            - [ ] If first sync (bootstrap): treat as SECURITY-SENSITIVE per `docs/security-review.md` Open Issue #3
+
+            > **24h soak rule (S7):** Do not merge this PR within 24h of opening. Allow time for community eyes.
+
+            ---
+            *Auto-generated by `.github/workflows/sync-agency.yml`*
+          labels: |
+            agency-sync
+            ${{ steps.fetch_files.outputs.requires_review == 'true' && 'security-review-required' || '' }}
+          draft: false
+
+      - name: No update needed
+        if: steps.check.outputs.needs_update == 'false'
+        run: |
+          echo "Lock file is current (SHA: ${{ steps.upstream.outputs.latest_sha }}). No PR opened."
