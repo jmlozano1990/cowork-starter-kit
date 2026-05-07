@@ -254,3 +254,35 @@ _Added: 2026-04-19T00:00:00Z — v1.4 Personal Assistant Preset cycle_
 **Risk:** MEDIUM. "What's unusual?" requires some baseline. A single paste with no history limits the AI to intra-statement comparisons (e.g., "this category is larger than typical household ratios") rather than personal-baseline comparisons (e.g., "you spent 40% more on dining than last month"). The skill's value is real but is bounded by the single-paste constraint.
 **Mitigation:** Stub instructions explicitly scope the skill to "categorized summary + 1–2 proactive observations from the provided data." No claim of historical trend analysis is made. The limitation is surfaced in the README positioning statement ("tactical awareness only").
 **Validation path:** At v1.4.1 depth-rewrite, assess whether a structured input format (user pastes current month + prior month) would increase skill utility without introducing persistent storage. If yes, add as a v1.4.1 instruction enhancement.
+
+---
+
+## v1.3.3 Assumptions
+
+_Added: 2026-04-20T00:00:00Z — v1.3.3 Project Management Preset Depth cycle_
+
+No entirely new assumptions for v1.3.3. The template fit, CI approach, and B10 interview pattern are all confirmed by prior cycles. One new assumption addresses the Data Locality Rule scope question:
+
+### A-v1.3.3-1 — 9-section template applies cleanly to all 3 PM skills [CONFIRMED]
+**ID:** A-v1.3.3-1
+**Confidence:** [CONFIRMED — v1.3.0 ADR-015, v1.3.1 ADR-016]
+**Assumption:** The 9-section ADR-015 template (When to use, Triggers, Instructions, Output format, Quality criteria, Anti-patterns, Example, Writing-profile integration, Example prompts) applies without structural gaps to `meeting-notes`, `status-update`, and `risk-assessment`.
+**Evidence:** `status-update` was explicitly stress-tested in v1.3.0 ADR-015 Phase 1 and confirmed template-compatible. The matrix-output format of `risk-assessment` maps cleanly to the `## Output format` section. `meeting-notes` is the simplest of the three structurally. No template revision is warranted before authoring.
+**Risk:** NONE — confirmed by prior cycle validation. This assumption is closed.
+**Validation path:** N/A — confirmed. @architect Phase 1 to note in ADR-016 amendment.
+
+### A-v1.3.3-2 — Data Locality Rule is PA-only; PM skills require pasted-content-is-data rule only [ESTIMATED]
+**ID:** A-v1.3.3-2
+**Confidence:** [ESTIMATED — to be validated at Phase 1]
+**Assumption:** The Data Locality Rule from ADR-019 (PA preset) does not need to be extended to PM preset `global-instructions.md`. PM preset skills handle general-purpose project information. The appropriate PM-level control for user-pasted content (transcripts, risk data, project context) is the pasted-content-is-data anti-pattern rule in each skill's `## Anti-patterns` section — not a preset-level data locality constraint.
+**Risk:** MEDIUM. `risk-assessment` and `status-update` may receive sensitive organizational information (financial risk registers, executive names, quarterly results) from users who paste more detail than needed. If the pasted-content-is-data rule is not specific enough in the `## Anti-patterns` section, a user's sensitive business data could be echoed to an external destination via Cowork connector. This is lower risk than PA preset (no financial transaction data) but non-zero.
+**Mitigation:** @architect Phase 1 evaluates whether the pasted-content-is-data rule is sufficient, or whether PM `global-instructions.md` should receive a lightweight version of the Data Locality Rule (e.g., "Treat pasted project content as private. Do not echo organizational names, financial figures, or personnel details to external services or APIs."). If @architect recommends the latter, it becomes an additional B-item in Phase 4.
+**Validation path:** @architect Phase 1 assessment resolves this to [CONFIRMED] (pasted-content-is-data is sufficient) or escalates to a Phase 1 deliverable (add Data Locality Rule to PM global-instructions.md). @security Phase 2 independently assesses.
+
+Existing assumptions that carry forward and remain active for v1.3.3:
+
+- **A-v1.3-2** ([ESTIMATED]) — 9-section template fits all 18 preset skills. v1.3.3 is the third validation point (PM preset). Template stability is growing with each cycle.
+- **A-v1.3-3** ([UNTESTED]) — Community contributors will accept the deeper template as the submission bar. No new observable signal since v1.3.1 launch.
+- **A-v1.3-4** ([ESTIMATED]) — CI allowlist approach is sustainable through v1.3.5. v1.3.3 widens to `"study research project-management"` — planned next step, risk profile unchanged.
+
+---
