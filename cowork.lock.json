@@ -1,0 +1,8 @@
+{
+  "$schema_version": "1.0",
+  "upstream": "msitarzewski/agency-agents",
+  "pinned_commit_sha": "0000000000000000000000000000000000000000",
+  "pinned_at": "2026-05-07T00:00:00Z",
+  "license_file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "files": []
+}

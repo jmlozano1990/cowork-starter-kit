@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.3-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -55,7 +55,7 @@ You                                Cowork
 
 **Two alternative entry paths** if you can't open the folder directly:
 
-- Paste `presets/<name>/project-instructions-starter.txt` into Project Settings > Custom Instructions for a preset-flavored start from message one.
+- Paste `examples/<name>/project-instructions-starter.txt` into Project Settings > Custom Instructions for a preset-flavored start from message one.
 - Type `/setup-wizard` inside any Cowork project to invoke the wizard explicitly.
 
 ---
@@ -104,7 +104,7 @@ You don't pick — you describe your goal in plain language and the wizard picks
 
 **Each preset includes:**
 
-- `project-instructions-starter.txt` — optional manual entry path: paste into Project Settings > Custom Instructions for preset-specific onboarding without opening the repo folder (functionally equivalent to `CLAUDE.md` auto-load)
+- `project-instructions-starter.txt` — optional manual entry path: paste into Project Settings > Custom Instructions for example-specific onboarding without opening the repo folder (functionally equivalent to `CLAUDE.md` auto-load)
 - `global-instructions.md` — proactive skill trigger rules (session behavior) with writing profile integration
 - `context/about-me.md` — fill in your name, role, and goals
 - `context/working-rules.md` — safe defaults (includes confirm-before-delete rule)
@@ -139,9 +139,15 @@ Every preset includes a non-negotiable rule: **Cowork will always ask for your c
 
 ---
 
-## Next up — v2.0 Dynamic Workspace Architect
+## Supply-Chain Integrity (v2.0)
 
-v1.3.3 completes the Project Management preset depth upgrade — `meeting-notes`, `status-update`, and `risk-assessment` now ship at full 9-section ADR-015 production depth. v2.0 is the next major milestone: a Dynamic Workspace Architect that suggests personalized workspaces for users who don't know what preset they need. Instead of a menu, v2.0 asks what you're working on and proposes the right workspace configuration automatically — skills, folder structure, connectors, and writing profile included. Supply-chain integrity for community skills (lock file + allowlist) also ships in v2.0.
+v2.0 ships a supply-chain lock file (`cowork.lock.json`) that SHA-pins all upstream content from `msitarzewski/agency-agents`. The wizard installs only allowlisted, checksum-verified, attribution-injected files. The `/sync-agency` CI workflow opens a PR on every upstream SHA bump — no content reaches users without human review.
+
+> **Trust boundary:** The `cowork.lock.json` file is the integrity anchor for upstream content. If you cloned this repo from a fork or modified the lock file locally, the supply-chain guarantees do not apply. Always install from a trusted clone of cowork-starter-kit's main repository.
+
+## Next up — v2.1 Multi-Source Upstream
+
+v2.0 ships the Dynamic Workspace Architect (upstream content integration, lock file, allowlist, attribution). v2.1 will add a second upstream source and multi-source disambiguation for Riley-class users building cross-functional workspaces.
 
 ---
 

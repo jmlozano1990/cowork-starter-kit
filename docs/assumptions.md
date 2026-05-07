@@ -286,3 +286,62 @@ Existing assumptions that carry forward and remain active for v1.3.3:
 - **A-v1.3-4** ([ESTIMATED]) — CI allowlist approach is sustainable through v1.3.5. v1.3.3 widens to `"study research project-management"` — planned next step, risk profile unchanged.
 
 ---
+
+## v2.0 Assumptions
+
+_Added: 2026-05-06T00:00:00Z — v2.0 Dynamic Workspace Architect via agency-agents upstream_
+
+### A-v2.0-1 — Upstream content quality meets Tier 1 bar [UNTESTED — CRITICAL]
+**ID:** A-v2.0-1
+**Confidence:** [UNTESTED — CRITICAL risk]
+**Assumption:** msitarzewski/agency-agents content across its ~30 category folders meets the cowork-starter-kit quality and safety bar for Tier 1 curation. Specifically: skills contain no shell execution commands, no environment variable references, no network calls, no prompt injection payloads, and produce high-quality, coherent output for their declared purposes.
+**Risk:** CRITICAL. If upstream content quality is below bar, the allowlist policy (F4) may be admitting low-quality or unsafe content under a "Tier 1" label that users trust by default. This would undermine the core safety differentiator.
+**Mitigation:** @security Phase 2 must audit a representative sample of upstream content before any allowlisted files are added to the lock file (F1). The allowlist policy (F4) `requires_review` list is the mechanism for flagging files that pass quality checks but warrant user-visible warnings. If audit finds systemic quality issues, the upstream may need to be reclassified as Tier 2 (opt-in, with warnings) rather than Tier 1 (default, trusted).
+**Validation path:** @security Phase 2 audit of ≥3 files per allowlisted category folder. If >20% of audited files fail quality criteria, escalate to @pm for v2.0 scope re-evaluation (upstream = Tier 2, not Tier 1).
+
+### A-v2.0-2 — Users accept upstream category suggestions without needing to know what "agency-agents" is [UNTESTED — MEDIUM risk]
+**ID:** A-v2.0-2
+**Confidence:** [UNTESTED — MEDIUM risk]
+**Assumption:** Non-technical users (Jordan, Alex, Maria archetypes) will respond positively to upstream category suggestions in the wizard without requiring an explanation of the agency-agents repo, GitHub, or MIT licensing. The wizard's framing ("I found content in the [academic] workspace library for your goal") is sufficient for them to make a decision.
+**Risk:** Users who don't understand where the content comes from may distrust it ("Why is it pulling from GitHub?") or, conversely, install everything without exercising judgment (over-trust). Both failure modes are possible.
+**Mitigation:** Wizard framing avoids "GitHub" and "repository" language. Instead: "the upstream workspace library." Attribution block (F5) is present in installed files for users who want to trace provenance. SETUP-CHECKLIST.md includes a one-line explainer: "Content comes from a curated library of workspace configurations, verified and approved for use."
+**Validation path:** User smoke test: present the v2.0 goal interview to 2–3 non-technical users. Observe whether they ask "where does this content come from?" and whether the attribution block causes confusion or reassurance. Adjust framing before Phase 7 if >50% of test users express confusion.
+
+### A-v2.0-3 — LLM wizard can verify SHA-256 at install time [ESTIMATED — MEDIUM risk]
+**ID:** A-v2.0-3
+**Confidence:** [ESTIMATED — MEDIUM risk]
+**Assumption:** The wizard (running as an LLM in a Cowork Project) can perform SHA-256 checksum comparison at install time by: (a) fetching the file content from the pinned URL, (b) computing or receiving the SHA-256 hash, and (c) comparing against the lock file value. The LLM has sufficient capability and context to perform this verification reliably.
+**Risk:** LLMs do not natively compute cryptographic hashes. If the verification step requires hash computation, the wizard may fail silently or produce incorrect results. An incorrect hash comparison is worse than no comparison — it provides false assurance.
+**Mitigation:** @architect Phase 1 must resolve the verification mechanism. Option A: the wizard trusts the CI-pre-verified lock file as the source of truth and simply confirms the URL is on the lock file's allowed list (no re-computation at runtime). Option B: the wizard fetches the content and the hash is pre-computed and stored in the lock file for comparison. Option A (trust the CI-vetted lock file) is safer given LLM limitations on cryptographic operations.
+**Validation path:** @architect Phase 1 decision. Whichever Option is chosen, it becomes an AC in F1 and must be testable at Phase 5.
+
+### A-v2.0-4 — Monthly /sync-agency cadence matches user expectations of content freshness [ESTIMATED — LOW risk]
+**ID:** A-v2.0-4
+**Confidence:** [ESTIMATED — LOW risk]
+**Assumption:** Users who install agency-agents content via the v2.0 wizard will accept that the content reflects the upstream repo state at the last `/sync-agency` run (monthly cadence), not the live upstream HEAD. A 30-day staleness window is acceptable for workspace configuration content (unlike, e.g., a security patch or a live data feed).
+**Risk:** If upstream releases a substantially improved skill in week 2 of a monthly window, users who install that week get the older version. This is a freshness gap, not a security gap (the pinned SHA is still integrity-verified). Risk is LOW for workspace configuration content.
+**Mitigation:** Manual `workflow_dispatch` on the sync workflow allows an out-of-cycle bump when a significant upstream update is worth reviewing. CHANGELOG notes the last sync date. Users who want the absolute latest can trigger a manual sync.
+**Validation path:** No specific validation required — this is an accepted design trade-off documented in F3 open questions. @architect Phase 1 finalizes the cadence decision.
+
+### A-v2.0-5 — v1.x users accept examples/ relocation without significant friction [UNTESTED — LOW risk]
+**ID:** A-v2.0-5
+**Confidence:** [UNTESTED — LOW risk]
+**Assumption:** Existing v1.x users who have installed preset content from `presets/<name>/` will successfully update their mental model to `examples/<name>/` without confusion or support requests. The migration is non-destructive (files are byte-identical) but the path change may break hardcoded references in user scripts or aliases.
+**Risk:** LOW for most users (most have no scripted references to preset paths). MEDIUM for power users who have automated Cowork workspace refresh scripts or shared preset paths with teammates.
+**Mitigation:** CHANGELOG `[2.0.0]` documents the path change prominently. README migration section includes a "find and replace" one-liner for users with hardcoded paths. `/setup-wizard --upgrade` flow surfaces the new paths explicitly.
+**Validation path:** Monitor GitHub issues for "path not found" or "preset missing" reports in the 30 days post-v2.0 launch. If >3 reports cite the relocation as the cause, add a backward-compatibility symlink or redirect note.
+
+### A-v2.0-6 — MIT license attribution in F5 satisfies license requirements for derivative works [CONFIRMED — pending /legal]
+**ID:** A-v2.0-6
+**Confidence:** [CONFIRMED — pending @compliance /legal validation at Phase 2]
+**Assumption:** The MIT license from msitarzewski/agency-agents requires: (a) copyright notice preserved in all copies or substantial portions, and (b) the license text itself included. The F5 attribution block (source, upstream path, pinned commit, license statement, derivative-work notice) satisfies both requirements for files distributed via the cowork-starter-kit public repo.
+**Risk:** MEDIUM if the attribution format is incomplete. Incorrect attribution creates legal exposure for the project and for users who distribute derivative work. @compliance must validate the exact format before Phase 4.
+**Mitigation:** F5 attribution block is designed to cover both MIT requirements. @compliance (/legal Phase 2) is mandatory for this cycle precisely to validate this assumption.
+**Validation path:** @compliance Phase 2 review of F5 attribution format. Output: either [CONFIRMED] with the exact attribution text approved, or a revised attribution format that satisfies MIT requirements. No Phase 4 implementation of F5 begins without @compliance sign-off.
+
+### A-v2.0-7 — nexus-strategy.md architectural collision is a permanent constraint, not a temporary one [CONFIRMED]
+**ID:** A-v2.0-7
+**Confidence:** [CONFIRMED]
+**Assumption:** The NEXUS framework in `nexus-strategy.md` defines a competing top-level orchestration model that directly conflicts with cowork-starter-kit's wizard orchestration and The-Council pipeline. This conflict is structural, not versional — a future version of NEXUS that resolves the collision would require a new architectural review before any unblocking is considered.
+**Risk:** NONE — the block is permanent until explicitly reviewed and lifted by an architecture decision (Phase 1 ADR). This assumption is a design constraint, not a hypothesis.
+**Validation path:** N/A — confirmed. The block is enforced by F4 CI check. Any future proposal to unblock nexus-strategy.md triggers a new @architect + @security review cycle.

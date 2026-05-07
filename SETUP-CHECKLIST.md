@@ -10,7 +10,7 @@ Use this checklist if you cannot open the repo folder directly as a Cowork Proje
 
 **Step 1 — Paste project-instructions-starter.txt into Custom Instructions**
 
-Open `presets/<preset-name>/project-instructions-starter.txt` from this repo. Copy its entire contents. Open Cowork and go to Project Settings > Custom Instructions. Paste the contents there and save.
+Open `examples/<preset-name>/project-instructions-starter.txt` from this repo. Copy its entire contents. Open Cowork and go to Project Settings > Custom Instructions. Paste the contents there and save.
 
 Replace `<preset-name>` with your goal preset: study, research, writing, project-management, creative, or business-admin.
 
@@ -131,6 +131,12 @@ Open `skills-as-prompts.md` in your preset folder. Copy the skill content you wa
 
 ---
 
+## Supply-Chain Trust (v2.0)
+
+> **Trust boundary:** The `cowork.lock.json` file is the integrity anchor for upstream content. If you cloned this repo from a fork or modified the lock file locally, the supply-chain guarantees do not apply. Always install from a trusted clone of cowork-starter-kit's main repository.
+
+v2.0 adds upstream content from `msitarzewski/agency-agents`. Any file installed from that upstream is SHA-pinned, checksum-verified, and attribution-injected by the wizard. The `/sync-agency` workflow keeps the lock file current via monthly PRs with mandatory human review.
+
 ## Keeping up to date
 
-When a new version ships, check the [Releases tab on GitHub](https://github.com/jmlozano1990/cowork-starter-kit/releases). `CHANGELOG.md` lists which presets changed. To update a specific preset: download the new `presets/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours — they won't be overwritten.
+When a new version ships, check the [Releases tab on GitHub](https://github.com/jmlozano1990/cowork-starter-kit/releases). `CHANGELOG.md` lists which presets changed. To update a specific example: download the new `examples/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours — they won't be overwritten.

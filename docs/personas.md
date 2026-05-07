@@ -283,6 +283,107 @@ Casey is the persona for whom the three PA skills (`daily-briefing`, `follow-up-
 
 ---
 
+---
+
+## New Persona (v2.0): Riley — The Prosumer Builder
+
+**Name:** Riley (any age — skews 28–45)
+**Role:** Cross-functional professional or solopreneur simultaneously operating in 2–4 domains (e.g., product + marketing, engineering + sales, creative + strategy)
+**Cowork plan:** Claude Max ($100/month)
+**Added:** v2.0 — Dynamic Workspace Architect
+**Note:** Riley is the persona that v2.0's upstream category system is designed for. Riley is NOT Jordan (Riley knows what they want), NOT Maria (Riley's workflow is cross-functional, not single-domain), NOT Sam (Riley produces multiple output types, not just writing).
+
+### Context
+
+Riley runs a small product studio or works in a startup where job titles don't constrain responsibilities. One week Riley is doing customer discovery interviews and synthesizing research. The next week Riley is writing a marketing brief and reviewing engineering specs. The week after that Riley is building a financial model for a fundraise.
+
+Riley has tried to use v1.x of cowork-starter-kit. The problem: no single preset covers the week. Riley started with the Research preset, then set up a second workspace for Project Management, then gave up on configuring a third for Marketing because it was too manual.
+
+**What Riley actually needs:** A wizard that says "I see you need research synthesis, project tracking, and marketing copy this week — here's a workspace that covers all three, built from the [academic], [project-management], and [marketing] upstream categories."
+
+Riley is the primary driver of v2.0's multi-category composition feature. Riley is the answer to the question: "who needs ~30 categories when we already have 6 presets?"
+
+### Goals (JTBD)
+
+**Functional jobs:**
+- Configure a workspace that covers all active domains without running the wizard three separate times
+- Get research synthesis, project updates, and marketing copy from a single Cowork workspace without losing context between tasks
+- Install verified, well-described agent configurations for domains Riley enters for the first time (e.g., "I've never done investor relations before — what does a good IR workflow look like?")
+- Know that every installed configuration was reviewed and approved, not randomly pulled from the internet
+
+**Social jobs:**
+- Be the person on the team who "actually figured out Cowork"
+- Produce output in multiple voices and formats (research report, project brief, marketing copy) from one workspace
+
+**Emotional jobs:**
+- Feel like the workspace adapts to the week's priorities, not the reverse
+- Trust that the workspace setup won't break something (strong safety sensitivity — Riley has client work in the same Cowork environment as personal projects)
+
+### Pains
+
+| Pain | Severity | v2.0 Impact |
+|------|----------|-------------|
+| No single preset covers cross-functional workload | High | Multi-category wizard composition directly solves |
+| Running the wizard N times for N domains is tedious | High | Single session maps goal → multiple upstream categories |
+| Doesn't know which upstream configurations are safe to install | High | SHA-pinned lock file + allowlist eliminates research burden |
+| Installed content from random GitHub repos before; broke workspace | High | Integrity verification + attribution block provides provenance |
+| Can't verify that two installed configurations won't conflict | Medium | Allowlist policy's architectural conflict blocking (F4) reduces this risk |
+| Writing voice inconsistency across domains (research prose vs. marketing copy) | Medium | v1.x writing profile still applies; v2.0 inherits this |
+
+### v2.0 Context
+
+Riley is the primary validation case for the multi-category disambiguation flow (F2 open question). When Riley says "I need to run a product launch," the wizard must map that to [product] + [project-management] + [marketing] + [strategy] and ask: "I found content across 4 categories for 'product launch.' Which should be the primary focus, or should I set up all four?"
+
+Riley is also the primary test case for the attribution block (F5). Riley will ask "where did this come from?" — and the attribution block must give a satisfying answer without requiring Riley to understand GitHub commit SHAs.
+
+Riley will read the SETUP-CHECKLIST more carefully than Jordan or Alex, and will specifically look for: (a) what content is being installed, (b) where it comes from, and (c) whether it's been reviewed. F1 (lock file), F4 (allowlist), and F5 (attribution) together answer these questions.
+
+### Quote (v2.0)
+
+> "I told it I was doing a product launch — research, planning, and marketing in the same week. It found content for all three in the library, told me what each piece was for, and I confirmed. Everything installed with a note showing exactly where it came from. I didn't have to go to GitHub once."
+
+### Writing Profile for Riley
+
+- **Tone:** Adaptive — formal for research/stakeholder outputs, direct for project updates, persuasive for marketing
+- **Audience:** Variable (investors, engineers, customers) — Riley uses the workspace-specific rules section of the writing profile heavily
+- **Characteristic patterns:** Executive summary leads, clear headings, outcome-first structure
+- **Anti-AI guidance:** Avoid generic templates that don't reflect the specific domain's conventions
+
+### Usage Pattern
+
+- Cowork 5+ days/week across multiple project types
+- Most valuable: "Synthesize this research and then draft a one-pager for our engineering team" (cross-domain, single session)
+- Strong safety sensitivity: Riley keeps client work in the same Cowork environment; the "confirm before delete" safety rule is non-negotiable
+- Will read the attribution block on installed files; will not install content without knowing its source
+- Will use the `/setup-wizard --upgrade` flow to selectively replace v1.x preset content with upstream equivalents as the lock file covers more categories
+
+---
+
+## Persona Priority Matrix (v2.0 update)
+
+| Decision | Alex | Maria | Sam | Jordan | Casey | Riley |
+|----------|------|-------|-----|--------|-------|-------|
+| v2.0 wizard entry | Category suggestions (study-adjacent) | Category suggestions (academic + product) | Category suggestions (marketing + design) | Category suggestions → anything | Category suggestions (personal assistant) | Category suggestions → multi-category |
+| Upstream content engagement | Low — prefers known presets | Medium — quality-focused | Medium — creative/design categories | Unknown — default to low | Low — personal assistant only | Very high — primary v2.0 user |
+| SHA/attribution visibility | None — not relevant to Alex | Moderate — wants provenance | Low — trusts the wizard | Low — trusts the wizard | None | High — reads attribution block |
+| Multi-category need | None | Occasional (Research + PM) | Occasional (Writing + Marketing) | Unknown | None | Primary — 3+ categories per week |
+| Safety sensitivity | Medium | Very high | Low | Unknown → default high | Low | High (client work in same env) |
+| Fast-track behavior | Fast-track at Step 6 | Completes all steps | Writing profile + fast-track skills | Fast-track | Fast-track | Completes all steps + reviews attribution |
+
+---
+
+## Design Principles from Personas (v2.0 additions)
+
+7. **Riley drives multi-category design but must not break single-category UX.** Jordan, Alex, and Casey do not want to choose between 4 upstream categories. The multi-category disambiguation prompt must be triggered only when the goal genuinely spans multiple categories — not for every goal.
+
+8. **Attribution blocks are for Riley, not for everyone.** The F5 attribution block must be visually distinct enough that Riley can find it quickly, but unobtrusive enough that Alex and Casey never have to think about it.
+
+9. **The upstream content label ("workspace library") must not require understanding of GitHub.** Riley knows what GitHub is; Jordan does not. The wizard framing must work for Jordan while satisfying Riley's provenance curiosity.
+
+10. **Allowlist fail-closed means Riley never gets surprised.** Riley's primary fear is "installing something that breaks my workspace." The fail-closed allowlist + nexus-strategy.md block means Riley's workspace is protected from architectural conflicts even when Riley doesn't know enough to assess them.
+
+---
+
 ## Design Principles from Personas (v1.2)
 
 1. **Lowest common denominator = Jordan.** If Jordan can navigate a step without product knowledge, Alex can too. Maria is never blocked by a step designed for Jordan.

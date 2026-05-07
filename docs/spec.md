@@ -1757,3 +1757,364 @@ Per B8 retro-template carry-forward process:
 | Automated community PR vetting | v1.4 deferred | MEDIUM | Partially addressed by F4 allowlist policy + F1 lock file; full automation still deferred |
 | CLAUDE.md word count (resolved in v1.3.1) | v1.3.1 H1 | DONE | Closed |
 
+---
+
+## Problem
+
+v1.x ships six presets with hand-curated skills (18 entries in `curated-skills-registry.md`). The curation model has a ceiling: new categories require a full pipeline cycle, registry entries go stale between cycles, and novel-goal users waiting for a "career manager" preset have no path forward.
+
+**The v2.0 hypothesis:** msitarzewski/agency-agents (MIT, ~30 category folders, actively maintained) provides a high-quality upstream content backbone that the cowork-starter-kit wizard can map to. By pinning to a specific upstream commit SHA and verifying per-file checksums, we can extend the wizard's category coverage to ~30 domains without manual per-skill curation — while maintaining the supply-chain hygiene (no runtime git clone, SHA-pinned, fail-closed allowlist) that is the product's hard differentiator.
+
+**Validated user vision (2026-04-17):** "Do what Cowork would do by default, but with safeguards and better guidance." The safeguard IS the differentiator. This is not a skill marketplace. It is a vetted, pinned, allowlisted content bridge.
+
+**Carry-forward from retro:** v1.2 S2 (Action SHA pinning) and v1.3.3 (pasted-content-is-data) established supply-chain hygiene and content-as-data boundaries as first-class security properties. v2.0 extends both principles to upstream content resolution.
+
+---
+
+## Target Users
+
+**Primary: Jordan (evolved) — "I have a goal, not a preset"**
+In v1.x, Jordan was Alex/Maria/Sam on day one. In v2.0, Jordan has already used Cowork for a while and is ready to configure a cross-functional workspace that doesn't fit any of the six original presets. Jordan wants a "product launch" workspace that spans marketing, project management, engineering, and strategy — and doesn't understand why the wizard can't just give that to them.
+v2.0 gain: Wizard maps Jordan's goal to upstream category folders, composes a multi-category workspace proposal, and installs from pinned, verified content.
+
+**Secondary: Maria — The Knowledge Worker (advanced)**
+Maria has already set up a Research/PM workspace in v1.x. She now wants to expand into the `finance` and `integrations` categories she's seen referenced in agency-agents. She wants a workflow for quarterly planning that integrates spend analysis and stakeholder updates.
+v2.0 gain: Wizard surfaces relevant agency-agents categories filtered by her goal, installs from the pinned registry, attributes all content to upstream source.
+
+**Tertiary: Sam — The Creator (advanced)**
+Sam wants a content calendar workflow that spans writing, marketing, and paid-media categories. No single v1.x preset covers this.
+v2.0 gain: Multi-category wizard composition expands Sam's workspace without manual file hunting.
+
+**New: Riley — The Prosumer Builder**
+See full persona in `docs/personas.md` v2.0 section.
+
+Full updated personas: see `docs/personas.md`.
+
+---
+
+## Configuration Surface Note
+
+v2.0 preserves the existing configuration surface: Cowork Project custom instructions. All upstream content is resolved at wizard-run time via `raw.githubusercontent.com` URLs pointing to pinned commit SHAs. No new runtime surfaces introduced.
+
+---
+
+## Core Features (v2.0)
+
+### F1 — Upstream Registry Lock File
+
+Replace `curated-skills-registry.md` as the Tier 1 source format for upstream content. A lock file records: (a) the pinned upstream commit SHA for msitarzewski/agency-agents, and (b) per-file SHA-256 checksums for every upstream file that has been vetted for inclusion.
+
+**What this supersedes:** `curated-skills-registry.md` continues to exist for manually-curated entries from other sources. The lock file is the authoritative source for agency-agents content only.
+
+**Supply-chain guarantees this provides:**
+1. Every install resolves content at a specific, immutable commit — not `main`
+2. Per-file SHA-256 verification at install time catches tampering between the lock file update and the install
+3. The `/sync-agency` CI workflow (F3) is the ONLY mechanism for bumping the pinned SHA — no runtime fetches
+
+**Architectural questions deferred to @architect (Phase 1):**
+- Lock file format: JSON / TOML / YAML? (TOML is human-readable and tooling-friendly; JSON is tool-parseable; YAML has footgun risk with implicit type coercion — all three are viable)
+- Lock file location: repo root / `.cowork/` / `.github/`?
+- Per-file SHA schema: single SHA-256 column per path, or include size + last-modified-at-time-of-lock for richer verification?
+
+**AC:**
+- [ ] Lock file exists at the location determined by @architect in Phase 1
+- [ ] Lock file records: `upstream_repo`, `pinned_commit_sha` (40-char hex), and a `files` list where each entry has `path` (relative to upstream repo root) and `sha256` (64-char hex of file content)
+- [ ] No file from agency-agents is installable unless it appears in the lock file's `files` list (fail-closed)
+- [ ] Lock file is human-readable and diff-legible (PR reviewers can see exactly which files were added, modified, or removed in a SHA bump)
+- [ ] Lock file passes CI validation job (job checks: pinned_commit_sha is 40-char hex, all sha256 values are 64-char hex, no duplicate paths)
+- [ ] At install time, wizard resolves content from `raw.githubusercontent.com/msitarzewski/agency-agents/<pinned_commit_sha>/<file_path>` — NOT from a branch or tag
+- [ ] At install time, wizard verifies SHA-256 of fetched content against lock file value before writing to user's workspace; on mismatch, install is aborted with explicit error: "Integrity check failed for [file] — run /sync-agency to update the lock file"
+- [ ] CONTRIBUTING.md documents that direct edits to the lock file are not permitted — only `/sync-agency` CI workflow may update it
+
+### F2 — Goal Interview Category Mapping
+
+The wizard's goal interview maps user-described goals to agency-agents category folders. The six v1.x presets are demoted to "inspiration examples" shown alongside the upstream categories — they are not the primary path.
+
+**Upstream categories available (msitarzewski/agency-agents ~30 folders):**
+`academic`, `design`, `engineering`, `finance`, `game-development`, `integrations`, `marketing`, `paid-media`, `product`, `project-management`, `sales`, `spatial-computing`, `specialized`, `strategy`, `support`, `testing` (and others as the upstream repo grows, subject to allowlist).
+
+**Wizard flow change (v2.0 delta from v1.2):**
+
+```
+1. Goal Discovery (unchanged)
+   "What would you like to use this workspace for?"
+   → If matches a v1.x preset AND an upstream category: offer both paths
+     "That sounds like [Research]. I have a preset for that — and I also
+      found matching content in the upstream library under [academic] and
+      [specialized]. Would you like to: 1) Use the preset, 2) Explore the
+      upstream content, 3) Combine both?"
+   → If matches upstream categories only: present category suggestions
+   → If matches neither: novel-goal fallback (unchanged from v1.2)
+
+2. Multi-category Handling (NEW in v2.0)
+   When goal maps to 2+ upstream categories:
+   "Your goal touches [product] and [marketing] and [strategy]. I can set up
+    all three — which should be the primary focus? (or say 'all equal')"
+   → Wizard composes a multi-category workspace from the combined allowlisted
+      content, grouped by category with clear labeling
+
+3–7. Unchanged from v1.2 (user profile, writing profile, workspace design,
+     skill discovery, setup complete)
+```
+
+**Preset demotion (not deletion):**
+The six v1.x presets move to `examples/` folder with a README note: "These are starting-point examples. The wizard's upstream-backed categories provide more options." Existing preset files are preserved byte-for-byte. Users who installed a v1.x preset are not affected.
+
+**Open question for @architect (Phase 1):**
+When one goal maps to multiple upstream categories, the wizard must present a coherent multi-category workspace without overwhelming the user. The goal-interview disambiguation strategy (e.g., "pick a primary" vs. "staged install" vs. "flat merge") is an architectural question — not resolved here.
+
+**AC:**
+- [ ] Wizard goal interview produces at least one upstream category suggestion for each of these test goals: "ship a product," "run a marketing campaign," "build a game," "analyze our sales pipeline," "manage a software engineering team"
+- [ ] When goal maps to multiple upstream categories, wizard presents the categories with brief explanations and asks user to prioritize or accept all — not silently installs all
+- [ ] v1.x presets are NOT deleted; they are moved to `examples/` with a `README.md` explaining their status as starting-point inspiration
+- [ ] SETUP-CHECKLIST.md updated to reflect the new flow (step 1 = paste starter file, unchanged; goal-discovery step now mentions upstream categories)
+- [ ] Wizard framing does NOT use the words "marketplace," "runtime download," or "live fetch" — content comes from the pinned lock file, not a live registry
+- [ ] CLAUDE.md and all 6 (now `examples/`) starter files updated to reflect v2.0 wizard flow; word count remains ≤350
+
+### F3 — /sync-agency CI Workflow
+
+A GitHub Actions workflow that: (a) fetches the latest agency-agents `main` branch, (b) computes SHA-256 for each allowlisted file, (c) compares against the current lock file, (d) if any file changed or a new allowlisted file appeared, opens a PR with a human-readable diff of changed files and updated SHA values, and (e) never auto-merges.
+
+**Supply-chain guarantee:** This is the ONLY mechanism for moving the pinned SHA forward. The workflow never touches `main` directly — it opens a PR that a human must review and merge.
+
+**Refresh cadence:** Open question for @architect. Options: monthly cron (`0 9 1 * *`), manual dispatch only (`workflow_dispatch`), or hybrid (monthly cron + manual dispatch). Recommendation: monthly cron + manual dispatch — automated cadence reduces drift without requiring manual triggering. Decision deferred to Phase 1.
+
+**AC:**
+- [ ] `.github/workflows/sync-agency.yml` exists and is SHA-pinned (all Action references use full 40-char SHA, not version tags — consistent with v1.1 S2 supply-chain fix)
+- [ ] Workflow trigger: scheduled (cadence per @architect Phase 1 decision) + `workflow_dispatch` for manual runs
+- [ ] Workflow steps: (1) checkout repo at current HEAD, (2) fetch agency-agents at its latest `main` HEAD SHA via `raw.githubusercontent.com`, (3) for each file in the allowlist policy (F4), compute SHA-256, (4) compare against lock file, (5) if any file differs OR new allowlisted file is present: write updated lock file, open PR titled "chore(agency-sync): bump upstream SHA [old-sha..new-sha]", (6) if no changes: exit 0 with "Lock file is current" log
+- [ ] PR description includes: the old pinned SHA, new pinned SHA, and a table of changed files (path, old-sha256, new-sha256)
+- [ ] Workflow NEVER runs `git push` to `main` — PR only
+- [ ] Workflow NEVER auto-approves or auto-merges the PR — human review gate is mandatory
+- [ ] PR CI on the sync branch verifies: all new SHA-256 values are 64-char hex, no file in the updated lock file has been removed from the allowlist without explicit approval, `nexus-strategy.md` is absent from the updated lock file (F4 hard block)
+- [ ] On PR CI failure: workflow posts a comment on the PR explaining which check failed; does NOT auto-close the PR
+
+### F4 — Filter / Allowlist Policy
+
+An explicit allowlist policy file that defines: (a) which upstream files are permitted for installation, and (b) which are permanently blocked regardless of their presence in the upstream repo.
+
+**Fail-closed rule:** Any file not explicitly listed in the allowlist is BLOCKED by default. The policy resolves unknown → blocked, not unknown → allowed.
+
+**Hard permanent blocks (non-negotiable):**
+- `nexus-strategy.md` — BLOCKED permanently. This file defines the NEXUS framework for orchestrating multi-agent pipelines, which architecturally collides with cowork-starter-kit's own orchestration model and The-Council pipeline. Installing NEXUS would create a competing top-level instruction surface. This block must survive all future SHA bumps.
+- Any file whose content fails SHA-256 verification at install time — blocked by F1
+
+**Policy file contents:**
+- `allowed_categories`: list of category folder names permitted for the wizard to surface
+- `blocked_files`: list of specific file paths permanently blocked (at minimum: `nexus-strategy.md`)
+- `blocked_patterns`: glob patterns for classes of files to block (e.g., files containing shell execution patterns — to be determined by @security Phase 2)
+- `requires_review`: list of files that are allowed but must display a WARNING before installation
+
+**AC:**
+- [ ] Policy file exists at the location determined by @architect Phase 1 (alongside or adjacent to lock file)
+- [ ] Policy file is human-readable and diff-legible
+- [ ] `nexus-strategy.md` appears in `blocked_files` with an inline comment explaining why: "Architectural collision with cowork-starter-kit orchestration model — do not unblock"
+- [ ] CI validates that `nexus-strategy.md` does NOT appear in the lock file's `files` list — fail with explicit error if found: "nexus-strategy.md is permanently blocked (see allowlist policy)"
+- [ ] Wizard NEVER surfaces `nexus-strategy.md` to users regardless of goal mapping
+- [ ] Unknown files (present in upstream repo but absent from allowlist) resolve to BLOCKED — wizard does not present them, CI does not include them in the lock file
+- [ ] Policy file schema is validated by CI (required fields present, blocked_files is a non-empty list)
+- [ ] @security Phase 2 may add additional `blocked_patterns` entries — the policy file is the single authoritative source for these decisions; no blocking logic is hard-coded in the wizard
+
+### F5 — Attribution and License Propagation
+
+Every file installed from agency-agents upstream must carry: (a) the MIT license notice for msitarzewski/agency-agents, (b) a link to the upstream file path, (c) the pinned commit SHA at which the file was resolved, and (d) a note that the file is a derivative work and retains the original MIT license.
+
+**Why this is a hard requirement (not nice-to-have):** MIT licenses require attribution to be preserved in derivative works. Failure to propagate the license notice means every user who installs from cowork-starter-kit receives unlicensed content. This is a compliance surface, not a policy preference.
+
+**Attribution injection mechanism:** The wizard injects a comment block at the top of each installed file. The exact comment syntax depends on file format (YAML frontmatter for SKILL.md files, markdown comment for `.md` files). @architect determines the mechanism in Phase 1.
+
+**AC:**
+- [ ] Every file installed from agency-agents upstream contains a prepended attribution block with: (1) `Source: https://github.com/msitarzewski/agency-agents`, (2) `Upstream path: <original-file-path>`, (3) `Pinned commit: <40-char-sha>`, (4) `License: MIT — Copyright (c) msitarzewski/agency-agents contributors`, (5) `Derivative work: this file has been adapted for use with cowork-starter-kit`
+- [ ] Attribution block survives if the user edits the body of the file (block is at the top, clearly delimited)
+- [ ] Attribution block is injected at install time — it is NOT baked into the lock file or the upstream source
+- [ ] If an installed file is later updated by a `/sync-agency` bump, the attribution block is updated to reflect the new pinned commit SHA
+- [ ] CONTRIBUTING.md documents the attribution requirement for any community contributions that incorporate agency-agents content
+- [ ] The license notice text is identical for all installed files — no per-file variation that could create inconsistent attribution
+- [ ] @compliance Phase 2 (`/legal`) must confirm: MIT attribution format satisfies the license requirement for derivative works distributed via a public GitHub repo
+
+### F6 — Migration Story for v1.x Users
+
+Existing v1.x preset users must have a clear, non-destructive path to v2.0. Installations cannot break silently.
+
+**Migration options:**
+
+**Option A — Coexistence (recommended default):** v1.x preset installations remain fully functional. v2.0 adds new categories via the wizard. Users who installed Study in v1.3.0 keep Study; they can run the wizard again to add agency-agents content alongside it. No migration required.
+
+**Option B — Upgrade path:** Users who want to replace a v1.x preset skill with an upstream equivalent can run `/setup-wizard --upgrade`. The wizard shows: "I found [flashcard-generation] in your workspace. There's an updated version from the upstream library. Replace, keep both, or skip?" This is an opt-in flow — the wizard never auto-replaces v1.x content.
+
+**v1.x preset status post-v2.0:**
+- Preset files in `examples/` remain byte-identical to v1.x — no content changes
+- `skill-depth-check` CI continues to enforce `presets/study/**` (and other enforced presets from v1.3.x) — unchanged
+- `curated-skills-registry.md` continues to exist for manually-curated non-agency-agents sources
+- The lock file (F1) is additive — it does not replace the registry for other sources
+
+**AC:**
+- [ ] v1.x presets exist at `examples/<preset-name>/` post-v2.0 (moved from `presets/<preset-name>/`)
+- [ ] CI path allowlists in `skill-depth-check` are updated to `examples/study/**`, `examples/research/**`, etc. (path change only — no logic change)
+- [ ] `SETUP-CHECKLIST.md` retains v1.x quick-start path as Option A ("Use a preset example to get started fast") alongside the new v2.0 wizard path
+- [ ] README documents the v2.0 upgrade path: new users start with the goal-interview wizard; v1.x users can continue with their existing setup or run `/setup-wizard --upgrade` to explore agency-agents content
+- [ ] `/setup-wizard --upgrade` flow: shows existing workspace skills, offers to search for upstream equivalents, never auto-replaces content without explicit user confirmation
+- [ ] No v1.x skill file is modified or deleted by the v2.0 migration — only moved to `examples/`
+- [ ] `CHANGELOG.md` `[2.0.0]` block documents the preset relocation and provides migration instructions for users who have `presets/` hardcoded in any scripts or links
+
+---
+
+## Out of Scope (v2.0)
+
+- Multi-source upstream (one source = agency-agents only; multi-source is v2.1+)
+- Live skill marketplace or runtime discovery — content is resolved via pinned lock file only
+- Replacing The-Council pipeline orchestration with NEXUS — permanently blocked (F4)
+- Automated community PR vetting pipeline for non-agency-agents content (v2.1+)
+- Writing preset skill depth rewrites for v1.3.2, v1.3.4, v1.3.5 (those cycles proceed independently)
+- MCP registry as a content source (v2.1+ candidate)
+- Self-hosted lock file verification service
+- CLI tooling for lock file management (wizard-only, zero-code constraint preserved)
+
+---
+
+## Technical Constraints
+
+- **Stack:** Static markdown repo — no application runtime. All content resolution is via `raw.githubusercontent.com` URLs in the wizard's LLM instructions.
+- **Zero-code constraint preserved:** Every F1–F6 feature has a no-terminal alternative. Installing from the lock file is done by the wizard (LLM), not a package manager.
+- **No runtime git clone or fetch from `main` branch:** All upstream content resolves via `raw.githubusercontent.com/<owner>/<repo>/<pinned_commit_sha>/<path>` — never from a branch reference. This is a hard supply-chain security constraint, same class as v1.1 S2 (Action SHA pinning).
+- **SHA-256 at install time:** Checksum verification is performed by the wizard LLM before writing any file. This is a best-effort integrity check (LLM computes or receives the hash from the CI-verified lock file) — not a cryptographic sandbox execution. @security Phase 2 must assess whether LLM-computed SHA-256 provides sufficient assurance or whether a separate verification step is required.
+- **Allowlist fail-closed:** Unknown = blocked. No file is surfaced without explicit allowlist entry.
+- **License compliance:** MIT attribution block required on all installed files (F5). Non-negotiable.
+- **IP boundary:** No Pillar OS vocabulary, no Life Vault internal terminology, no The-Council internals in any v2.0 outputs or docs.
+- **Preset relocation:** v1.x presets move to `examples/` — all existing CI path references must be updated.
+- **Model floor:** Claude Sonnet 4.6 or better (unchanged from v1.x).
+- **Word budget:** CLAUDE.md and starter files remain ≤350 words. v2.0 wizard changes are additive (upstream category mention) — must not push files over budget.
+
+---
+
+## User Stories
+
+- As a user with a cross-functional goal ("launch a product"), I can describe it in plain language and have the wizard map it to upstream agency-agents categories, propose a multi-category workspace, and install from verified, pinned content — without me understanding what any of that means.
+- As a security-conscious user, I can trust that no upstream content is installed without a matching SHA-256 checksum in the lock file, so that I know the content is exactly what was reviewed and approved.
+- As a v1.x user with an existing Study workspace, I can upgrade to v2.0 and continue using my Study preset unchanged, with the option to add agency-agents content alongside it — without my existing setup breaking.
+- As a community maintainer, I can run `/sync-agency` (or wait for the monthly cron) to get a PR showing exactly which upstream files changed and their new checksums, and decide whether to merge — without any automated changes reaching `main`.
+- As a prosumer user building cross-functional workflows, I can select multiple upstream categories ("marketing + product + strategy") and get a composed workspace that labels each skill's origin category — so I know what I'm working with.
+- As a user installing an agency-agents skill, I can see the attribution block in every installed file, confirming its upstream source and license — so I can verify provenance.
+
+---
+
+## Acceptance Criteria
+
+- [ ] Lock file exists at @architect-determined location with correct schema (upstream_repo, pinned_commit_sha, files list with path + sha256 per entry)
+- [ ] Lock file CI validation job passes: 40-char SHA, 64-char sha256 values, no duplicates
+- [ ] `nexus-strategy.md` is absent from lock file; CI fails with explicit error if it appears
+- [ ] Allowlist policy file exists with `blocked_files` containing `nexus-strategy.md` and an explanatory comment
+- [ ] Unknown upstream files (not in allowlist) do not appear in lock file or wizard suggestions
+- [ ] Wizard goal interview produces at least one upstream category suggestion for: "ship a product," "run a marketing campaign," "build a game," "analyze sales pipeline," "manage engineering team"
+- [ ] Multi-category goal triggers disambiguation prompt — wizard does not silently flatten categories
+- [ ] Wizard resolves content from `raw.githubusercontent.com/.../` at pinned commit SHA — no branch references
+- [ ] At install time, SHA-256 of fetched content is compared against lock file value; mismatch aborts install with explicit error
+- [ ] Every installed agency-agents file contains attribution block (5 required fields: source, upstream path, pinned commit, license, derivative-work notice)
+- [ ] `/sync-agency` CI workflow exists, is SHA-action-pinned, opens PR on upstream changes, never auto-merges
+- [ ] PR from `/sync-agency` includes diff table (old SHA, new SHA, changed files list)
+- [ ] v1.x presets moved to `examples/<preset-name>/` — byte-identical content, no modifications
+- [ ] CI `skill-depth-check` path allowlists updated to `examples/study/**` etc. — same enforcement, new paths
+- [ ] `/setup-wizard --upgrade` flow: shows existing skills, offers upstream equivalents, requires explicit confirmation before any replacement
+- [ ] No v1.x skill file modified or deleted — all `examples/` content is read-only post-migration
+- [ ] CHANGELOG `[2.0.0]` block documents preset relocation and migration path
+- [ ] VERSION → 2.0.0
+- [ ] CLAUDE.md and all wizard entry points remain ≤350 words post-v2.0 edits
+- [ ] All safety rules verbatim in updated wizard surfaces (confirm before delete — 5-layer defense maintained through migration)
+- [ ] Smoke test: goal interview → category mapping → lock-file resolution → SHA-256 verification → attribution injection → workspace summary — all steps verifiable without terminal access
+
+---
+
+## Edge Cases
+
+**E1 — Upstream repo is deleted or renamed before a /sync-agency run:** The lock file still contains the last-known pinned SHA and checksums. Installed content was resolved at that SHA and is already present in the user's workspace. The `/sync-agency` CI workflow fails gracefully (fetch returns 404) and posts a PR comment: "Upstream repo not found — manual intervention required." No user data is lost.
+
+**E2 — An upstream file's content matches its lock-file SHA-256 but the file now contains a newly-added prompt injection payload:** SHA-256 matches because the content was not changed since the last lock file update — the injection was present when the lock file was last bumped. Mitigation: the human PR review of each `/sync-agency` PR is the control point for this scenario. @security Phase 2 should specify what the PR reviewer is expected to check.
+
+**E3 — User's goal maps to zero allowlisted upstream categories:** Wizard falls back to v1.x novel-goal flow (unchanged from v1.2 E4): "I don't have any verified content for [goal] yet — let me build a workspace from scratch." No error shown.
+
+**E4 — Lock file has a SHA-256 mismatch for a file at install time:** Wizard aborts installation of that file with: "Integrity check failed for [file-path] — content does not match the verified lock file. Skipping this file. Run /sync-agency to update the lock file if this is unexpected." Setup continues for non-failing files.
+
+**E5 — /sync-agency PR has 40+ changed files (large upstream version jump):** PR description includes the diff table regardless of size. CI still runs and validates all checksums. Human reviewer is responsible for assessing the scope. If the PR is too large to review safely, reviewer can close it and trigger a more selective sync with the `--path` filter option (architectural detail for @architect Phase 1).
+
+**E6 — nexus-strategy.md is renamed in the upstream repo (rename attack):** The allowlist policy `blocked_files` contains the original path. If the upstream renames it, the new path is an unknown file — which is blocked by the fail-closed rule. A renamed nexus-strategy.md cannot bypass the block through renaming alone.
+
+**E7 — v1.x user has `presets/study/` hardcoded in a shell alias or script:** CHANGELOG `[2.0.0]` documents the path change. README migration section provides the updated path. Wizard does not auto-update user scripts — this is out of scope.
+
+---
+
+## Success Metrics
+
+- **Primary (North Star):** % of v2.0 wizard completers whose final workspace includes at least one agency-agents upstream skill — target ≥50% of new installations (validates that the upstream content path is used, not just available)
+- **Secondary:** Lock file integrity check pass rate at install time — target 100% (any checksum mismatch is a supply-chain signal requiring investigation)
+- **Secondary:** Human PR review time for `/sync-agency` PRs — target ≤30 minutes per PR (validates that the diff format is legible and reviewable; if reviewers consistently take >30 min, diff format needs improvement)
+- **Secondary:** Zero installations of `nexus-strategy.md` (CI-enforced — this metric being non-zero is a CRITICAL incident signal)
+- **Secondary:** % of v1.x users who continue to use their existing preset without breaking — target 100% (migration must be zero-disruption)
+- **Proxy:** GitHub stars within 30 days of v2.0 launch announcement — target ≥100 incremental (over v1.x baseline)
+
+---
+
+## Rollout Strategy
+
+| Phase | Scope | User Impact |
+|-------|-------|------------|
+| v2.0.0 | Lock file + allowlist + F3 CI + F5 attribution + F6 migration (presets → examples/) | New users get upstream categories; v1.x users unaffected |
+| v2.0.1 | Wizard goal interview F2 category mapping + multi-category disambiguation | Wizard upgrade: new goal interview flow |
+| v2.1.0 | Multi-source upstream (second content source TBD) | Allowlist policy extended to second source |
+
+v2.0.0 ships the infrastructure (lock file, CI, allowlist, attribution). v2.0.1 ships the UX change (wizard category mapping). This staged approach means @security can review the supply-chain infrastructure independently before the wizard UX ships.
+
+---
+
+## Open Questions for @architect (Phase 1 — do not solve at Phase 0)
+
+1. **Lock file format:** JSON / TOML / YAML? Recommendation: TOML for human readability + tool parsability; final decision is @architect's.
+2. **Lock file location:** Repo root / `.cowork/` / `.github/`? Location affects discoverability vs. cleanliness.
+3. **Refresh cadence:** Monthly cron / manual `workflow_dispatch` / hybrid? Recommendation: hybrid (monthly + manual dispatch).
+4. **v2.0 preset demotion:** Deprecate the 6 presets immediately or keep alongside? Recommendation: KEEP as `examples/` — preserves v1.x user investments and reduces migration friction.
+5. **Multi-category disambiguation strategy:** When one goal maps to 3+ upstream categories (e.g., "ship a product" → product + project-management + engineering + marketing), should the wizard: (a) ask user to pick a primary, (b) install all and label by category, or (c) stage installs by priority order? This affects wizard complexity and installation time.
+6. **SHA-256 verification mechanism:** LLM-computed vs. CI-pre-verified in lock file. Given that the wizard runs in an LLM context (not a bash environment), how does the wizard perform the checksum comparison? Does it rely on the CI-validated lock file as the source of truth, or does it attempt to re-verify at install time?
+
+---
+
+## Risks to Flag for @security (Phase 2) and @compliance (Phase 2 — /legal)
+
+**For @security:**
+- Upstream maintainer abandonment (single point of trust, single repo) — if msitarzewski/agency-agents goes dark, lock file becomes stale; no new content without a manual fork decision
+- Content drift between SHA bumps — 90-day unsynced gap vs. user expectation of current content; mitigation: monthly cron (F3)
+- Agent quality variance — upstream content is not authored by the cowork team; quality bar differs from v1.x curated skills
+- LLM-computed SHA-256 reliability — wizard is an LLM, not a bash shell; can it reliably compute or verify SHA-256 checksums, or does this require a different verification architecture?
+- Prompt injection via upstream content — a future upstream commit could introduce subtle instruction-injection payloads in skill files; the PR review gate (F3) is the primary control; @security should specify minimum review criteria
+
+**For @compliance (/legal Phase 2):**
+- MIT license upstream → MIT attribution required in all derivative works (F5 addresses this; @compliance must confirm the proposed attribution format satisfies the license)
+- Upstream license change risk — MIT today; future commits could introduce different license terms; current mitigation is that the lock file pins to a specific commit (pre-change content remains MIT); @compliance should confirm this analysis is sound
+- Trademark / attribution risk — if msitarzewski requests removal of content, what is the response protocol? Lock file approach means no runtime dependency; removal is a lock file update + PR
+- NEXUS framework attribution — if NEXUS content is permanently blocked (F4), there is no obligation to attribute it; @compliance should confirm this interpretation
+
+---
+
+## Assumptions [confidence]
+
+See `docs/assumptions.md` v2.0 section for full register. Key assumptions:
+
+- [UNTESTED] A-v2.0-1: msitarzewski/agency-agents upstream content quality meets the cowork-starter-kit bar for Tier 1 curation (CRITICAL — if content quality is below bar, the entire upstream model requires more selective allowlisting or a Tier 2 classification)
+- [UNTESTED] A-v2.0-2: Users will complete the goal interview and understand upstream category suggestions without additional explanation of what "agency-agents" is
+- [ESTIMATED] A-v2.0-3: The LLM wizard can reliably verify SHA-256 checksums at install time — or the lock file's CI-pre-verified values are sufficient without in-wizard re-verification
+- [ESTIMATED] A-v2.0-4: Monthly `/sync-agency` cadence is sufficient to keep the lock file current relative to user expectations
+- [UNTESTED] A-v2.0-5: v1.x users will accept the `examples/` relocation of presets without significant friction (migration is non-destructive, but path changes may break user scripts)
+- [CONFIRMED] MIT license requires attribution preservation in derivative works — F5 is a compliance requirement, not an option
+- [CONFIRMED] `nexus-strategy.md` architecturally collides with cowork-starter-kit/The-Council orchestration model — permanent block is correct
+
+---
+
+## Proposed Changes (v2.0 additions)
+
+| Area | Change | Rationale |
+|------|--------|-----------|
+| F1 | Lock file supersedes curated-skills-registry.md for agency-agents content | SHA-pinned, checksum-verified content resolves supply-chain risk from v1.2 S2 pattern |
+| F2 | Goal interview maps to upstream category folders | 30 categories > 6 presets; enables novel-goal coverage without manual curation cycles |
+| F3 | /sync-agency CI workflow | Automates SHA bump with mandatory human review; never auto-merges |
+| F4 | Allowlist policy file, fail-closed | Unknown = blocked; nexus-strategy.md permanently blocked |
+| F5 | Attribution injection at install time | MIT license compliance; derivative work chain of custody |
+| F6 | v1.x presets relocated to examples/ | Non-destructive migration; zero-disruption for existing installations |
+| All | COMPLIANCE-SENSITIVE classification | Third-party MIT content import triggers /legal review at Phase 2 |

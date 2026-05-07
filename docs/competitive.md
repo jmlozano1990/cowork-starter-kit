@@ -356,3 +356,168 @@ _Research date: 2026-04-19. Focus: personal-life PA tools, relationship-labor fe
 **Claude Cowork Config is the only guided workspace architect for Claude Cowork that builds a personalized, safety-configured AI workspace from any goal — even ones you can't name — and makes sure every output sounds like you, not like a chatbot.**
 
 Where the skill ecosystem is dangerous without guidance, native onboarding gives you nothing, and humanizer tools fight a losing battle against detection, Claude Cowork Config sets up your workspace right the first time: goal-driven, voice-calibrated, safety-vetted, non-technical.
+
+---
+
+---
+
+## Part 4 — v2.0 Competitors: Dynamic Config / Agent Content Registries
+
+_Research date: 2026-05-06. Focus: tools in the dynamic workspace configuration, curated agent content registry, and upstream-content-backbone space. v2.0 introduces a pinned upstream content source (agency-agents) as the skill backbone — this is a new competitive surface not evaluated in v1.x._
+
+### 16. Curated Agent Content Lists (awesome-claude-code class)
+
+**What they are:** Community-maintained "awesome" lists aggregating agent skills, CLAUDE.md configs, and workflow files. Examples include collections in the awesome-claude-code genre (22,000+ stars noted in v1.2 research) and similar aggregations on GitHub. These are not vetted registries — they are link collections.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Content coverage | Very broad — hundreds to thousands of entries |
+| Integrity verification | None — links only, no SHA pinning, no checksums |
+| Allowlist / fail-closed policy | None — unknown entries are displayed, not blocked |
+| Goal-driven discovery | None — browse by tag or keyword only |
+| Attribution propagation | None — no automatic license injection |
+| Non-technical user path | Poor — requires manual browsing and GitHub familiarity |
+| Nexus-class architectural conflicts | No filtering — user must assess conflicts manually |
+
+**Key difference from v2.0:** Awesome lists are discovery surfaces. v2.0's lock file + allowlist is a verified, pinned delivery mechanism. A user who finds a skill on an awesome list still has to: (a) assess whether it's safe, (b) verify the URL hasn't rotated, (c) check the license, and (d) manually install. v2.0 handles all four steps with supply-chain guarantees.
+
+**Competitive signal:** These lists validate the demand for agent content discovery. They do not solve the safety or integrity problem. v2.0 is positioned as the "safe path into the same ecosystem these lists catalogue."
+
+---
+
+### 17. claude-flow / Agent Orchestration Frameworks
+
+**What they are:** Orchestration frameworks that manage multi-agent workflows — Claude agents spawning sub-agents, passing context, coordinating parallel tasks. These frameworks often ship with a content registry of agent roles or "personas" that users can install.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Content registry | Yes — curated agent roles bundled with the framework |
+| Integrity verification | None at the content level — framework-level versioning only |
+| Goal-driven discovery | Partial — framework docs suggest which agent roles to use |
+| Non-technical user path | Poor — requires CLI, config files, and orchestration literacy |
+| NEXUS-class conflict risk | HIGH — orchestration frameworks directly compete with cowork-starter-kit's wizard layer |
+| Attribution propagation | None documented |
+
+**Key difference:** Orchestration frameworks target developers and power users who want to build multi-agent systems. v2.0 targets non-technical Cowork users who want a configured workspace — not a pipeline they have to manage. The architectural conflict (orchestration framework vs. wizard layer) is exactly the pattern that motivated the nexus-strategy.md permanent block in F4.
+
+**Competitive signal:** The fact that orchestration frameworks ship with bundled content registries confirms the demand. Their failure mode for non-technical users (complexity, CLI requirement) is v2.0's whitespace.
+
+---
+
+### 18. Cursor / Windsurf / IDE-Native Rules Ecosystems
+
+**What they are:** AI-native code editors that support workspace configuration via rules files (`.cursorrules`, `.windsurfrules`). An ecosystem of community-shared rules has emerged — GitHub repos with thousands of curated rules, websites for browsing and installing IDE-specific configurations.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Goal-driven discovery | Partial — browse by language/framework category |
+| Integrity verification | None — download from GitHub or copy-paste |
+| Attribution propagation | None systematic |
+| Non-technical user path | Poor — developer-primary audience |
+| Content freshness | Variable — community-maintained repos update irregularly |
+| Allowlist / blocked content | None — user must assess conflicts with their own setup |
+
+**Why this is relevant to v2.0:** The agency-agents upstream repo (msitarzewski/agency-agents) follows a similar pattern to IDE rules ecosystems — a community-maintained collection of workspace configurations for a specific AI tool. The difference: v2.0 adds the supply-chain layer (SHA pinning, checksums, allowlist, attribution) that IDE rules ecosystems lack entirely.
+
+**Competitive signal:** IDE rules ecosystems have demonstrated that users want curated, category-organized workspace configurations. The safety gap (no integrity verification, no allowlist, no attribution) is identical to what v1.x identified in the Claude skill ecosystem. v2.0's upstream content approach is the first application of IDE-rules-ecosystem-style content coverage to Cowork, with a supply-chain layer on top.
+
+---
+
+### 19. agency-agents (msitarzewski) — The Upstream Source Itself
+
+**What it is:** The upstream content backbone for v2.0. msitarzewski/agency-agents is a collection of ~30 category folders (academic, design, engineering, finance, game-development, integrations, marketing, paid-media, product, project-management, sales, spatial-computing, specialized, strategy, support, testing) with CLAUDE.md-style agent configuration files for each domain.
+**License:** MIT.
+**Target user:** Claude Code power users who know what they want and can manually install from GitHub.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Content coverage | Very broad — ~30 domains, actively maintained |
+| Integrity verification | None — users pull from main branch directly |
+| Allowlist / blocked content | None — NEXUS framework content is included without warning |
+| Non-technical user path | None — manual GitHub install required |
+| Goal-driven discovery | None — browse by category folder |
+| Attribution propagation | MIT notice is on the repo; not propagated to installed files |
+
+**Relationship to v2.0:** agency-agents is the supplier, not a competitor. v2.0 is the distribution and safety layer on top of it. The relationship is complementary: users who are comfortable with GitHub and don't need safety filtering can install directly from agency-agents; users who want wizard-guided, integrity-verified, allowlisted installation use cowork-starter-kit v2.0.
+
+**Key risk:** If agency-agents dramatically improves its own installation UX (e.g., ships a wizard or a Cowork integration), the distribution gap narrows. Mitigation: cowork-starter-kit's safety layer (allowlist, SHA pinning, nexus-strategy.md block, attribution) provides value even if agency-agents ships a wizard — a wizard without safety filtering is not the same product.
+
+---
+
+### 20. MCP Marketplace / Registry Frontends
+
+**What they are:** Emerging web UIs for browsing and installing Model Context Protocol (MCP) servers. The MCP Registry (registry.modelcontextprotocol.io, 10,000+ active servers as of March 2026) has spawned third-party browser UIs that let users search, filter, and one-click install MCP servers. Some of these frontends are beginning to add workspace configuration content alongside MCP servers.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Content coverage | Large and growing (10,000+ MCP servers; workspace configs emerging) |
+| Integrity verification | Variable — depends on registry implementation; SHA pinning rare |
+| Allowlist / blocked content | None at the frontend level |
+| Goal-driven discovery | Partial — search + category filter; no interview-driven recommendation |
+| Non-technical user path | Improving — web UI removes GitHub barrier |
+| Attribution propagation | None documented for workspace configs |
+
+**Key difference from v2.0:** MCP marketplaces focus on MCP server installation (tools, integrations, data connectors). Workspace configuration content (agent roles, CLAUDE.md files, skill instructions) is an emerging secondary surface. v2.0 is ahead of MCP frontends specifically for workspace configuration. As MCP frontends expand into workspace configs, the competitive overlap increases — but v2.0's allowlist + integrity verification + non-technical wizard UX is differentiated.
+
+**Competitive signal:** MCP marketplaces confirm that the "browse and install AI capabilities" UX is a growing market. The safety gap (no allowlist, no checksums, no conflict detection) in most MCP frontends is the same gap v1.x identified and v2.0 addresses for upstream content.
+
+---
+
+### 21. Prompt Engineering Platforms (Agentive Config Layer)
+
+**What they are:** SaaS platforms for managing, versioning, and deploying agent configurations across teams. Examples include platforms that let users create "agent templates" (analogous to cowork-starter-kit presets), share them with a team, and track versions. These are emerging as enterprise-grade alternatives to file-based agent configuration.
+
+| Dimension | Assessment |
+|-----------|-----------|
+| Content library | Yes — platform-hosted templates; some community sharing |
+| Integrity verification | Platform-level versioning; no SHA pinning for user-imported content |
+| Goal-driven discovery | Partial — search + category; no interview |
+| Non-technical user path | Moderate — web UI; still requires understanding agent concepts |
+| Allowlist / blocked content | None for imported content |
+| Zero-code delivery | No — typically requires API key setup or OAuth |
+| Attribution propagation | Varies; often silently omits upstream attribution |
+
+**Key difference from v2.0:** Enterprise platforms target teams, not individual knowledge workers. They add collaboration and governance features that v2.0 doesn't need. They lack the local-first, zero-code, wizard-driven UX that is v2.0's primary design target.
+
+**Competitive signal:** Enterprise platforms confirm the market for managed agent configuration. Their enterprise pricing and team-first model leaves the individual knowledge worker segment unserved — v2.0's target market.
+
+---
+
+## Updated Feature Matrix (v2.0 addition)
+
+| Feature | awesome-lists | claude-flow class | IDE rules ecosystems | agency-agents (upstream) | MCP frontends | Prompt platforms | cowork-starter-kit v2.0 |
+|---------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Goal-driven discovery | — | Partial | Partial | — | Partial | Partial | Yes |
+| SHA-pinned upstream content | — | — | — | — | Rare | — | Yes |
+| Per-file SHA-256 integrity | — | — | — | — | — | — | Yes |
+| Allowlist / fail-closed policy | — | — | — | — | — | — | Yes |
+| NEXUS-class conflict blocking | — | — | — | — | — | — | Yes |
+| MIT attribution propagation | — | — | — | — | — | Varies | Yes |
+| Non-technical wizard UX | — | — | — | — | Improving | Moderate | Yes |
+| Zero-code delivery | N/A | — | — | — | Partial | — | Yes |
+| Multi-category composition | — | Partial | — | Partial | Partial | Partial | Yes (v2.0) |
+| Writing profile (persistent) | — | — | — | — | — | — | Yes |
+| Cowork-specific | — | — | — | Partial | Partial | — | Yes |
+| Local-first / no account required | — | — | — | Yes | — | — | Yes |
+
+---
+
+## Whitespace Summary (v2.0)
+
+The v2.0 gap adds three new dimensions that no existing product addresses:
+
+**New gap 1 — SHA-pinned, checksum-verified agent content delivery:** No competing tool verifies upstream content integrity at install time via SHA-256 checksums against a pinned commit. awesome lists have no integrity model. IDE rules ecosystems pull from main branches. MCP frontends vary but rarely apply per-file checksums. v2.0 is the first application of package-manager-style supply-chain hygiene to Cowork workspace configuration.
+
+**New gap 2 — Allowlist with fail-closed policy and structural conflict blocking:** No competing tool has an explicit allowlist that blocks architecturally-conflicting content (nexus-strategy.md). The combination of fail-closed (unknown = blocked) + specific permanent blocks is unique to v2.0.
+
+**New gap 3 — Automatic MIT attribution propagation to installed files:** MIT content is widely distributed without attribution. v2.0's F5 attribution injection is the only systematic solution to license compliance for user-installed agent configuration content.
+
+The seven-dimension whitespace from v1.2 remains intact. v2.0 adds three more. No competitor combines all ten dimensions.
+
+---
+
+## Positioning Statement (v2.0)
+
+**Claude Cowork Config v2.0 is the only workspace architect for Claude Cowork that combines upstream content breadth (~30 categories from a curated library) with supply-chain safety (SHA-pinned, checksum-verified, allowlisted, attribution-injected) — so non-technical users get the coverage they need and the safeguards they can't build themselves.**
+
+Where the skill ecosystem is dangerous without guidance, awesome lists give you links without integrity, and orchestration frameworks require developer expertise, Claude Cowork Config v2.0 gives you a vetted, verified workspace built from any goal — with full provenance on every file installed.
