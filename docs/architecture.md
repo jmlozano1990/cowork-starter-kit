@@ -3684,3 +3684,69 @@ Riley confirms provenance (per persona quote: "Everything installed with a note 
 | Phase 1 Summary in The-Council scratchpad | DEFERRED to orchestrator |
 
 
+---
+
+# v2.0.1 — sync-agency.yml YAML Hotfix
+
+## ADR-027: Heredoc-in-YAML Fix via Static Template Extraction (v2.0.1 F1)
+
+**Status:** ACCEPTED
+**Date:** 2026-05-06
+**Cycle:** v2.0.1 (quick / hotfix)
+**Branch:** `hotfix/v2.0.1-sync-agency-yaml`
+**Resolves:** GitHub Issue #12 (BLOCKER — `.github/workflows/sync-agency.yml` parser-invalid)
+
+### Context
+
+In v2.0.0, the "Regenerate THIRD-PARTY-NOTICES.md" step (line 260 `run: |`) used a bash heredoc (`cat > THIRD-PARTY-NOTICES.md << NOTICES_EOF`) whose body began at column 0. YAML block-scalar rules require all content under `run: |` to be indented at the block scalar's base column (10 spaces in this file). The column-0 body broke out of the block scalar, causing `yaml.safe_load` to raise `ScannerError` at line 267-268 and GitHub Actions to never register `workflow_dispatch`.
+
+Validation pass: 7 `run: |` blocks scanned (lines 42, 61, 90, 122, 240, 260, 357). Only line 264's `<<NOTICES_EOF` heredoc is column-0 broken. Line 178's `<<<` is a here-string with proper indentation — not in scope. All other steps use simple bash and parse cleanly.
+
+### Decision
+
+**Approach A: extract static template body to `.github/templates/THIRD-PARTY-NOTICES.template.md`.** The workflow step renders the template via `envsubst` (for `${NOW}`, `${NEW_SHA}`, `${NEW_LICENSE_SHA256}` interpolation) and injects upstream LICENSE text at a `<<LICENSE_TEXT>>` placeholder using `awk`. The heredoc is eliminated entirely.
+
+Rejected Approach B (`<<-EOF` with tab indent): mixes tabs/spaces, fragile against editor/linter normalization, and does not address the root cause (in-YAML heredoc fragility).
+
+### Implementation Specification (verbatim YAML diff for @dev)
+
+**New file:** `.github/templates/THIRD-PARTY-NOTICES.template.md` — contains the static body verbatim from current sync-agency.yml lines 265-302, with `${NOW}`, `${NEW_SHA}`, `${NEW_LICENSE_SHA256}` env-var placeholders preserved and a `<<LICENSE_TEXT>>` marker replacing the inline `${LICENSE_TEXT}` substitution at line 291.
+
+**Modified step (sync-agency.yml lines 255-303 → replace body of `run: |` only):**
+
+```yaml
+      - name: Regenerate THIRD-PARTY-NOTICES.md (ADR-025)
+        if: steps.check.outputs.needs_update == 'true'
+        env:
+          NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+          NEW_LICENSE_SHA256: ${{ steps.license.outputs.new_license_sha256 }}
+        run: |
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          export NOW NEW_SHA NEW_LICENSE_SHA256
+
+          envsubst '$NOW $NEW_SHA $NEW_LICENSE_SHA256' \
+            < .github/templates/THIRD-PARTY-NOTICES.template.md \
+            > THIRD-PARTY-NOTICES.md
+
+          awk '/<<LICENSE_TEXT>>/{system("cat /tmp/upstream-LICENSE"); next} {print}' \
+            THIRD-PARTY-NOTICES.md > /tmp/notices.tmp \
+            && mv /tmp/notices.tmp THIRD-PARTY-NOTICES.md
+
+          echo "THIRD-PARTY-NOTICES.md regenerated."
+```
+
+### Consequences
+
+- **Positive:** sync-agency.yml is YAML-parser-clean (`yaml.safe_load` exits 0); `workflow_dispatch` registers; F3 becomes functional. Static template is reviewable, lintable, and diff-friendly. Same pattern applies to any future heredoc-shaped artifact.
+- **Negative:** One additional file to maintain (`.github/templates/THIRD-PARTY-NOTICES.template.md`). Template + workflow must stay synchronized — covered by AC-4 (byte-equivalence check) and addressed long-term by P1 pattern (ADR-spec drift).
+- **Risk:** `envsubst` is GNU coreutils (present on `ubuntu-latest`). If runner image changes, fail loud at CI rather than producing corrupted output (per E1 spec).
+
+### Surface Confirmation
+
+Schema impact: NONE. Auth surface: NONE. File-system surface: only `.github/workflows/sync-agency.yml` (modified) and `.github/templates/THIRD-PARTY-NOTICES.template.md` (new). ADR-020 through ADR-026 are NOT modified.
+
+### Validation Pass Findings
+
+`run: |` block inventory (7 total): lines 42, 61, 90, 122, 240, 260, 357. Only line 260's block contains a column-0 heredoc (`<<NOTICES_EOF` at line 264, body lines 265-302). All other blocks parse cleanly. Line 178's `<<<` is a here-string, not a heredoc, and is correctly indented inside its loop body — no fix required. Simulated Approach A fix passes `yaml.safe_load` (verified in Phase 1).
+
+
