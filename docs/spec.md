@@ -2329,3 +2329,86 @@ Eight carry-forward issues from v2.0/v2.0.1 (issues #13–#21) plus one post-shi
 - [CONFIRMED] #16 is superseded by ADR-027 — no code implementation required, document-only disposition
 - [ESTIMATED] Category list in `.cowork-allowlist.json` is stable at 13 entries (`business, content-creation, customer-success, data-analysis, hr, legal, marketing, product, project-management, sales, support, testing, training`) — @dev must verify live at Phase 4
 - [UNTESTED] Bootstrap-tolerant SPDX comparison logic correctly skips comparison on first run without producing false-positive CI failures
+
+---
+
+## v2.0.3 Hotfix — sync-agency Auth + Dry-Run CI
+
+> **Cycle:** v2.0.3
+> **Mode:** quick
+> **Branch:** `hotfix/v2.0.3-sync-agency-auth-and-dry-run`
+> **Date:** 2026-05-06T00:00:00Z
+> **Classification:** STANDARD
+
+### Problem
+
+Two issues discovered post-v2.0.2 merge:
+
+**Issue #25 (BLOCKER):** First post-v2.0.2 `/sync-agency` dispatch failed at "Fetch upstream latest HEAD SHA". Every `curl -sf` call to `api.github.com` in `sync-agency.yml` omits an `Authorization` header. GitHub's anonymous rate-limit pool throttles Actions runner IPs aggressively, causing 403/rate-limit failures before the workflow reaches its functional steps.
+
+**Pattern gap (NEW):** v2.0, v2.0.1, v2.0.2, and v2.0.3 each surfaced a new BLOCKER on the first post-merge dispatch. A dry-run CI job that validates the critical sync-agency steps at PR time — before merge — would have caught each of these issues one cycle earlier.
+
+### Fixes
+
+**Fix 1 — API auth header (#25)**
+Add `-H "Authorization: bearer ${GITHUB_TOKEN}"` to every `curl` call targeting `api.github.com` in `.github/workflows/sync-agency.yml`. Pass `GITHUB_TOKEN` to the step's `env:` block on any step that does not already have it. `raw.githubusercontent.com` calls are exempt — that endpoint uses a separate anonymous-friendly rate-limit pool.
+
+Files affected: `.github/workflows/sync-agency.yml`
+
+**Fix 2 — Dry-run CI job (NEW)**
+Add a `sync-agency-dry-run` job to `.github/workflows/quality.yml`. This job runs on PRs that touch any of: `.github/workflows/sync-agency.yml`, `.github/templates/THIRD-PARTY-NOTICES.template.md`, `.cowork-allowlist.json`, or `cowork.lock.json`. It executes the first three critical steps of the sync-agency workflow against a known-good upstream SHA to surface failures before merge.
+
+Dry-run scope (fast, <30s):
+1. Fetch upstream HEAD SHA via `api.github.com` (with auth header — validates Fix 1)
+2. Fetch LICENSE from `raw.githubusercontent.com` (validates file fetch path)
+3. Run content-scan regex against one sample file (validates regex syntax)
+
+Dry-run exclusions (to keep job fast and safe):
+- Skip lock-file write (read-only simulation)
+- Skip PR creation step (out of scope)
+
+Files affected: `.github/workflows/quality.yml`
+
+### Out of Scope (v2.0.3)
+
+- Any carry-forward beyond #25
+- `raw.githubusercontent.com` auth (no rate-limit issue on that endpoint)
+- New features
+
+### Technical Constraints
+
+- Stack: GitHub Actions YAML (no new runtime dependencies)
+- ADR-020 through ADR-027 content must remain untouched
+- Dry-run job must complete in under 30 seconds to keep PR feedback fast
+- GITHUB_TOKEN is the built-in Actions token — no new secrets required
+
+### Edge Cases
+
+**E1 — Partial curl auth coverage:** If only some `api.github.com` calls receive the auth header, rate-limit failures will be intermittent and hard to reproduce. @dev must audit every curl call in `sync-agency.yml` — the fix is complete only when ALL `api.github.com` calls carry the header.
+
+**E2 — Dry-run job path filter false-negative:** If the path filter list is incomplete, the dry-run job will silently not trigger on relevant PRs. @qa must verify the job triggers on the v2.0.3 PR itself (which touches sync-agency.yml).
+
+**E3 — Dry-run uses stale SHA:** If the known-good upstream SHA hardcoded in the dry-run is outdated, the fetch step will 404. The dry-run should use a deterministic reference (e.g., resolve from the allowlist or use a pinned-but-resolvable tag) rather than a literal SHA.
+
+### Acceptance Criteria
+
+- [ ] **AC-1:** `yaml.safe_load` passes on `sync-agency.yml` AND `quality.yml` — no YAML parse errors introduced
+- [ ] **AC-2:** Every `curl ... api.github.com` call in `sync-agency.yml` carries `-H "Authorization: bearer ${GITHUB_TOKEN}"`
+- [ ] **AC-3:** `GITHUB_TOKEN` is present in the `env:` block of every step that makes an auth-bearing `api.github.com` call
+- [ ] **AC-4:** `sync-agency-dry-run` job is present in `quality.yml` with the correct path filter (`sync-agency.yml`, `THIRD-PARTY-NOTICES.template.md`, `.cowork-allowlist.json`, `cowork.lock.json`)
+- [ ] **AC-5:** Dry-run job executes successfully on the v2.0.3 PR (job green in CI — proves fetch auth + content-scan work end-to-end before merge)
+- [ ] **AC-6:** Post-merge `gh workflow run sync-agency.yml` completes through "Fetch upstream latest HEAD SHA" without a rate-limit or auth error
+- [ ] **AC-7:** ADR-020 through ADR-027 are untouched — this is implementation refinement, not architectural change
+- [ ] **AC-8:** Issue #25 is closeable on merge
+
+### Success Metrics
+
+- **Primary:** Post-merge `/sync-agency` dispatch completes "Fetch upstream latest HEAD SHA" without error — v2.0.3 unblocks the sync-agency feature for production use
+- **Secondary:** Dry-run job triggers and passes on the v2.0.3 PR itself — confirms the pattern-detection capability is live before the next feature cycle
+
+### Assumptions [confidence]
+
+- [CONFIRMED] `api.github.com` calls in Actions runners are subject to the anonymous IP pool rate limit — Authorization header moves to authenticated pool (5000 req/hr vs 60 req/hr)
+- [CONFIRMED] `GITHUB_TOKEN` is available as a built-in secret in all GitHub Actions contexts — no repo configuration required
+- [ESTIMATED] All `api.github.com` calls in `sync-agency.yml` are concentrated in 2–4 steps — @dev must audit the full file to confirm coverage
+- [UNTESTED] Dry-run job execution time stays under 30s on a standard Actions runner with the 3-step scope defined above

@@ -1413,3 +1413,19 @@ All 10 fixes are bounded hardening / implementation-refinement / doc-only:
 OWASP A01-A10: all PASS or N/A. No new security surface.
 
 **Decision: PASS — 0 CRITICAL, 0 WARNING, 0 INFO. FAST-TRACK eligible.**
+
+---
+
+# Security Review — v2.0.3 sync-agency Auth + Dry-Run CI (Phase 2 quick)
+
+## Phase: 2 (quick mode)
+## Date: 2026-05-07T07:45:00Z
+## Status: PASS WITH WARNINGS — 1 WARNING (S1), 1 INFO (S2)
+
+**S1 WARNING (non-blocking):** New `sync-agency-dry-run` job in quality.yml lacks explicit `permissions:` block. Pin job-level `permissions: { contents: read }` for defense-in-depth on PR-triggered jobs (especially fork PRs). @dev adds in Phase 4.
+
+**S2 INFO:** Add inline comments in sync-agency.yml at patched curl calls noting GITHUB_TOKEN scoping. Aids future reviewers.
+
+OWASP/LLM: all PASS or N/A. Auth header is GitHub-recommended pattern; no leakage. Dry-run scope (3 steps) genuinely closes 3-cycle BLOCKER pattern (YAML→envsubst→SPDX/regex→auth all caught).
+
+Decision: PASS WITH WARNINGS. Proceed to /gate. S1 carry to Phase 4 ACs.
