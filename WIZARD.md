@@ -215,6 +215,12 @@ Then resume CLAUDE.md Phase 1 routing with the user's clarified objective.
 
 ---
 
+## Phase 1 — Role-Generation Rule (AC-W2-9)
+
+When generating a one-line role description per skill (ADR-030): if the generated role line does not contain at least one keyword from the source skill's `description` field, fall back to the verbatim `description` (truncated to ≤12 words) — never produce a role that is generic or unmoored from the skill's actual purpose.
+
+---
+
 ## Fallback — if the wizard is interrupted
 
 If the user returns and says "Let's continue" or similar:
