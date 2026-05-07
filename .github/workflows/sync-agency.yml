@@ -241,6 +241,59 @@ jobs:
           echo "$NEW_FILES_JSON" > /tmp/new-files.json
           echo "Files fetched: $(jq length /tmp/new-files.json)"
 
+      - name: Compare SPDX fields (ADR-022 compliance gap #13)
+        if: steps.check.outputs.needs_update == 'true'
+        id: spdx_check
+        run: |
+          # Read OLD spdx data from current (pre-update) cowork.lock.json
+          OLD_FILES_COUNT=$(jq '.files | length' cowork.lock.json)
+
+          # Bootstrap-tolerant: if old lock has no .files[] entries, skip comparison
+          if [ "$OLD_FILES_COUNT" -eq 0 ]; then
+            echo "spdx_changed=false" >> "$GITHUB_OUTPUT"
+            echo "spdx_changed_paths=" >> "$GITHUB_OUTPUT"
+            echo "Bootstrap state: old lock has no .files[] — SPDX comparison skipped."
+            exit 0
+          fi
+
+          # Build a lookup map: path -> spdx from old lock file
+          OLD_SPDX_MAP=$(jq -r '.files[] | "\(.path)=\(.spdx // "NOASSERTION")"' cowork.lock.json)
+
+          # Build a lookup map: path -> spdx from new files JSON
+          NEW_SPDX_MAP=$(jq -r '.[] | "\(.path)=\(.spdx // "NOASSERTION")"' /tmp/new-files.json)
+
+          SPDX_CHANGED=false
+          CHANGED_PATHS=""
+
+          # Check each new file's spdx against old spdx for the same path
+          while IFS= read -r new_entry; do
+            new_path="${new_entry%%=*}"
+            new_spdx="${new_entry#*=}"
+
+            # Find matching old entry by path
+            old_spdx=$(echo "$OLD_SPDX_MAP" | grep "^${new_path}=" | head -1 | cut -d= -f2-)
+
+            if [ -z "$old_spdx" ]; then
+              # New file not in old lock — not an SPDX change
+              continue
+            fi
+
+            if [ "$old_spdx" != "$new_spdx" ]; then
+              echo "SPDX changed: ${new_path} (old: ${old_spdx}, new: ${new_spdx})"
+              SPDX_CHANGED=true
+              CHANGED_PATHS="${CHANGED_PATHS}|${new_path}:${old_spdx}->${new_spdx}"
+            fi
+          done <<< "$NEW_SPDX_MAP"
+
+          echo "spdx_changed=${SPDX_CHANGED}" >> "$GITHUB_OUTPUT"
+          echo "spdx_changed_paths=${CHANGED_PATHS}" >> "$GITHUB_OUTPUT"
+
+          if [ "$SPDX_CHANGED" = "true" ]; then
+            echo "::warning::SPDX fields changed for one or more files. legal-review-required label will be added to PR."
+          else
+            echo "SPDX comparison complete — no changes detected."
+          fi
+
       - name: Update cowork.lock.json
         if: steps.check.outputs.needs_update == 'true'
         env:
@@ -328,7 +381,19 @@ jobs:
           labels: |
             agency-sync
             ${{ steps.fetch_files.outputs.requires_review == 'true' && 'security-review-required' || '' }}
+            ${{ steps.spdx_check.outputs.spdx_changed == 'true' && 'legal-review-required' || '' }}
           draft: false
+
+      - name: Fail CI if SPDX changed (requires explicit @compliance acknowledgment)
+        if: steps.check.outputs.needs_update == 'true' && steps.spdx_check.outputs.spdx_changed == 'true'
+        run: |
+          echo "::error::SPDX fields changed for one or more upstream files."
+          echo "Changed paths: ${{ steps.spdx_check.outputs.spdx_changed_paths }}"
+          echo ""
+          echo "The PR has been labeled 'legal-review-required'."
+          echo "A reviewer must explicitly acknowledge the SPDX change before merging."
+          echo "Run /legal review to assess the license change impact."
+          exit 1
 
       - name: No update needed
         if: steps.check.outputs.needs_update == 'false'
