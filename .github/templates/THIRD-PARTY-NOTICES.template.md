@@ -16,7 +16,7 @@ Lock file: cowork.lock.json (pinned commit: ${NEW_SHA})
 
 ## msitarzewski/agency-agents
 
-- **Source:** https://github.com/msitarzewski/agency-agents
+- **Source:** <https://github.com/msitarzewski/agency-agents>
 - **License:** MIT
 - **Copyright:** Copyright (c) msitarzewski/agency-agents contributors
 - **Pinned commit:** ${NEW_SHA}
