@@ -50,9 +50,9 @@ Each entry includes:
 
 | name | description | source_url | vetting_date | tier | goal_tags |
 |------|-------------|------------|--------------|------|-----------|
-| status-update | Drafts clear, audience-calibrated project status updates from bullet points or notes | builtin | 2026-04-17 | 1 | project-management |
-| meeting-notes | Converts meeting transcripts or bullet notes into structured summaries with action items | builtin | 2026-04-17 | 1 | project-management,business-admin |
-| risk-assessment | Identifies project risks, rates likelihood and impact, and proposes mitigations | builtin | 2026-04-17 | 1 | project-management |
+| status-update | Synthesize project progress into a RAG-status update (Green/Amber/Red + 2–3 line narrative + next milestone) calibrated for the specified audience. | builtin | 2026-05-07 | 1 | project-management |
+| meeting-notes | Extract structured decisions, action items, and open questions from a meeting transcript or rough notes into a clean 4-section summary. | builtin | 2026-05-07 | 1 | project-management,business-admin |
+| risk-assessment | Identify and tabulate the top 5–7 project risks with likelihood, impact, and mitigation in a 6-column table, then surface the top-2 priority risks in a prose section. | builtin | 2026-05-07 | 1 | project-management |
 
 ### Creative
 
