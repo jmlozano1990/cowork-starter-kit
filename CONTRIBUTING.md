@@ -8,7 +8,7 @@ Thank you for contributing to Claude Cowork Config. This guide explains how to a
 
 All contributions start from the template. Do not create a preset folder from scratch.
 
-1. Copy `templates/preset-template/` to `presets/<your-preset-name>/`
+1. Copy `templates/preset-template/` to `examples/<your-preset-name>/`
 2. Use a lowercase, hyphenated slug for the folder name (e.g. `legal`, `data-science`, `teaching`)
 3. Fill in every file — no placeholders left blank
 4. Run the CI checks locally before opening a PR (see below)
@@ -189,7 +189,7 @@ done
 
 ## Version management
 
-Do not modify the `VERSION` file or `CHANGELOG.md`. Maintainers handle versioning at release time. Your PR should contain only files in `presets/<your-preset-name>/`.
+Do not modify the `VERSION` file or `CHANGELOG.md`. Maintainers handle versioning at release time. Your PR should contain only files in `examples/<your-preset-name>/`.
 
 ---
 
