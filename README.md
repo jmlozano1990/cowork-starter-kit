@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml/badge.svg)](https://github.com/jmlozano1990/cowork-starter-kit/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.2.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.3-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -139,9 +139,9 @@ Every preset includes a non-negotiable rule: **Cowork will always ask for your c
 
 ---
 
-## Next up — v1.3.3 Project Management Preset Depth
+## Next up — v2.0 Dynamic Workspace Architect
 
-v1.3.2 shipped the Personal Assistant preset — a 7th preset for daily life management with a Data Locality Rule that keeps financial, calendar, contact, and health data local-only. v1.3.3 applies the full 9-section ADR-015 skill depth upgrade to the Project Management preset: `meeting-notes`, `status-update`, and `risk-assessment` will each be rewritten with worked examples, quality criteria, writing-profile integration, and anti-pattern guidance — bringing PM up to the same production-grade standard as Study and Research. Each skill will follow the 80–130 line target, use the ADR-015 9-section template (When to use, Triggers, Instructions, Output format, Quality criteria, Anti-patterns, Example, Writing-profile integration, Example prompts), and include a real worked example. Meeting-notes gets a decision/action/follow-up extraction framework; status-update gets a fixed RAG-schema output; risk-assessment gets a probability-impact matrix with mitigation guidance. Writing preset depth follows in v1.3.4.
+v1.3.3 completes the Project Management preset depth upgrade — `meeting-notes`, `status-update`, and `risk-assessment` now ship at full 9-section ADR-015 production depth. v2.0 is the next major milestone: a Dynamic Workspace Architect that suggests personalized workspaces for users who don't know what preset they need. Instead of a menu, v2.0 asks what you're working on and proposes the right workspace configuration automatically — skills, folder structure, connectors, and writing profile included. Supply-chain integrity for community skills (lock file + allowlist) also ships in v2.0.
 
 ---
 
