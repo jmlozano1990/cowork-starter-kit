@@ -193,6 +193,42 @@ Do not modify the `VERSION` file or `CHANGELOG.md`. Maintainers handle versionin
 
 ---
 
+## Agency-Sync PR Review (v2.0+)
+
+PRs labeled `agency-sync` are opened automatically by `.github/workflows/sync-agency.yml`
+when the upstream `msitarzewski/agency-agents` SHA changes. These PRs have elevated
+security requirements:
+
+### 2-Approval Rule (CODEOWNERS, S2)
+
+**Agency-sync PRs require 2 separate maintainer approvals before merge.** A single-maintainer
+compromise must not enable a silent supply-chain redirect. This rule is enforced via CODEOWNERS
+(see `.github/CODEOWNERS`).
+
+### Review Checklist for Agency-Sync PRs
+
+Before approving an agency-sync PR:
+
+- [ ] **Lock file diff reviewed** — verify `cowork.lock.json` changes match expected upstream content; no unexpected files added or removed
+- [ ] **Spot-check ≥3 files per allowed category** — download file content from the new pinned SHA URL (`https://raw.githubusercontent.com/msitarzewski/agency-agents/<NEW-SHA>/<path>`) and scan manually for adversarial content
+- [ ] **Run S1 content scan locally** — apply all 8 patterns from `docs/security/upstream-content-scan-rules.md` against every new or changed file
+- [ ] **nexus-strategy.md absent** — verify `jq '.files[] | select(.path | contains("nexus-strategy"))' cowork.lock.json` returns empty
+- [ ] **Blocked-pattern files absent** — verify none of the 9 blocked-pattern filenames appear in the lock file's `files` array
+- [ ] **`requires_review` files addressed** — any file with `"requires_review": true` in the lock file must be reviewed and cleared by a maintainer before merge
+- [ ] **License hash** — if `license_changed: true` in the PR body, route to `/legal` review before merge; do not approve without legal sign-off
+- [ ] **THIRD-PARTY-NOTICES.md** — verify the regenerated file has correct timestamps, SHA, and MIT license text
+- [ ] **24h soak rule (S7)** — do not approve within 24h of PR opening; allow community review time
+- [ ] **First sync is SECURITY-SENSITIVE** — if this is the bootstrap sync (PR body shows `Bootstrap state: true`), treat as per `docs/security-review.md` Open Issue #3: full audit of ≥3 files per allowed category is mandatory
+
+### Goal Taxonomy Keyword Updates (S10)
+
+If an agency-sync PR updates the goal taxonomy keyword mapping in `CLAUDE.md` or `WIZARD.md`:
+
+- [ ] Review new keywords for adversarial content (category mismatch, misleading goal-to-category routing)
+- [ ] Verify no new category was added to the keyword map that is not in `.cowork-allowlist.json` `allowed_categories`
+
+---
+
 ## Developer Certificate of Origin
 
 All contributions must be signed off with `git commit -s` (Developer Certificate of Origin). By signing off, you certify that you wrote the contribution or have the right to submit it.

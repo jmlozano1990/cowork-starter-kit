@@ -1,0 +1,16 @@
+# CODEOWNERS — cowork-starter-kit
+#
+# Per ADR-023 + v2.0 Phase 2 S2 MUST-FIX:
+# Supply-chain-critical files require 2 maintainer approvals.
+# agency-sync PRs (labeled 'agency-sync') MUST have 2 CODEOWNERS approvals
+# before merge. Single-maintainer compromise must not enable silent supply-chain redirect.
+#
+# See CONTRIBUTING.md §Agency-Sync PR Review for the full 2-approval protocol.
+
+# Supply-chain integrity files — 2 approvals required for all PRs touching these
+cowork.lock.json                    @msitarzewski
+.cowork-allowlist.json              @msitarzewski
+THIRD-PARTY-NOTICES.md             @msitarzewski
+.github/workflows/sync-agency.yml  @msitarzewski
+.github/workflows/quality.yml      @msitarzewski
+docs/security/                     @msitarzewski
