@@ -1266,3 +1266,93 @@ This Phase 6 audit was performed by @security (read-only, scope_allow=[]). Findi
 **PASS WITH WARNINGS** (one CRITICAL — S1 — but it is a Phase 4 implementation gap, NOT an architectural defect; no Phase 1 ADR change needed). Phase 2 unblocks /gate.
 
 Phase 6 audit MUST be SECURITY-SENSITIVE (full OWASP + LLM Top 10), NOT abbreviated.
+
+---
+
+# Security Audit — cowork-starter-kit v2.0 (Phase 6 Full OWASP+LLM Top 10)
+
+## Phase: 6
+## Date: 2026-05-07T10:30:00Z
+## Status: PASS WITH WARNINGS
+## Branch: prep/v2.0 sha:d530165
+## Classification: SECURITY-SENSITIVE
+## Combined-path: **NOT ELIGIBLE** (per Phase 3 user gate)
+
+## Findings
+
+| ID | Severity | Surface | Description |
+|----|----------|---------|-------------|
+| A1 | WARNING | configuration | Per-file SPDX comparison absent from sync-agency.yml (ADR-022 contract gap). License-change detection covered by license_file_sha256 today; matters when upstream becomes mixed-license. **DEFER to v2.0.1**. |
+| A2 | WARNING | configuration | ADR-023 documented placeholder category list does not match implemented list. No functional impact. **ACCEPTABLE post-merge ADR amendment**. |
+| A3 | WARNING | configuration | CHANGELOG line 36 claims PR template was created — file `.github/PULL_REQUEST_TEMPLATE.md` does NOT exist. Truth-in-release-notes drift. **Recommend pre-merge doc fix** OR accept and fix in v2.0.1. |
+| A4 | INFO | configuration | No CI grep for S6 verbatim non-overridable rule (rule IS present in CLAUDE.md+WIZARD.md, just not CI-enforced). v2.0.1 augment recommended. |
+| A5 | INFO | external-api | THIRD-PARTY-NOTICES regen heredoc delimiter `NOTICES_EOF` could be terminated by hostile/coincidental upstream LICENSE content. v2.0.1 fix: randomized delimiter. |
+| A6 | INFO | external-api | `/tmp/fetched-files/${filename}` basename-only could collide across categories. Defensive: namespace by category. |
+| A7 | INFO | configuration | sync-agency.yml uses job-level permissions only. Recommend `permissions: read-all` workflow-level + per-job grants. |
+| A8 | INFO | dependency | presets→examples symlink semantics on Windows without Developer Mode = 9-byte plain file. SETUP-CHECKLIST should add Windows-host warning. |
+
+**0 CRITICAL · 3 WARNING · 5 INFO**
+
+## 8 MUST-FIX Verification
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | S1 content-scan rules + sync-agency.yml integration | VERIFIED |
+| 2 | S2 CODEOWNERS + 2-approval rule | VERIFIED |
+| 3 | S4 9-entry blocked_patterns | VERIFIED |
+| 4 | S5 attribution-survives-render CI | VERIFIED |
+| 5 | S6 verbatim rule in CLAUDE.md + WIZARD.md | VERIFIED |
+| 6 | S9 zero-SHA reject CI | VERIFIED |
+| 7 | Open Issue #3 SECURITY-SENSITIVE first-sync docs | INCOMPLETE (CONTRIBUTING.md present; PR template missing — A3) |
+| 8 | Open Issue #6 trust-boundary disclosure | VERIFIED |
+
+**7/8 VERIFIED, 1/8 INCOMPLETE.**
+
+## OWASP A01–A10
+
+| Category | Status |
+|----------|--------|
+| A01 Access Control | PASS |
+| A02 Cryptographic Failures | PASS |
+| **A03 Injection** | **PASS** (was FAIL Phase 2; resolved by S1) |
+| A04 Insecure Design | PASS |
+| A05 Security Misconfiguration | PASS (Action SHA pinning verified) |
+| A06 Vulnerable Components | PASS |
+| A07 Auth Failures | N/A |
+| A08 Integrity Failures | PASS (lock file + SHA-256 + LICENSE hash) |
+| A09 Logging | PASS |
+| A10 SSRF | PASS (hardcoded GitHub URL) |
+
+## LLM Top 10
+
+| Category | Status |
+|----------|--------|
+| **LLM01 Prompt Injection** | **PASS** (was FAIL Phase 2; resolved by S1) |
+| LLM02 Insecure Output | PASS |
+| LLM05 Supply Chain | PASS (strongest controls in repo history) |
+| LLM06 Sensitive Info | PASS (personal-assistant excluded from allowed_categories) |
+| LLM08 Excessive Agency | PASS |
+| LLM09 Overreliance | PASS |
+
+## 3-Cycle Pattern Promotion (NEW)
+
+**P1: ADR-spec drift on parameterized artifacts** — recurrent in v1.2 A1 (registry-cardinality CI logic) + v2.0 C8/B2/A3 (SPDX step, category list, CHANGELOG/PR-template). Promote to `docs/patterns.md` (file does not exist; first entry creates it). Mitigation: Phase 5 ADR-to-implementation diff against any list/step enumerated in ADR text.
+
+## v2.0.1 Carry-Forwards
+
+1. C8/A1 SPDX comparison (binding for mixed-license future)
+2. G3/A4 verbatim S6 grep CI
+3. A5 heredoc delimiter randomization
+4. A6 fetched-files namespace by category
+5. A7 workflow-level permissions read-all
+6. Concurrency group on sync-agency.yml
+7. A8 SETUP-CHECKLIST Windows symlink note
+
+## Decision
+
+**PASS WITH WARNINGS.** 0 CRITICAL. 3 WARNING all ACCEPTABLE-DEFERRAL with documented v2.0.1 carry-forwards. A3 has a recommended pre-merge doc fix (cheap) but is not BLOCKING.
+
+Route to `/approve` (Phase 7).
+
+## Note: Phase 6 Agent Scope
+Performed by @security with scope_allow=[]. Findings persisted by orchestrator.
