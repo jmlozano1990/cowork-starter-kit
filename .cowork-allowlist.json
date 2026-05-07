@@ -1,0 +1,74 @@
+{
+  "$schema_version": "1.0",
+  "description": "Filter and allowlist policy for cowork-starter-kit upstream content integration (ADR-023). Fail-closed: any file or category not listed here is BLOCKED.",
+  "upstream": "msitarzewski/agency-agents",
+  "allowed_categories": [
+    "academic",
+    "business",
+    "content-creation",
+    "customer-success",
+    "data-analysis",
+    "design",
+    "engineering",
+    "finance",
+    "hr",
+    "legal",
+    "marketing",
+    "product",
+    "support"
+  ],
+  "blocked_files": [
+    {
+      "path": "nexus-strategy.md",
+      "permanent": true,
+      "reason": "Permanently blocked per A-v2.0-7 — describes NEXUS framework orchestration internals. Cowork-starter-kit does not distribute orchestration strategy content from upstream."
+    }
+  ],
+  "blocked_patterns": [
+    {
+      "pattern": "nexus-strategy.md",
+      "reason": "Exact filename block — catches nexus-strategy.md at any path depth (rename-into-category attack prevention)"
+    },
+    {
+      "pattern": "nexus-strategy.*",
+      "reason": "Extension variants of nexus-strategy (e.g., nexus-strategy.txt, nexus-strategy.yaml)"
+    },
+    {
+      "pattern": "orchestrator.md",
+      "reason": "Orchestration controller files not allowlisted for distribution"
+    },
+    {
+      "pattern": "orchestrator-*.md",
+      "reason": "Orchestration controller variants (e.g., orchestrator-config.md, orchestrator-setup.md)"
+    },
+    {
+      "pattern": "meta-agent.md",
+      "reason": "Meta-agent descriptor files not allowlisted for distribution"
+    },
+    {
+      "pattern": "meta-agent-*.md",
+      "reason": "Meta-agent descriptor variants"
+    },
+    {
+      "pattern": "pipeline-controller.md",
+      "reason": "Pipeline controller files not allowlisted for distribution"
+    },
+    {
+      "pattern": "the-council.md",
+      "reason": "The-Council internal references permanently blocked from upstream distribution"
+    },
+    {
+      "pattern": "cowork-orchestrator.md",
+      "reason": "Cowork orchestrator internals permanently blocked from upstream distribution"
+    }
+  ],
+  "requires_review": [],
+  "notes": [
+    "allowed_categories lists folder-level allowlist. /sync-agency only fetches files whose path's first segment matches an entry here.",
+    "Unknown category folders are BLOCKED by default (fail-closed).",
+    "blocked_files entries block specific file paths by exact match.",
+    "blocked_patterns entries block filenames matching the pattern at any path depth.",
+    "requires_review lists allowlisted files flagged for user-visible WARNING at install time.",
+    "Deferred from v2.0: game-development and spatial-computing (high quality variance — re-evaluate at v2.1 per ADR-023)."
+  ]
+}
