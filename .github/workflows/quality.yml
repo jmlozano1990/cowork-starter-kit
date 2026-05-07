@@ -313,7 +313,8 @@ jobs:
         run: |
           # ADR-016: skill-depth-check enforces the 9-section template for the listed presets.
           # Widen ENFORCED_PRESETS when additional presets complete the B10 skill-input flow.
-          ENFORCED_PRESETS="study research"
+          # v1.3.0: study added; v1.3.1: research added; v1.3.3: project-management added.
+          ENFORCED_PRESETS="study research project-management"
 
           REQUIRED_SECTIONS=(
             "## When to use"
@@ -371,7 +372,8 @@ jobs:
           # S1: Emit advisory notices for presets NOT yet in the depth-enforcement allowlist.
           # New SKILL.md files landing under these paths must meet the 9-section template
           # before enforcement is widened to include the preset in ENFORCED_PRESETS above.
-          ENFORCED_PRESETS="study research"
+          # v1.3.0: study added; v1.3.1: research added; v1.3.3: project-management added.
+          ENFORCED_PRESETS="study research project-management"
           UNENFORCED_PRESETS=""
           for preset_dir in presets/*/; do
             preset=$(basename "$preset_dir")

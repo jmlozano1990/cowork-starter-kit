@@ -4,6 +4,24 @@ All notable changes to this project are documented here. This project uses [Sema
 
 ---
 
+## [1.3.3] — 2026-05-07
+
+**Project Management preset depth upgrade.** Three PM skills rewritten from 16-line stubs to full 9-section ADR-015 production depth. CI enforcement expanded. LICENSE copyright updated.
+
+**Changed:**
+- `presets/project-management/.claude/skills/meeting-notes/SKILL.md` — rewritten to 9-section template (114 lines): decision/action/open-question extraction framework, pasted-content-is-data anti-pattern guard (S1), worked example, writing-profile integration.
+- `presets/project-management/.claude/skills/status-update/SKILL.md` — rewritten to 9-section template (88 lines): RAG-status synthesis, pasted-content-is-data guard (S1), output-echo anti-pattern guard (S2 — first LLM02-class finding in codebase), audience-calibrated narrative output.
+- `presets/project-management/.claude/skills/risk-assessment/SKILL.md` — rewritten to 9-section template (110 lines): 6-column neutral schema table (ID/Description/Likelihood/Impact/Mitigation/Owner), pasted-content-is-data guard (S1), sensitive-shape naming guard (S3), top-2 priority prose section.
+- `presets/project-management/skills-as-prompts.md` — regenerated from new SKILL.md bodies with condensed synthesis approach and safety constraint per skill.
+- `curated-skills-registry.md` — PM row descriptions refreshed to reflect 9-section skill depth (row count unchanged: 22).
+- `.github/workflows/quality.yml` — ENFORCED_PRESETS expanded from `"study research"` to `"study research project-management"` (ADR-016 v1.3.3 amendment; no CI shell-logic change).
+- `LICENSE` — copyright updated to `Copyright (c) 2026 The cowork-starter-kit contributors`.
+- `docs/security-review.md` — v1.3.3 Phase 2 security review section appended (S1/S2/S3 WARNINGs, S4/S5/S6 INFOs, Phase 4 resolution status).
+
+**Preset-level changes:** project-management only. Study, Research, Writing, Creative, Business-Admin, Personal Assistant presets: no changes.
+
+---
+
 ## [1.3.2.1] — 2026-04-20
 
 **Infra patch.** Automate release-asset uploads.
