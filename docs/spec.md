@@ -2118,3 +2118,88 @@ See `docs/assumptions.md` v2.0 section for full register. Key assumptions:
 | F5 | Attribution injection at install time | MIT license compliance; derivative work chain of custody |
 | F6 | v1.x presets relocated to examples/ | Non-destructive migration; zero-disruption for existing installations |
 | All | COMPLIANCE-SENSITIVE classification | Third-party MIT content import triggers /legal review at Phase 2 |
+
+---
+
+## v2.0.1 — sync-agency.yml YAML Hotfix
+
+**Cycle mode:** quick (hotfix)
+**Branch:** `hotfix/v2.0.1-sync-agency-yaml` from main
+**Issue:** GitHub #12 (BLOCKER)
+**Classification:** STANDARD
+
+### Problem
+
+`.github/workflows/sync-agency.yml` is parser-invalid. Heredoc content inside `run: |` blocks (lines 267+) starts at column 0, which breaks out of the YAML block scalar. GitHub Actions rejects the file on push and `workflow_dispatch` is not registered — the F3 /sync-agency workflow shipped non-functional in v2.0.0.
+
+**Root cause (from v2.0 retro):** Phase 5 tests used `grep` to confirm keyword presence. No YAML parser was invoked and `gh workflow list` / `gh api` trigger registration was not verified post-push. The gap was in test strategy, not test execution.
+
+### Target Users
+
+Maintainer persona (Riley — v2.0 cycle): the sole user of `/sync-agency`. No end-user impact; the lock file remains in bootstrap state (zero-SHA, files: []).
+
+### Core Feature (single fix)
+
+**F1 — YAML-valid sync-agency.yml with registered workflow_dispatch trigger**
+
+Extract the static THIRD-PARTY-NOTICES.md template body from the heredoc into `.github/templates/THIRD-PARTY-NOTICES.template.md`. Replace the heredoc in `sync-agency.yml` with a `cat` command composing the template file and upstream LICENSE content into `THIRD-PARTY-NOTICES.md`. This eliminates the YAML-plus-heredoc-indent collision entirely.
+
+_Alternative (fragile, not recommended):_ Indent the heredoc body to match `run: |` indentation and use `<<-EOF` tab-stripping. This mixes tabs/spaces and is brittle against future edits. @architect selects the approach in Phase 1.
+
+**Acceptance Criteria:**
+
+- AC-1: `python -c "import yaml; yaml.safe_load(open('.github/workflows/sync-agency.yml'))"` exits 0
+- AC-2: After push to main, `gh api repos/jmlozano1990/cowork-starter-kit/actions/workflows/272422424` returns `name: "Sync Agency Upstream"` (not the file-path fallback) AND the triggers list includes `workflow_dispatch`
+- AC-3: `gh workflow run sync-agency.yml --ref main -f reason="bootstrap"` returns HTTP 204 (not 422)
+- AC-4: THIRD-PARTY-NOTICES.md regenerates with byte-equivalent content relative to the v2.0.0 output (modulo the LICENSE_TEXT interpolation point)
+- AC-5: `cowork.lock.json` is untouched — zero-SHA, files: [] (bootstrap state preserved)
+- AC-6: Phase 5 quality baseline addition codified as a new test assertion: every new CI workflow file MUST pass `yaml.safe_load` AND `gh api` trigger registration check before Phase 7 APPROVED (per P2 pattern from v2.0 retro — "YAML structure not checked")
+
+### Out of Scope (v2.0.1)
+
+The following carry-forward issues are documented but NOT part of this cycle:
+
+- #13 — A1 SPDX comparison logic in sync-agency.yml
+- #14 — A3 PR template creation
+- #15 — A4/G3 verbatim S6 grep CI for CLAUDE.md/WIZARD.md
+- #16 — A5 heredoc delimiter randomization (defense-in-depth, related but separate)
+- #17 — A6 fetched-files namespace isolation
+- #18 — A7 workflow-level permissions hardening
+- #19 — A8 Windows symlink note in docs
+- #20 — A2 ADR-023 amendment (category list drift)
+- #21 — Concurrency group addition to sync-agency.yml
+
+No new features. No new content imports. cowork.lock.json bootstrap state is not modified.
+
+### Technical Constraints
+
+- Stack: GitHub Actions YAML + bash (no new dependencies)
+- Branch: `hotfix/v2.0.1-sync-agency-yaml` from main; PR links to GitHub issue #12
+- Template file path (if approach A selected): `.github/templates/THIRD-PARTY-NOTICES.template.md`
+- YAML block scalar rules: all `run: |` heredoc content must be indented at minimum 10 spaces (2 spaces for job, 2 for steps, 2 for run, 4 for content) — never at column 0
+- No new Python, Node, or shell dependencies introduced
+- CI must pass all pre-existing quality checks (markdownlint, lychee, shellcheck) in addition to the new YAML parser check
+
+### Edge Cases
+
+**E1 — Template file missing at workflow runtime:** If `.github/templates/THIRD-PARTY-NOTICES.template.md` is deleted from the repo, the `cat` command fails with a non-zero exit code and the workflow step fails loudly. This is the correct behavior — the failure is surfaced at CI runtime rather than silently producing an empty or malformed NOTICES file.
+
+**E2 — Workflow ID changes after fix:** GitHub workflow IDs are stable per file path. If the file is renamed, the ID changes and AC-2 must be updated with the new ID. The fix does not rename the file, so this edge case does not apply to this cycle.
+
+**E3 — Existing `cowork.lock.json` has non-zero SHA from a manual test run:** The YAML fix does not touch `cowork.lock.json`. If a tester ran the workflow manually before the fix, the lock file may be in a non-bootstrap state. AC-5 verifies the bootstrap state reflects the expected pre-fix condition — if it does not, that is a separate issue outside this cycle's scope.
+
+**E4 — GitHub API returns 404 for workflow ID 272422424:** The workflow ID is specific to the repo/file path. If it changes (e.g., after file deletion and recreation), AC-2 verification must use `gh workflow list` to obtain the current ID. @qa must verify the ID is still valid in Phase 5.
+
+**E5 — `<<-EOF` alternative chosen by @architect:** If the indented-heredoc approach is selected instead of template extraction, the YAML must be validated with `python -m yaml` (not just `yaml.safe_load` — both test the same thing but the CI command must match). Tab/space mixing must be explicitly checked by @qa in AC-1.
+
+### Success Metrics
+
+- **Primary:** Zero workflow parse failures after push to main — engineers can trigger `/sync-agency` without manual YAML repair or repo admin intervention (user outcome: the F3 feature promised in v2.0.0 becomes functional)
+- **Secondary:** AC-6 quality baseline addition prevents recurrence — future CI workflow additions are validated with a YAML parser before Phase 7 APPROVED (process outcome: the test strategy gap from v2.0 retro is closed)
+- **Proxy:** GitHub issue #12 closed and linked to the merge commit
+
+### Assumptions [confidence]
+
+- [CONFIRMED] The YAML parse error is the sole reason `workflow_dispatch` is not registered — no other structural issue exists in sync-agency.yml
+- [ESTIMATED] Template extraction (approach A) is a clean fix — no other `run: |` blocks in sync-agency.yml have heredoc content at column 0 (to be verified by @architect in Phase 1)
+- [CONFIRMED] `cowork.lock.json` bootstrap state (zero-SHA, files: []) is the correct pre-fix state — no sync has been run since v2.0.0 shipped

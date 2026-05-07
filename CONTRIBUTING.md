@@ -187,6 +187,34 @@ done
 
 ---
 
+## CI Workflow Quality Baseline (v2.0.1+)
+
+Every new `.github/workflows/*.yml` file added to this repo MUST pass both checks before Phase 7 APPROVED (AC-6 per v2.0.1 hotfix — addresses the P2 pattern "YAML structure not checked" from the v2.0 retrospective):
+
+**Check 1 — YAML parser validation (run locally before push):**
+
+```bash
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/<your-workflow>.yml'))" && echo "PASS"
+```
+
+This catches column-0 heredocs and other block-scalar violations that grep-based tests miss. A workflow that fails `yaml.safe_load` will never register in GitHub Actions — its triggers (`workflow_dispatch`, `push`, `schedule`) will be silently absent.
+
+**Check 2 — Trigger registration verification (run after first push to a branch):**
+
+```bash
+# List all workflows and confirm your new workflow appears with the expected name
+gh workflow list
+
+# Verify the triggers list includes all declared triggers
+gh api repos/{owner}/{repo}/actions/workflows/{workflow_id} --jq '.name, .state'
+```
+
+The workflow `name:` field in the API response must match the `name:` declared in the YAML (not fall back to the file path). If it shows the file path (e.g., `.github/workflows/my-workflow.yml`), the workflow was not parsed correctly.
+
+Both checks are required before a workflow-modifying PR can be approved at Phase 7. @qa must verify them in the Phase 5 test report.
+
+---
+
 ## Version management
 
 Do not modify the `VERSION` file or `CHANGELOG.md`. Maintainers handle versioning at release time. Your PR should contain only files in `examples/<your-preset-name>/`.

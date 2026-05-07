@@ -1356,3 +1356,39 @@ Route to `/approve` (Phase 7).
 
 ## Note: Phase 6 Agent Scope
 Performed by @security with scope_allow=[]. Findings persisted by orchestrator.
+
+---
+
+# Security Review — v2.0.1 sync-agency.yml YAML Hotfix
+
+## Phase: 2 (quick mode)
+## Date: 2026-05-07T05:50:00Z
+## Status: PASS — 0 findings
+
+ADR-027 (template extraction approach) is **strictly safer** than v2.0 status quo:
+- **A5 RESOLVED** (heredoc delimiter risk) — heredoc eliminated entirely. Recommend close #16 as superseded by ADR-027.
+- Narrower interpolation surface (envsubst allow-list of 3 vars vs all-in-scope).
+- LICENSE bytes never enter shell parser (awk system() path).
+
+OWASP A03 Injection: PASS. No new auth, no new dependencies, no new outbound network. Template file relocates trust into the same PR-review + CODEOWNERS surface as the workflow YAML itself.
+
+**Decision: PASS. Hotfix proceeds. Carry-forwards: none.**
+
+---
+
+# Security Audit — v2.0.1 sync-agency.yml YAML Hotfix (Phase 6)
+
+## Phase: 6 (abbreviated 4-point)
+## Date: 2026-05-07T05:55:00Z
+## Status: PASS — 0 findings
+## Classification: STANDARD
+## Combined-path: eligible
+
+| Check | Result |
+|-------|--------|
+| 1. No new security surface | PASS — diff is 3 files (static template, CI mechanism refactor, contributor docs) |
+| 2. No hardcoded secrets | PASS — no credential patterns in diff |
+| 3. No dependency additions | PASS — envsubst (coreutils) + awk (POSIX) preinstalled; no new Actions |
+| 4. Phase 2 carry-forwards | PASS — Phase 2 had 0 findings; no new surface emerged |
+
+ADR-027 RESOLVES v2.0 A5 (heredoc delimiter collision risk) — recommend close #16 as superseded.
