@@ -2203,3 +2203,129 @@ No new features. No new content imports. cowork.lock.json bootstrap state is not
 - [CONFIRMED] The YAML parse error is the sole reason `workflow_dispatch` is not registered — no other structural issue exists in sync-agency.yml
 - [ESTIMATED] Template extraction (approach A) is a clean fix — no other `run: |` blocks in sync-agency.yml have heredoc content at column 0 (to be verified by @architect in Phase 1)
 - [CONFIRMED] `cowork.lock.json` bootstrap state (zero-SHA, files: []) is the correct pre-fix state — no sync has been run since v2.0.0 shipped
+
+---
+
+## v2.0.2 Hardening Bundle
+
+**Mode:** quick | **Branch:** `hotfix/v2.0.2-hardening-bundle` from main | **Classification:** SECURITY-SENSITIVE (supply-chain + compliance surfaces)
+
+**Retro learnings applied:** v2.0 P1 pattern (ADR-spec drift on parameterized artifacts) → AC-10 requires ADR-023 amendment with the actual live category list, not a placeholder. v2.0 P2 pattern (YAML structure not checked) → AC-1 YAML parser check is a hard gate on all modified workflow files.
+
+### Problem
+
+Eight carry-forward issues from v2.0/v2.0.1 (issues #13–#21) plus one post-ship BLOCKER (#23 hallucinated Action SHA) were deferred from prior cycles. Together they constitute a security hardening, compliance gap, and documentation drift bundle. None are individually architectural — all are bounded changes to existing files. The #23 BLOCKER prevents CI from running cleanly on the `sync-agency.yml` workflow, making F3 unreliable after v2.0.1.
+
+### Fixes (10 total)
+
+**#23 BLOCKER — Hallucinated Action SHA (sync-agency.yml ~line 276)**
+- Replace `peter-evans/create-pull-request@271a8d0340b12a86b6d29af5d5a6a5e6c45dccbc # v7.0.6` with `peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6`
+- SHA verified via: `gh api repos/peter-evans/create-pull-request/git/refs/tags/v7.0.6`
+- Severity: BLOCKER — without this fix, the PR-creation step in sync-agency.yml will fail with "unable to resolve action"
+
+**#13 (A1) — Per-file SPDX comparison in sync-agency.yml**
+- Read OLD lock-file `.files[].spdx` per entry; compare to NEW `.files[].spdx` per entry after fetch
+- If any file's SPDX field changes between runs: label the PR `legal-review-required` AND fail CI until @compliance reviews
+- Bootstrap-state-tolerant: when old lock-file has no `.spdx` fields (first run), skip comparison and proceed
+- Closes the ADR-022 compliance gap flagged as C8 in v2.0 Phase 5
+
+**#14 (A3) — Create `.github/PULL_REQUEST_TEMPLATE.md`**
+- Required sections: Summary, Test plan, Agency-sync-conditional SECURITY-SENSITIVE checklist
+- The SECURITY-SENSITIVE checklist applies only when the PR is a first-sync (≥1 new category); it requires a sample audit of ≥3 files per new category per CONTRIBUTING.md
+- Closes v2.0 Phase 6 A3 finding (CHANGELOG described PR template that did not exist)
+
+**#15 (A4/G3) — CI job `verbatim-attribution-rule-check` in quality.yml**
+- New job that greps CLAUDE.md AND WIZARD.md for the exact 4-sentence non-overridable attribution rule from ADR-024
+- Fails CI if the literal string is absent from either file
+- Approximately 10 lines YAML; no new Action dependencies
+
+**#16 (A5) — Close as superseded by ADR-027**
+- No code change required
+- ADR-027 (template extraction) eliminates the heredoc delimiter randomization defense-in-depth approach this issue proposed
+- Disposition: document as CLOSED/SUPERSEDED in scratchpad; no spec deliverable
+
+**#17 (A6) — Fetched-files category namespace in sync-agency.yml fetch loop**
+- Change fetch loop to write files to `/tmp/fetched-files/${category}/${filename}` instead of flat `/tmp/fetched-files/${filename}`
+- Prevents filename collisions across categories; approximately 3 lines change
+
+**#18 (A7) — Workflow-level `permissions: read-all` in sync-agency.yml**
+- Add `permissions: read-all` at the workflow top level
+- Per-job overrides remain: `contents: write, pull-requests: write` where needed
+- Principle of least privilege: workflow-level read-all + explicit job-level write grants is the GitHub Actions recommended pattern
+- Approximately 2 lines addition
+
+**#19 (A8) — Windows symlink note in SETUP-CHECKLIST.md**
+- Documentation-only paragraph explaining the `presets/ → examples/` symlink behavior on Windows
+- Key point: without Developer Mode enabled, the symlink appears as a text file on Windows checkouts
+- No workaround required for Linux/macOS users
+
+**#20 (A2) — ADR-023 amendment in docs/architecture.md**
+- Append an amendment block to ADR-023 recording the actual 13-category list from `.cowork-allowlist.json`
+- Categories (read live from `.cowork-allowlist.json`): `business, content-creation, customer-success, data-analysis, hr, legal, marketing, product, project-management, sales, support, testing, training`
+- Doc-only append; ADR-023 body is not modified — amendment block is additive
+- Closes v2.0 Phase 5 B2 finding (ADR-023 placeholder ≠ actual implementation list)
+
+**#21 — Concurrency group in sync-agency.yml**
+- Add `concurrency: { group: sync-agency, cancel-in-progress: false }` at the workflow top level
+- Prevents concurrent runs of the sync-agency workflow; `cancel-in-progress: false` ensures an in-progress run is not aborted when a second run is queued
+- Approximately 3 lines addition
+
+**P3 Pattern — CONTRIBUTING.md CI Quality Baseline extension**
+- Extend the "CI Workflow Quality Baseline" section in CONTRIBUTING.md
+- Add rule: every `uses:` SHA in a workflow file MUST be verified at Phase 5 via `gh api repos/<owner>/<repo>/git/refs/tags/<tag>` before Phase 7 APPROVED
+- Codifies the P3 pattern from v2.0 retro: "SHA-pinning added but not verified"
+
+### Out of Scope (v2.0.2)
+
+- Wizard FSM UX improvements (separate cycle, not blocked by this bundle)
+- Any new content imports or agency-agents catalog changes
+- Architectural changes — all 10 fixes are bounded to existing files
+- #16 implementation (superseded — document only, no code)
+- ADR-020 through ADR-027 are not modified; ADR-023 receives an additive amendment block only
+
+### Technical Constraints
+
+- Stack: GitHub Actions YAML + bash + Markdown (no new dependencies)
+- Branch: `hotfix/v2.0.2-hardening-bundle` from main
+- YAML validation: `yaml.safe_load` must pass on all modified workflow files before Phase 7
+- Action SHAs: all `uses:` lines must be verified via `gh api repos/<owner>/<repo>/git/refs/tags/<tag>`
+- ADR-020 through ADR-027 content must remain untouched (amendment to ADR-023 is additive only)
+- `.cowork-allowlist.json` is the source of truth for the category list in the ADR-023 amendment
+
+### Edge Cases
+
+**E1 — Bootstrap state for SPDX comparison (#13):** When `.cowork-allowlist.json` has no prior `.files[].spdx` entries (first sync run ever), the comparison step must skip gracefully and not fail CI. The bootstrap-tolerant guard must be explicitly tested.
+
+**E2 — Windows Developer Mode not enabled (#19):** The SETUP-CHECKLIST.md note must not recommend enabling Developer Mode as a requirement — it is a capability note only. Users without it can clone the `examples/` content directly.
+
+**E3 — concurrency group conflicts (#21):** If a user has a sync-agency run in progress and pushes a new commit, `cancel-in-progress: false` preserves the running job. The new push queues but does not cancel the active run. @qa must verify this behavior is documented correctly.
+
+**E4 — SPDX field absent from upstream file metadata (#13):** If a fetched file has no SPDX header detectable by the comparison logic, treat as `NOASSERTION` and do not fail CI — flag for human review only (add to PR body, not CI failure).
+
+**E5 — ADR-023 amendment reads stale category list (#20):** @dev must read `.cowork-allowlist.json` live at Phase 4 to populate the amendment block, not copy from memory. @qa must verify the count matches the live file.
+
+### Acceptance Criteria
+
+- [ ] **AC-1:** `yaml.safe_load` passes on the modified `sync-agency.yml` AND `quality.yml` — no YAML parse errors
+- [ ] **AC-2:** After merge, `gh workflow run sync-agency.yml --ref main` returns HTTP 204 (workflow registered and dispatchable)
+- [ ] **AC-3:** First post-v2.0.2 `/sync-agency` run completes WITHOUT "unable to resolve action" error in the GitHub Actions log
+- [ ] **AC-4:** All 8 v2.0.1 carry-forward issues (#13–#21) plus #23 are closeable on merge — each fix is independently verifiable in the diff
+- [ ] **AC-5:** ADR-020 through ADR-027 original content is untouched — only an additive amendment block is appended to ADR-023
+- [ ] **AC-6:** CONTRIBUTING.md "CI Workflow Quality Baseline" section includes the P3 rule: every `uses:` SHA must be verified via `gh api repos/<owner>/<repo>/git/refs/tags/<tag>` at Phase 5
+- [ ] **AC-7:** `.github/PULL_REQUEST_TEMPLATE.md` exists with Summary, Test plan, and SECURITY-SENSITIVE agency-sync checklist sections
+- [ ] **AC-8:** SPDX comparison job is present in `sync-agency.yml` AND is bootstrap-state-tolerant (does not fail on first-run when no prior SPDX data exists)
+- [ ] **AC-9:** Workflow-level `permissions: read-all` AND `concurrency: { group: sync-agency, cancel-in-progress: false }` are both present in `sync-agency.yml`
+- [ ] **AC-10:** ADR-023 amendment block is present in `docs/architecture.md` with the actual live category list (read from `.cowork-allowlist.json` — must match the live file, not a placeholder)
+
+### Success Metrics
+
+- **Primary:** Zero "unable to resolve action" errors in the first post-v2.0.2 sync-agency run (user outcome: F3 sync-agency feature is fully functional and reliable)
+- **Secondary:** All 9 carry-forward issues (#13–#21) + #23 closed on merge — the v2.0/v2.0.1 carry-forward backlog reaches zero (process outcome: no open deferred items entering the next feature cycle)
+- **Proxy:** SPDX comparison job triggers `legal-review-required` label correctly on a synthetic SPDX-change test PR
+
+### Assumptions [confidence]
+
+- [CONFIRMED] SHA `67ccf781d68cd99b580ae25a5c18a1cc84ffff1f` is the correct v7.0.6 SHA for `peter-evans/create-pull-request` — verified via `gh api repos/peter-evans/create-pull-request/git/refs/tags/v7.0.6`
+- [CONFIRMED] #16 is superseded by ADR-027 — no code implementation required, document-only disposition
+- [ESTIMATED] Category list in `.cowork-allowlist.json` is stable at 13 entries (`business, content-creation, customer-success, data-analysis, hr, legal, marketing, product, project-management, sales, support, testing, training`) — @dev must verify live at Phase 4
+- [UNTESTED] Bootstrap-tolerant SPDX comparison logic correctly skips comparison on first run without producing false-positive CI failures

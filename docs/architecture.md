@@ -3749,4 +3749,54 @@ Schema impact: NONE. Auth surface: NONE. File-system surface: only `.github/work
 
 `run: |` block inventory (7 total): lines 42, 61, 90, 122, 240, 260, 357. Only line 260's block contains a column-0 heredoc (`<<NOTICES_EOF` at line 264, body lines 265-302). All other blocks parse cleanly. Line 178's `<<<` is a here-string, not a heredoc, and is correctly indented inside its loop body — no fix required. Simulated Approach A fix passes `yaml.safe_load` (verified in Phase 1).
 
+---
+
+## v2.0.2 Hardening Bundle — Architecture Impact Statement
+
+**Cycle:** v2.0.2 (quick / hotfix) | **Branch:** `hotfix/v2.0.2-hardening-bundle` | **Date:** 2026-05-06 | **Classification:** SECURITY-SENSITIVE (supply-chain + compliance surfaces)
+
+**Schema impact:** NONE. The cowork.lock.json schema (ADR-020) already declares `.files[].spdx` — fix #13 reads existing fields and does not add new schema columns.
+
+**New auth surface:** NONE. Fix #18 (`permissions: read-all` at workflow top + per-job write overrides) is a least-privilege reduction of the existing GitHub Actions token surface, not a new auth surface. CI token model is unchanged.
+
+**One-sentence rationale:** All 10 fixes are bounded implementations or doc-clarifications of contracts already established by ADR-020 through ADR-027 — no ADR body is modified, no new ADR is required, and ADR-023 receives only the additive amendment block specified below.
+
+### Frozen-ADR Validation (ADR-020 through ADR-027)
+
+| Fix | ADR Touched | Disposition |
+|-----|-------------|-------------|
+| #23 SHA correction | none | One-line value correction in workflow; no ADR concept change |
+| #13 SPDX comparison | ADR-022 (read-only ref) | Implements existing ADR-022 contract (line 2787: "/sync-agency compares per-file SPDX between bumps") — NO ADR amendment |
+| #14 PR template | none | New file `.github/PULL_REQUEST_TEMPLATE.md`; PR templates are not under ADR governance |
+| #15 verbatim-attribution CI | ADR-024 (read-only ref) | Enforces existing ADR-024 non-overridable rule contract; no ADR change |
+| #16 superseded | ADR-027 | Documented as CLOSED/SUPERSEDED in scratchpad; ADR-027 already eliminates the heredoc surface |
+| #17 category namespace | ADR-022 (silent) | Implementation refinement of fetch loop; ADR-022 does not specify staging path layout |
+| #18 permissions read-all | ADR-022 (silent) | Workflow hygiene; ADR-022 does not specify workflow-level permissions |
+| #19 Windows symlink note | none | Doc-only addition to SETUP-CHECKLIST.md |
+| #20 ADR-023 amendment | ADR-023 (additive append) | Doc-only amendment block — see ADR-023 v2.0.2 Amendment below |
+| #21 concurrency group | ADR-022 (silent) | Workflow hygiene; ADR-022 does not specify concurrency policy |
+
+**Verdict:** ADR-020 through ADR-027 bodies remain UNCHANGED. ADR-023 receives an additive append-only amendment block. No new ADR (e.g., ADR-028) is required for v2.0.2.
+
+### No-Heredoc Verification (recurrence prevention vs v2.0 #12 BLOCKER)
+
+The #13 SPDX comparison logic shall be implemented using `jq` + bash control flow inside an existing-pattern `run: |` block (same shape as the license-hash check at sync-agency.yml lines 84-114, which is heredoc-free and YAML-clean). No `<<EOF`, no `cat > file <<DELIM`, no inline file write via heredoc is permitted in the SPDX step. The PR-body multi-line at sync-agency.yml lines 280-318 (YAML block scalar `|`) is unchanged by this fix and is not a shell heredoc — it parses cleanly under YAML rules. AC-1 (`yaml.safe_load` gate) catches any regression before Phase 7.
+
+### ADR-023 v2.0.2 Amendment — Live Category List
+
+**Status:** AMENDMENT — additive append, ADR-023 body is unchanged
+**Date:** 2026-05-06
+**Cycle:** v2.0.2
+**Closes:** v2.0 Phase 5 B2 finding (ADR-023 placeholder ≠ actual implementation list)
+
+The original ADR-023 (Phase 1, v2.0) referenced a 13-category placeholder list whose enumeration drifted from `.cowork-allowlist.json` after v2.0 Phase 4 implementation. Per the P1 pattern in `docs/patterns.md` (ADR-spec drift on parameterized artifacts), the authoritative source for the allowed-category enumeration is `.cowork-allowlist.json` `.allowed_categories[]` at the v2.0.2 commit.
+
+**Live category list** (canonical source: `.cowork-allowlist.json` `.allowed_categories[]` at v2.0.2 HEAD — verified via `jq -r '.allowed_categories[]' .cowork-allowlist.json`):
+
+`academic`, `business`, `content-creation`, `customer-success`, `data-analysis`, `design`, `engineering`, `finance`, `hr`, `legal`, `marketing`, `product`, `support`
+
+**13 entries.** This list was extracted programmatically from the live file, not authored from memory. Per the P1 pattern (`docs/patterns.md`): treat any divergence between this list and the live file as a regression — the live file is canonical, and any future amendment must re-verify via `jq` at PR time.
+
+**No structural change to ADR-023.** The hybrid allowlist mechanism (allowed_categories + blocked_patterns + blocked_files), fail-closed semantics, and `nexus-strategy.md` permanent block are all preserved verbatim from the ADR-023 body. This amendment records only the actual category enumeration as currently implemented.
+
 
