@@ -140,3 +140,17 @@ v2.0 adds upstream content from `msitarzewski/agency-agents`. Any file installed
 ## Keeping up to date
 
 When a new version ships, check the [Releases tab on GitHub](https://github.com/jmlozano1990/cowork-starter-kit/releases). `CHANGELOG.md` lists which presets changed. To update a specific example: download the new `examples/<name>/` folder and replace only the template files. Your `cowork-profile.md` and `project-instructions-starter.txt` are yours — they won't be overwritten.
+
+### Windows Users — `presets/` Symlink
+
+The `presets/` directory at the repo root is a symlink pointing to `examples/`. On macOS and Linux, this works transparently. On Windows, symlink behavior depends on your system configuration.
+
+**Without Developer Mode or symlink support enabled**, cloning this repo on Windows results in `presets/` being a plain text file containing the literal string `examples` (9 bytes) rather than a functional directory. This does not affect the `examples/` folder itself, which is always present and fully functional.
+
+**Three workarounds (choose one):**
+
+- **(a) Enable Developer Mode** — In Windows Settings, go to System > For Developers and enable Developer Mode. Git will then create symlinks natively on clone.
+- **(b) Clone with symlink support** — Run `git clone -c core.symlinks=true https://github.com/jmlozano1990/cowork-starter-kit.git`. This enables symlink creation for this clone only, without requiring system-wide Developer Mode.
+- **(c) Use `examples/` directly** — Ignore the `presets/` symlink entirely and work from the `examples/<name>/` folders. All content is identical.
+
+> **Note:** The `presets/` symlink is removed entirely in v2.1.0 per ADR-026. From v2.1 onwards, `examples/` is the only path — `presets/` will no longer exist in the repo.
