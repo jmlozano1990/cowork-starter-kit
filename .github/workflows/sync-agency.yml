@@ -44,10 +44,14 @@ jobs:
         id: upstream
         env:
           UPSTREAM_REPO: msitarzewski/agency-agents
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Resolve latest HEAD SHA on upstream main branch
           # Uses GitHub API to avoid git clone (no runtime git clone per ADR-020)
+          # Auth header upgrades from anonymous (60 req/hr) to authenticated (5000 req/hr) rate-limit pool
+          # GITHUB_TOKEN is auto-provisioned per workflow run; scoped to the workflow's permissions block (read-all)
           LATEST_SHA=$(curl -sf \
+            -H "Authorization: bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${UPSTREAM_REPO}/git/ref/heads/main" \
             | jq -r '.object.sha')
@@ -124,6 +128,7 @@ jobs:
         env:
           UPSTREAM_REPO: msitarzewski/agency-agents
           NEW_SHA: ${{ steps.upstream.outputs.latest_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/fetched-files
 
@@ -153,7 +158,9 @@ jobs:
           for category in $ALLOWED_CATEGORIES; do
             # Fetch the category directory listing via GitHub API
             CATEGORY_URL="https://api.github.com/repos/${UPSTREAM_REPO}/contents/${category}?ref=${NEW_SHA}"
+            # Auth header upgrades to authenticated rate-limit pool (5000 req/hr vs 60 anon)
             CATEGORY_LISTING=$(curl -sf \
+              -H "Authorization: bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.v3+json" \
               "$CATEGORY_URL" || echo "[]")
 

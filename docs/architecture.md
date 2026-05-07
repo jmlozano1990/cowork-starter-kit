@@ -3799,4 +3799,72 @@ The original ADR-023 (Phase 1, v2.0) referenced a 13-category placeholder list w
 
 **No structural change to ADR-023.** The hybrid allowlist mechanism (allowed_categories + blocked_patterns + blocked_files), fail-closed semantics, and `nexus-strategy.md` permanent block are all preserved verbatim from the ADR-023 body. This amendment records only the actual category enumeration as currently implemented.
 
+---
+
+## v2.0.3 Hotfix — sync-agency Auth + Dry-Run CI
+
+**Cycle:** v2.0.3
+**Date:** 2026-05-06
+**Branch:** `hotfix/v2.0.3-sync-agency-auth-and-dry-run`
+**Classification:** STANDARD (implementation refinement)
+
+### Architectural Impact Statement
+
+- **Schema:** NONE
+- **Auth surface:** NONE-NEW — adds `Authorization: bearer ${GITHUB_TOKEN}` to existing `api.github.com` calls. No new authenticated endpoint, no new secret, no new principal. The auth header moves the existing calls from the anonymous rate-limit pool (60 req/hr) to the authenticated pool (5000 req/hr) using the built-in Actions token.
+- **Rationale:** Both fixes are workflow-hygiene refinements to ADR-022's already-approved sync-agency design — adding the missing auth header and adding a pre-merge dry-run validator — without altering the security model, allowlist semantics, attribution flow, or fail-closed posture.
+
+### api.github.com curl Audit (Fix 1 scope, AC-2 / AC-3)
+
+Authoritative enumeration of all `api.github.com` curl calls in `.github/workflows/sync-agency.yml` at v2.0.2 HEAD. Phase 4 @dev MUST add `-H "Authorization: bearer ${GITHUB_TOKEN}"` AND ensure `GITHUB_TOKEN` is exported in the step's `env:` block for every entry below:
+
+| # | Line | Step name | Endpoint pattern | Action required |
+|---|------|-----------|------------------|-----------------|
+| 1 | 50–53 | "Fetch upstream latest HEAD SHA" | `https://api.github.com/repos/${UPSTREAM_REPO}/git/ref/heads/main` | Add `-H` + add `GITHUB_TOKEN` to step `env:` |
+| 2 | 155–158 | "Fetch allowlisted files and run content-scan (S1)" | `https://api.github.com/repos/${UPSTREAM_REPO}/contents/${category}?ref=${NEW_SHA}` | Add `-H` + add `GITHUB_TOKEN` to step `env:` |
+
+**Total:** 2 `api.github.com` curl calls. Both must be patched.
+
+**Out of scope (per spec):** `raw.githubusercontent.com` calls at lines 97–98 (LICENSE fetch) and 198–199 (file fetch). That endpoint uses a separate anonymous-friendly rate-limit pool; auth is not required and adding it is explicitly out of scope for v2.0.3.
+
+**Coverage gate:** AC-2 is satisfied only when both calls above carry the auth header. Partial coverage produces intermittent rate-limit failures that are hard to reproduce (E1 in spec). The dry-run job (Fix 2) exercises call #1 end-to-end at PR time and is the runtime gate against regression.
+
+### Dry-Run Job Scope Confirmation (Fix 2, AC-4 / AC-5)
+
+The 3-step dry-run scope defined in spec is sufficient to catch the v2.0/v2.0.1/v2.0.2/v2.0.3 BLOCKER class without bloating CI. Justification:
+
+| Step | Validates | BLOCKER class caught |
+|------|-----------|----------------------|
+| 1. Fetch upstream HEAD SHA via `api.github.com` (with auth) | Authenticated GitHub API path, network reachability, jq parse of `.object.sha` | v2.0.3 #25 (auth header), v2.0.x rate-limit, jq syntax regression in SHA extraction |
+| 2. Fetch LICENSE from `raw.githubusercontent.com` | File fetch path, raw endpoint reachability, sha256sum availability | v2.0.x LICENSE-fetch failures, sha256 binary missing on runner |
+| 3. Run content-scan regex against one sample file | Regex syntax for all 8 S1 patterns, grep -iEq behavior on runner | v2.0.x regex syntax errors, locale-dependent pattern failures |
+
+**What the 3-step scope deliberately omits and why:**
+- Lock-file write — out of scope (would require write permissions on a CI dry-run; spec says read-only simulation)
+- PR creation — out of scope (would create noise PRs on every dry-run)
+- Full multi-category fetch loop — would exceed the 30s budget; one sample is sufficient to validate regex compilation and grep behavior
+- SPDX comparison — depends on baseline lock file state, not relevant to BLOCKER-class catches v2.0–v2.0.3
+
+**Sufficiency claim:** All four prior post-merge BLOCKERs (v2.0 heredoc, v2.0.1 envsubst, v2.0.2 SPDX, v2.0.3 auth) would have been caught by step 1 or step 3 of this scope had it existed at PR time. Adding broader coverage now risks scope creep on a hotfix; widen later if a new BLOCKER class emerges that bypasses this scope.
+
+**Time budget:** The 3 steps total <30s on a standard `ubuntu-latest` runner (1 API call + 1 raw fetch + 1 grep on a sub-MB file). AC-5 enforces the budget by requiring the job to be green on the v2.0.3 PR itself.
+
+### No-Heredoc Verification (recurrence prevention vs v2.0 #12 BLOCKER)
+
+The dry-run job in `.github/workflows/quality.yml` MUST be implemented using `run: |` block scalar with direct shell commands and inline jq — no `<<EOF`, `cat > file <<DELIM`, or `tee <<` heredoc constructs. The fetched file content must be written via `curl -o /tmp/<file>` (not via heredoc), matching the heredoc-free pattern established in `sync-agency.yml` lines 96–98 and 198–199. AC-1 (`yaml.safe_load` gate) catches any regression before Phase 7. The PR-body multi-line at sync-agency.yml lines 346–380 remains a YAML block scalar `|` and is unchanged — that is not a shell heredoc and parses cleanly.
+
+### ADR-020 through ADR-027 Amendment Review
+
+| ADR | Amendment needed for v2.0.3? | Rationale |
+|-----|-------------------------------|-----------|
+| ADR-020 (no runtime git clone) | NO | Both fixes preserve the API-only fetch model. Auth header is a transport detail, not a fetch model change. |
+| ADR-021 (examples/ replaces presets/) | NO | v2.0.3 touches CI only; no example layout changes. |
+| ADR-022 (hybrid cron + manual dispatch + content-scan) | NO | Adding an auth header to existing calls is implementation-detail-level; the workflow trigger model, content-scan rules, and PR-creation flow are unchanged. The dry-run job is a separate workflow file (`quality.yml`) and validates ADR-022 behavior rather than altering it. |
+| ADR-023 (hybrid allowlist) | NO | Allowlist semantics, blocked-pattern enforcement, and `nexus-strategy.md` permanent block are unchanged. |
+| ADR-024 (verbatim attribution rule) | NO | No attribution-block changes. |
+| ADR-025 (THIRD-PARTY-NOTICES regeneration) | NO | NOTICES generation step is untouched. |
+| ADR-026 (examples/ rename) | NO | v2.0.3 does not touch examples paths. |
+| ADR-027 (24h soak rule) | NO | Soak rule on PR merge is unchanged. |
+
+**Verdict:** ADR-020 through ADR-027 bodies remain UNCHANGED. No new ADR (e.g., ADR-028) is required for v2.0.3. AC-7 is satisfied by this section. The pattern-gap response (adding pre-merge dry-run validation) is a CI-policy refinement that lives in `quality.yml` and this v2.0.3 architecture section, not as a new ADR — promote to a formal ADR only if the dry-run scope expands beyond the 3-step boundary defined here.
 

@@ -4,6 +4,21 @@ All notable changes to this project are documented here. This project uses [Sema
 
 ---
 
+## [2.0.3] — 2026-05-07
+
+**Hotfix — sync-agency authentication + dry-run CI gate.**
+
+**Fixed:**
+- **#25 BLOCKER** — Added `Authorization: bearer ${GITHUB_TOKEN}` to all `api.github.com` curl calls in `sync-agency.yml` (HEAD-SHA fetch + per-category content listing). Without auth, GitHub Actions runner anonymous-IP pool rate-limits caused `curl -sf` to fail silently, blocking the workflow at "Fetch upstream latest HEAD SHA". Authenticated calls use the 5000-req/hr pool. `raw.githubusercontent.com` calls do NOT require auth (separate pool, anonymous-friendly).
+
+**Added:**
+- **`sync-agency-dry-run` CI job** in `quality.yml` — runs on every PR that touches `sync-agency.yml`, the THIRD-PARTY-NOTICES template, the allowlist, or the lock file. Simulates the first three critical workflow steps (fetch HEAD SHA via auth, fetch LICENSE, content-scan regex compile-check) at PR time, catching auth/rate-limit/regex/structural BLOCKERs BEFORE merge instead of post-merge. Closes the 3-cycle pattern (v2.0 #12 YAML, v2.0.1 envsubst, v2.0.2 SPDX/regex, v2.0.3 #25 auth). Pinned with `permissions: { contents: read }` for fork-PR safety (S1 Phase 2 finding).
+
+**Process improvement:**
+- Pattern P3 (action SHA hallucination) and the new dry-run gate together close the post-merge BLOCKER recurrence pattern observed across v2.0.0 → v2.0.2.
+
+---
+
 ## [2.0.2] — 2026-05-07
 
 **Hardening Bundle — 10 security, compliance, and documentation fixes from v2.0/v2.0.1 carry-forward.**
