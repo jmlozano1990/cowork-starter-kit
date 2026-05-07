@@ -9,12 +9,8 @@ This file is regenerated automatically by `.github/workflows/sync-agency.yml`
 on every upstream SHA bump. Direct edits will be overwritten — to update
 notices, update the lock file via `/sync-agency`.
 
-Last regenerated: 2026-05-07T00:00:00Z (bootstrap — run /sync-agency to populate)
-Lock file: cowork.lock.json (pinned commit: 0000000000000000000000000000000000000000)
-
-> **Bootstrap state:** The lock file has not been populated yet. Run the
-> `/sync-agency` workflow (Actions tab → "Sync Agency Upstream" → Run workflow)
-> to fetch upstream content and regenerate this file with real values.
+Last regenerated: 2026-05-07T09:42:09Z
+Lock file: cowork.lock.json (pinned commit: 783f6a72bfd7f3135700ac273c619d92821b419a)
 
 ---
 
@@ -23,10 +19,14 @@ Lock file: cowork.lock.json (pinned commit: 000000000000000000000000000000000000
 - **Source:** <https://github.com/msitarzewski/agency-agents>
 - **License:** MIT
 - **Copyright:** Copyright (c) msitarzewski/agency-agents contributors
-- **Pinned commit:** 0000000000000000000000000000000000000000 (bootstrap — not yet synced)
-- **License file SHA-256:** 0000000000000000000000000000000000000000000000000000000000000000 (from `cowork.lock.json` `license_file_sha256`)
+- **Pinned commit:** 783f6a72bfd7f3135700ac273c619d92821b419a
+- **License file SHA-256:** 9a45258434d5cedf0af73c9ad4771373701225038d246c49219026c33677f66f (from `cowork.lock.json` `license_file_sha256`)
 
 ### Full License Text
+
+MIT License
+
+Copyright (c) 2025 AgentLand Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
