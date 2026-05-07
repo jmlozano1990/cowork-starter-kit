@@ -1181,3 +1181,88 @@ v1.3.3 is a clean Phase 6 audit. All 3 Phase 2 WARNINGs (S1/S2/S3) confirmed RES
 
 ## Note: Phase 6 Agent Scope
 This Phase 6 audit was performed by @security (read-only, scope_allow=[]). Findings persisted by orchestrator into this file, pipeline.md Phase 6 row, and The-Council scratchpad.
+
+---
+
+# Security Review — cowork-starter-kit v2.0 (Dynamic Workspace Architect via agency-agents upstream)
+
+## Phase: 2
+## Date: 2026-05-07T03:50:00Z
+## Status: PASS WITH WARNINGS
+## Classification: SECURITY-SENSITIVE
+
+**Rationale:** v2.0 turns cowork-starter-kit from a self-authored preset library into a redistribution surface for third-party LLM agent prompts. Every file shipped to a user workspace is, at runtime, instructions for an LLM acting on the user's behalf. New threat boundaries: (a) third-party content with weaker provenance than cowork-authored skills, (b) install-time fetches over the network. Phase 6 audit MUST run full OWASP + LLM Top 10, not abbreviated.
+
+## Findings Summary
+
+| ID | Severity | Surface | Description |
+|----|----------|---------|-------------|
+| **S1** | **CRITICAL** | external-api | No content-scan defense for prompt-injection in upstream agent files; v1.3.x anti-pattern controls apply only to cowork-authored skills. LLM01 surface unmitigated for entire v2.0 install path. |
+| S2 | WARNING | configuration | /sync-agency PR review under-specified. No CODEOWNERS, no required-reviewer count. Single-maintainer compromise = silent supply-chain redirect. |
+| S3 | WARNING | external-api | Lock file is sole trust anchor (ADR-020 Option A). No defense-in-depth (no cosign, no second-hash). v2.1 multi-source MUST add second hash. |
+| S4 | WARNING | configuration | blocked_patterns seed handles nexus-strategy.md rename/relocation but not semantic-collision content under different names. 8-entry expanded seed required. |
+| S5 | WARNING | auth | ADR-024 attribution block as HTML comment above YAML frontmatter — no CI test verifies it survives Pandoc/gh diff/Python frontmatter parsers. |
+| S6 | WARNING | configuration | No mandatory rule that "attribution block injection cannot be skipped by user instruction." Architect Open Issue #4 raised; ADR-024 doesn't commit verbatim phrasing. |
+| S7 | INFO | configuration | Predictable cron schedule. Mitigation: 24h soak rule before merge. |
+| S8 | INFO | file-upload | Workspace filename collision across categories (last-write-wins). Add basename disambiguation. |
+| S9 | INFO | configuration | Bootstrap zero-SHA tolerance window. CI rule rejecting zero-SHA on main outside bootstrap. |
+| S10 | INFO | dependency | Goal taxonomy keyword PR review process. CONTRIBUTING.md checklist item. |
+| S11 | INFO | configuration | SPDX-lying lock file edge case. SPDX-header grep recommended in /sync-agency. |
+
+## Architect Open Issues — Threat-Model Verdicts
+
+| # | Issue | Verdict |
+|---|---|---|
+| 1 | SHA-1 commit-SHA cryptographic guarantee | RESOLVED — sufficient for unprivileged adversary |
+| 2 | blocked_patterns adequacy | REQUIRES ACTION — see S4 |
+| 3 | Per-file content audit (A-v2.0-1) | REQUIRES ACTION (Phase 4 DoD) — first /sync-agency PR is SECURITY-SENSITIVE merge |
+| 4 | Attribution block tampering | REQUIRES ACTION — see S6 (verbatim non-overridable rule in CLAUDE.md/WIZARD.md) |
+| 5 | /sync-agency PR review minimums | REQUIRES ACTION — see S1 + S2 |
+| 6 | LLM-no-hash trust documentation | REQUIRES ACTION — README + SETUP-CHECKLIST trust-boundary disclosure |
+| 7 | CLAUDE.md word budget post-v2.0 | REQUIRES ACTION (Phase 4 verification) |
+| 8 | THIRD-PARTY-NOTICES regen race | RESOLVED |
+| 9 | Bootstrap zero-SHA tolerance | REQUIRES ACTION — see S9 |
+| 10 | Compliance L1-1/L1-2 verification at Phase 6 | RESOLVED at Phase 2; Phase 6 reclassified SECURITY-SENSITIVE |
+
+## OWASP Top 10 (web — adapted)
+
+| Cat | Status | Notes |
+|---|---|---|
+| A01 Access Control | PASS | GitHub branch protection only |
+| A02 Crypto | PASS WITH NOTE | SHA-1 commit-SHA accepted (S3) |
+| A03 Injection | **FAIL → S1** | Prompt injection in upstream content is dominant injection surface |
+| A04 Insecure Design | PASS WITH NOTES | S2/S3/S6 are design-level fixes |
+| A05 Misconfiguration | PASS | Action SHA pinning carried from v1.1 |
+| A06 Vuln/Outdated | PASS | No runtime deps |
+| A07 Auth | N/A | |
+| A08 Integrity Failures | PASS WITH NOTES | Lock file is integrity control |
+| A09 Logging | PASS | /sync-agency PRs + THIRD-PARTY-NOTICES.md |
+| A10 SSRF | N/A | Hardcoded GitHub URL |
+
+## LLM Top 10
+
+| Cat | Status |
+|---|---|
+| LLM01 Prompt Injection | **FAIL → S1** |
+| LLM02 Insecure Output | WARNING — inherits S1 mitigation |
+| LLM05 Supply Chain | WARNING — S2/S3/S4 mitigation package |
+| LLM06 Sensitive Info | INFO — personal-assistant excluded; residual risk in support/sales |
+| LLM08 Excessive Agency | INFO — RESOLVED at architecture level |
+| LLM09 Overreliance | INFO — README messaging control |
+
+## Phase 4 MUST-FIX List (8 items)
+
+1. **[S1, CRITICAL]** /sync-agency.yml content-scan step + regex set published in `docs/security/upstream-content-scan-rules.md` (regex set listed in @security review). Hits → `requires_review` workflow.
+2. **[S2]** `.github/CODEOWNERS` claiming cowork.lock.json + .cowork-allowlist.json + THIRD-PARTY-NOTICES.md + sync-agency.yml + quality.yml. Branch protection 2-approval on `agency-sync` PRs.
+3. **[S4]** `.cowork-allowlist.json` blocked_patterns expanded to 8-entry seed (orchestrator/meta-agent/pipeline-controller/the-council/cowork-orchestrator + nexus variants).
+4. **[S5]** CI test `attribution-survives-render` (Pandoc + gh diff + Python frontmatter).
+5. **[S6]** Verbatim non-overridable attribution rule committed to CLAUDE.md/WIZARD.md (specific phrasing in @security review).
+6. **[S9]** CI rule rejecting zero-SHA on main outside bootstrap window.
+7. **[Open Issue #3]** First /sync-agency manual run (C7) treated as SECURITY-SENSITIVE — full audit of ≥3 files per allowed category.
+8. **[Open Issue #6]** README + SETUP-CHECKLIST trust-boundary disclosure paragraph.
+
+## Decision
+
+**PASS WITH WARNINGS** (one CRITICAL — S1 — but it is a Phase 4 implementation gap, NOT an architectural defect; no Phase 1 ADR change needed). Phase 2 unblocks /gate.
+
+Phase 6 audit MUST be SECURITY-SENSITIVE (full OWASP + LLM Top 10), NOT abbreviated.

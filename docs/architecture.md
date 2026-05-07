@@ -2700,3 +2700,987 @@ Architectural anti-patterns evaluated against Phase 1 deliverables and dependenc
 4. **CI comment update verification:** Spec AC B4-4 requires `ENFORCED_PRESETS` comment update to document v1.3.3. @security Phase 2 is not the enforcement point (that is Phase 5 / 6), but the scope-creep question is: does the comment change introduce any shell-interpretable content (e.g., a new variable expansion)? Expected answer: no — comments are `#`-prefixed in YAML's `run:` block and shell treats them as literal. @security to confirm no comment-injection risk.
 5. **ADR-019 A5 cleanup — no regression:** The duplicate-sentence removal in ADR-019 (Consequence bullet at the former L2133) preserves the blockquote scope-limitation statement as the single authoritative version. @security to confirm the removed bullet did not carry unique content that is now missing. Expected answer: bullet was a verbatim duplicate of the blockquote (minus emphasis markup) — zero net information loss.
 
+---
+
+# v2.0 — Dynamic Workspace Architect via agency-agents Upstream
+
+> **Cycle:** v2.0 — Dynamic Workspace Architect (upstream content integration)
+> **Phase:** 1 (Design) — INVERTED gate order; Phase 2 Compliance (@compliance) ran BEFORE this Phase 1
+> **Date:** 2026-05-06T00:00:00Z
+> **Branch:** `prep/v2.0` sha:`ab87e1a`
+> **Classification:** COMPLIANCE-SENSITIVE
+> **Compliance carry-forwards (MUST-FIX inputs to this design):**
+> - **L1-1 (WARNING):** F5 attribution block must include MIT permission grant text (or condensed-notice equivalent) — resolved by ADR-024
+> - **L1-2 (WARNING):** `THIRD-PARTY-NOTICES.md` must exist at repo root — resolved by ADR-025
+> - **L1-3 (INFO):** LICENSE hash check at each `/sync-agency` SHA bump — incorporated into ADR-022
+> - **L5-2 (INFO):** Confirm "cowork-starter-kit" rename (no "Claude" embedding) — verified, no architectural change
+
+This Phase 1 introduces 7 ADRs (ADR-020 through ADR-026), one per spec feature plus two compliance-driven ADRs. All 6 Phase 0 open architectural questions are answered. L1-1 and L1-2 WARNINGs are resolved.
+
+---
+
+## ADR-020: Lock File Format and Integrity Scheme (F1)
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Decision drivers:** F1 supply-chain guarantees; A-v2.0-3 (LLM cannot natively compute SHA-256); compliance L1-3 (license-change detection); zero-code constraint; PR-reviewer legibility.
+
+### Context
+
+F1 establishes a lock file as the authoritative manifest of allowlisted upstream files from msitarzewski/agency-agents, including the pinned commit SHA and per-file SHA-256 checksums. Phase 0 deferred three sub-decisions: (1) file format (JSON / TOML / YAML), (2) location (root / `.cowork/` / `.github/`), and (3) verification mechanism. The verification mechanism is the load-bearing constraint — the wizard runs as an LLM in a Cowork Project and cannot reliably compute cryptographic hashes. Any design that relies on runtime hashing by the LLM is unsound.
+
+### Options Considered (Format)
+
+**Option A — TOML:** Human-readable, comment-friendly, no implicit type coercion footguns. Requires a TOML parser if any tooling consumes it directly. PR diffs are excellent (line-oriented).
+**Option B — JSON:** Universal tool support, parser is built into every language. Comments are not standard (JSON5 or trailing-comment hacks required). Diff legibility is acceptable but inferior to TOML for nested structures.
+**Option C — YAML:** Human-readable, comment-friendly, but well-known footguns (Norway problem, implicit type coercion, anchor-and-merge complexity). v1.x already uses YAML frontmatter in SKILL.md files, so familiarity exists. The footgun risk is real — a SHA value that begins with `0x` or contains an unusual sequence could be coerced.
+
+### Decision (Format): JSON
+
+The lock file is `cowork.lock.json` at the **repo root**.
+
+Rationale: JSON wins on three dimensions that matter for v2.0:
+1. **CI parser ubiquity:** The `/sync-agency` workflow (ADR-022) needs to read, write, and diff the lock file from a GitHub Actions runner. `jq` is installed by default; no extra dependency.
+2. **Wizard-LLM legibility:** The wizard reads the lock file as text inside its instruction surface. JSON's lack of comments is a benefit here — there is exactly one source of truth per field, no ambiguity from comment drift.
+3. **Allowlist policy file (ADR-023) is a separate file:** The lock file does not need to carry policy commentary; it is data. Comments belong in the allowlist policy, where humans encode intent.
+
+The TOML legibility advantage is real but moot — the lock file is rarely hand-edited (per F1 AC: direct edits forbidden, only `/sync-agency` may write). Diff legibility for JSON is sufficient when each `files` entry is a single line; the schema below enforces that.
+
+### Decision (Location): Repo root, `cowork.lock.json`
+
+Rationale:
+1. **Discoverability:** Mirrors the convention of `package-lock.json`, `Cargo.lock`, `Pipfile.lock` — a contributor opening the repo immediately sees that v2.0 has a supply-chain lock.
+2. **CI path simplicity:** No `working-directory` redirection in `.github/workflows/sync-agency.yml`. The file is at a stable, well-known path.
+3. **Avoids `.cowork/` namespace pollution:** `.cowork/` is reserved for user-workspace runtime artifacts (none currently exist; reserving for future). Mixing repo-distributed manifests with user-runtime state would create scope confusion.
+4. **Avoids `.github/`:** That directory is for GitHub-specific configuration (workflows, issue templates, code-owners). The lock file is a product manifest, not a GitHub artifact.
+
+### Decision (Schema)
+
+```json
+{
+  "$schema_version": "1.0",
+  "upstream_repo": "msitarzewski/agency-agents",
+  "upstream_url": "https://github.com/msitarzewski/agency-agents",
+  "pinned_commit_sha": "<40-char-hex>",
+  "pinned_at": "2026-05-06T00:00:00Z",
+  "license_file_sha256": "<64-char-hex of upstream LICENSE at pinned_commit_sha>",
+  "files": [
+    {
+      "path": "academic/researcher.md",
+      "sha256": "<64-char-hex>",
+      "spdx": "MIT",
+      "category": "academic"
+    }
+  ]
+}
+```
+
+Field rationale:
+- `$schema_version`: Forward-compat for v2.1 multi-source upstream (ADR may evolve to a `sources` array; the version field lets `/sync-agency` detect old/new formats).
+- `upstream_repo` + `upstream_url`: Redundant by design — the URL is the authoritative resolution target; the repo string is for human PR-review legibility.
+- `pinned_commit_sha`: 40-char hex SHA-1. CI validates length and charset.
+- `pinned_at`: ISO-8601 UTC timestamp of the lock-file write. Read by `/sync-agency` to compute staleness.
+- `license_file_sha256`: **Compliance L1-3 INFO carry-forward.** Hash of the upstream `LICENSE` file at `pinned_commit_sha`. `/sync-agency` (ADR-022) re-computes this on each bump and refuses to merge if it changes — catches an upstream relicense.
+- `files`: An array of file entries. Each entry is one JSON line in canonical form (configurable via the CI's pretty-printer with `jq -S` for stable diffs).
+- `files[].path`: Relative to upstream repo root. Forward-slashes only.
+- `files[].sha256`: 64-char lowercase hex of the file's bytes at `pinned_commit_sha`.
+- `files[].spdx`: SPDX license identifier per file. **Compliance L1-3 INFO recommendation.** All v2.0 files are MIT (uniform with upstream LICENSE), but the field is per-file because future upstreams may carry mixed licenses. `/sync-agency` (ADR-022) compares per-file SPDX between bumps; any change flags the PR for `/legal` re-review before merge.
+- `files[].category`: The upstream category folder (`academic`, `marketing`, etc.). The wizard reads this to map goal → category (ADR-021).
+
+### Decision (Verification Mechanism — A-v2.0-3 resolution)
+
+**Option A — Trust the CI-vetted lock file (recommended).** The wizard, running as an LLM, does not re-compute SHA-256 at install time. Instead:
+1. The lock file is the trust anchor. It is written by `/sync-agency` CI (ADR-022), which DOES compute SHA-256 in a real shell against actual file bytes from `raw.githubusercontent.com/.../<pinned_commit_sha>/<path>`.
+2. The CI verifies that the URL it fetches matches the path-and-SHA in the lock file. If any mismatch, CI fails the PR.
+3. At install time, the wizard fetches the file from `raw.githubusercontent.com` at `pinned_commit_sha` and trusts it because the URL itself is integrity-bound: GitHub serves content at a commit SHA immutably; an attacker cannot serve different content at the same commit SHA without colliding SHA-1 (which is computationally infeasible for an unprivileged adversary).
+4. The wizard does NOT attempt to compute SHA-256 of fetched content — it would either hallucinate a hash or describe a bash command that the user is told never to run (zero-code constraint violation).
+5. The lock file's `sha256` field is therefore **a record of what was reviewed**, not a runtime check. PR reviewers and humans use it; the wizard does not re-verify.
+
+**Option B — Install-time tool computes hashes.** Rejected: requires shell command execution, violates the zero-code constraint (per CLAUDE.md: pipeline never asks user to run shell commands).
+
+**Option C — Per-fetch verification via `raw.githubusercontent.com` response headers.** Rejected: GitHub does not expose SHA-256 in response headers for raw content. Etag and Last-Modified are not equivalent guarantees.
+
+**Trust boundary documented in ADR (mandatory transparency):**
+- The wizard trusts (a) GitHub's commit-SHA immutability, and (b) the CI-vetted lock file. The wizard does NOT verify that the lock file itself has not been tampered with locally (this is the user's responsibility — same as trusting the cowork-starter-kit repo contents at all). For users who clone the repo and modify the lock file, all bets are off, but this is the same trust model as any package manager: `package-lock.json` integrity assumes you trust your own working copy.
+- The CI is the cryptographic backbone. CI runs in GitHub Actions with workflow files SHA-pinned (per ADR-002 / v1.1 S2 carry-forward); a compromise of CI is a separate threat vector outside this trust model.
+- A-v2.0-3 is RESOLVED by this decision: LLM does not re-compute hashes; lock file is the trust anchor.
+
+### Schema Example (Populated)
+
+```json
+{
+  "$schema_version": "1.0",
+  "upstream_repo": "msitarzewski/agency-agents",
+  "upstream_url": "https://github.com/msitarzewski/agency-agents",
+  "pinned_commit_sha": "0000000000000000000000000000000000000000",
+  "pinned_at": "2026-05-06T00:00:00Z",
+  "license_file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "files": [
+    { "path": "academic/researcher.md", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "spdx": "MIT", "category": "academic" },
+    { "path": "marketing/campaign-strategist.md", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "spdx": "MIT", "category": "marketing" }
+  ]
+}
+```
+
+### Consequences
+
+- **Invariant (must appear in code review checklist):** No runtime git clone or main-branch fetch. All content via `raw.githubusercontent.com/.../<pinned_commit_sha>/...`.
+- **Invariant:** LLM-no-hash constraint — wizard never claims to have computed SHA-256.
+- **Invariant:** Zero-code constraint preserved — verification happens in CI, not in user terminals.
+- New file at repo root: `cowork.lock.json`. CONTRIBUTING.md updated to forbid direct edits (only `/sync-agency` may write).
+- New CI validation in `quality.yml`: schema check on every push (40-char `pinned_commit_sha`, 64-char `sha256`, `spdx` non-empty, no duplicate `path`).
+- License-change detection (L1-3) baked into schema via `spdx` per-file + `license_file_sha256` repo-level.
+
+---
+
+## ADR-021: Wizard Category-Mapping and Multi-Category Disambiguation (F2)
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Decision drivers:** F2 spec; Riley persona (multi-category primary user); Jordan/Alex (multi-category must not break single-category UX); ADR-011 wizard FSM.
+
+### Context
+
+F2 transforms the goal interview from a 6-preset menu into a goal → upstream-category mapping. The Phase 0 open question: when a goal maps to ≥2 categories, how does the wizard handle it without overwhelming users? Three strategies were considered.
+
+### Options Considered (Multi-Category Strategy)
+
+**Option A — Pick-Primary:** Wizard asks "Which is your primary focus?" and installs only that category, with a parenthetical "we can add others later via `/setup-wizard --upgrade`."
+- Pros: Lowest cognitive load. Aligns with Jordan/Alex preference for simplicity.
+- Cons: Riley's primary use case (cross-functional product launch) requires 3+ categories in one session. Forcing pick-primary creates Riley friction — they would have to run the wizard 3 times.
+
+**Option B — Staged Install (recommended):** Wizard presents a ranked category list, asks the user to confirm each in order. User can accept all, accept a subset, or stop at any point. Default ordering reflects the user's stated emphasis (parsed from goal prose).
+- Pros: Riley gets multi-category; Jordan can stop after the first ("I'll stick with the primary one"); Alex gets a single category by default if the goal is unambiguous.
+- Cons: Wizard prompt count grows with category count. Mitigated by stop-anywhere UX.
+
+**Option C — Flat Merge:** Wizard installs all matched categories simultaneously without category labeling.
+- Pros: Riley gets everything in one shot.
+- Cons: User cannot distinguish which skill came from which category. Attribution block (ADR-024) provides per-file provenance but not workspace-level grouping. Also creates the worst Jordan failure mode: 40 files installed at once with no segmentation.
+
+### Decision: Option B — Staged Install with category labeling
+
+The wizard FSM (extending ADR-011) gains a new state: **Multi-Category Disambiguation**.
+
+**Trigger:** Goal interview's category-mapper (a deterministic prose-keyword → category function defined below) returns ≥2 categories.
+
+**Flow:**
+```
+Goal: "I want to ship a product launch"
+→ Mapper returns: [product, project-management, marketing, strategy]
+→ Wizard prompt:
+   "Your goal touches 4 categories from the workspace library:
+      1. product (core product definition)
+      2. project-management (planning + tracking)
+      3. marketing (launch positioning)
+      4. strategy (market entry)
+
+    I can set up all 4, or you can pick a primary focus.
+
+    Options:
+      a) Set up all 4 (full coverage, ~12 files)
+      b) Pick a primary — I'll start there and you can add others later
+      c) Walk me through them one at a time"
+→ Default suggestion (only if user says 'I'm not sure'): primary = first category in mapper output;
+   wizard offers to walk through the rest.
+```
+
+**Stop-anywhere UX:** At any prompt, user can say "that's enough" or "skip the rest" and the wizard finalizes with the categories accepted so far.
+
+**Goal taxonomy seed (the deterministic mapper):**
+
+The wizard parses the user's goal prose against a keyword-to-category map embedded in `CLAUDE.md` (the wizard entry point). The map is a static section authored by the cowork-starter-kit team and regenerated on every `/sync-agency` if new categories appear.
+
+Example seed (illustrative — final list authored at Phase 4, validated against agency-agents' actual category set):
+```
+ship | launch | release | go-to-market    → [product, project-management, marketing]
+research | study | analyze | synthesize    → [academic, specialized]
+campaign | brand | positioning | content    → [marketing, paid-media, design]
+sales | pipeline | crm | leads               → [sales, integrations]
+build | engineer | implement | code           → [engineering, testing]
+budget | finance | model | forecast           → [finance, strategy]
+support | tickets | helpdesk                  → [support, integrations]
+```
+
+The mapper is **best-effort, not guaranteed-complete**: a goal that doesn't match any keyword falls through to the v1.2 novel-goal branch (unchanged). This is intentional — the wizard prefers "I don't know" over a wrong category.
+
+### Presets Relocation Decision
+
+`presets/` → `examples/` at v2.0 release. **Byte-identical move** of all 7 v1.x preset directories (study, research, writing, project-management, creative, business-admin, personal-assistant). No content changes.
+
+CI path allowlists in `quality.yml` shift: `ENFORCED_PRESETS="study research project-management"` becomes `ENFORCED_EXAMPLES="study research project-management"` and the loop body changes `presets/${preset}/` → `examples/${example}/`. Both string-literal blocks (enforcement + advisory) and the comment update in a single commit per ADR-016 v1.3.3 amendment precedent.
+
+A short deprecation alias is provided for one minor version (v2.0.x): a `presets/` symlink → `examples/` directory. Removed in v2.1. Not mandatory — if symlinks complicate Windows users, fall back to a redirect note in CHANGELOG. **Recommended:** symlink for v2.0.0 + v2.0.1, removed in v2.1.
+
+### Wizard FSM Extension (extends ADR-011)
+
+ADR-011's FSM had: `entry → goal-discovery → preset-selection → setup → done`.
+
+ADR-021 changes `preset-selection` to `category-discovery`, with two sub-states:
+```
+goal-discovery
+  ↓
+category-discovery
+  ↓ (single category) ─────────────→ setup
+  ↓ (multi-category, ≥2)
+multi-category-disambiguation
+  ↓ (user confirms ≥1 category) ──→ setup
+  ↓ (user picks primary only) ─────→ setup (single-category mode)
+  ↓ (user says novel-goal) ────────→ novel-goal-fallback (v1.2)
+```
+
+Word budget impact: the multi-category prompt adds ~80 words to `CLAUDE.md` IF inlined. To stay within ≤350-word budget (constraint preserved from v1.3.1 H1), the multi-category prompt is referenced by pointer to `WIZARD.md` § Multi-Category. Confirmed during Phase 4 by word-count CI; if over budget, additional CLAUDE.md content is moved to WIZARD.md.
+
+### Consequences
+
+- New deterministic mapper section in `CLAUDE.md` (or referenced WIZARD.md if word-count overflows).
+- New FSM state: `multi-category-disambiguation`.
+- `presets/` → `examples/` byte-identical move; CI allowlists updated.
+- v1.x users with hardcoded `presets/<name>/` paths get a symlink for one minor version (v2.0.x); CHANGELOG documents removal in v2.1.
+- A Riley-class user can configure 4 categories in one session; an Alex-class user sees a single-category flow that is unchanged from v1.2.
+
+---
+
+## ADR-022: /sync-agency CI Workflow (F3)
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Decision drivers:** F3 spec; A-v2.0-4 (monthly cadence acceptable for workspace config); compliance L1-3 (license-change detection); compliance L1-2 (THIRD-PARTY-NOTICES regen); ADR-002 (Action SHA pinning).
+
+### Context
+
+F3 establishes a CI workflow that bumps the pinned upstream SHA. Phase 0 deferred the cadence decision (cron / manual / hybrid). Compliance L1-3 added a license-hash check requirement. THIRD-PARTY-NOTICES.md (ADR-025) needs to regenerate on each bump.
+
+### Decision (Cadence): Hybrid — Monthly cron + manual `workflow_dispatch`
+
+`schedule: cron: '0 9 1 * *'` (1st of month, 09:00 UTC) + `workflow_dispatch:` (manual trigger).
+
+Rationale:
+- Monthly cron prevents drift; A-v2.0-4 confirms 30-day staleness is acceptable for workspace configuration.
+- Manual dispatch handles two cases: (a) urgent upstream update (security or quality fix); (b) ad-hoc verification by a maintainer.
+- Cron alone is too rigid; manual alone is too neglectful (if maintainers forget, drift accumulates).
+
+### Workflow Mechanics
+
+```yaml
+name: sync-agency
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@<40-char-sha>          # SHA-pinned per ADR-002
+      - name: Resolve upstream HEAD SHA
+        run: |
+          NEW_SHA=$(git ls-remote https://github.com/msitarzewski/agency-agents HEAD | cut -f1)
+          echo "NEW_SHA=$NEW_SHA" >> "$GITHUB_ENV"
+      - name: Fetch upstream LICENSE at NEW_SHA
+        run: |
+          curl -sSL "https://raw.githubusercontent.com/msitarzewski/agency-agents/$NEW_SHA/LICENSE" \
+            -o /tmp/upstream.LICENSE
+          NEW_LICENSE_SHA256=$(sha256sum /tmp/upstream.LICENSE | cut -d' ' -f1)
+          echo "NEW_LICENSE_SHA256=$NEW_LICENSE_SHA256" >> "$GITHUB_ENV"
+      - name: Compare LICENSE hash (compliance L1-3)
+        run: |
+          OLD_LICENSE_SHA256=$(jq -r .license_file_sha256 cowork.lock.json)
+          if [ "$NEW_LICENSE_SHA256" != "$OLD_LICENSE_SHA256" ]; then
+            echo "::warning::Upstream LICENSE changed — flagging PR for /legal re-review"
+            echo "LICENSE_CHANGED=true" >> "$GITHUB_ENV"
+          fi
+      - name: For each allowlisted file, fetch + hash + compare
+        # reads .cowork-allowlist.json (ADR-023), iterates allowed paths,
+        # fetches from raw.githubusercontent.com at NEW_SHA, sha256sum,
+        # writes new cowork.lock.json
+      - name: Compare per-file SPDX
+        # if any file's SPDX changed between OLD and NEW lock files → mark PR for /legal
+      - name: Regenerate THIRD-PARTY-NOTICES.md
+        # ADR-025 — regenerated from lock file's spdx + copyright fields
+      - name: Open PR
+        uses: peter-evans/create-pull-request@<40-char-sha>      # SHA-pinned per ADR-002
+        with:
+          title: "chore(agency-sync): bump upstream SHA ${OLD_SHA}..${NEW_SHA}"
+          body: |
+            ## Diff Summary
+            <table of changed files: path, old-sha256, new-sha256, old-spdx, new-spdx>
+
+            ## License Status
+            <if LICENSE_CHANGED=true: "BLOCKED — /legal re-review required before merge">
+            <else: "LICENSE unchanged at upstream HEAD">
+
+            ## Review Checklist (mandatory before merge)
+            - [ ] All file diffs reviewed for content changes that could affect quality or safety
+            - [ ] No unexpected new files added (compare against allowlist)
+            - [ ] LICENSE unchanged OR /legal sign-off attached
+            - [ ] All per-file SPDX values unchanged (if changed, /legal sign-off attached)
+            - [ ] CI green
+          branch: chore/agency-sync-${NEW_SHA}
+          labels: agency-sync, needs-review
+```
+
+### License-Change Detection (compliance L1-3 carry-forward, mandatory)
+
+Two independent checks:
+1. **`license_file_sha256` repo-level:** Hash of the upstream `LICENSE` file at the new pinned SHA, compared to the recorded value. Mismatch → PR description prepended with: "BLOCKED — /legal re-review required before merge." Branch protection on `main` does not auto-merge PRs with this label.
+2. **Per-file `spdx` comparison:** The CI script diffs `cowork.lock.json` files-list `spdx` values between old and new. Any per-file SPDX change → PR labeled `legal-review-required`.
+
+The PR template includes a checklist item: "LICENSE unchanged OR /legal sign-off attached." Failing the LICENSE hash check is not a hard CI failure (the workflow still completes), but the PR cannot be merged via normal review flow — branch protection rule blocks merges on PRs with the `legal-review-required` label.
+
+### Action SHA Pinning (carry-forward from v1.1 S2)
+
+All GitHub Actions referenced in `sync-agency.yml` use full 40-char commit SHAs, not version tags. Carries the v1.0 → v1.1 audit pattern. CI validation job (`actions-pinned-check.yml`, already exists per v1.1) covers this file automatically.
+
+### Consequences
+
+- New file: `.github/workflows/sync-agency.yml`.
+- New permissions: workflow needs `contents: write` and `pull-requests: write`. Documented in CONTRIBUTING.md.
+- License-change detection blocks merge until `/legal` re-runs.
+- `THIRD-PARTY-NOTICES.md` regenerated each bump (ADR-025).
+- PR description includes the diff table + review checklist; PR-reviewer time target ≤30 min (success metric).
+
+---
+
+## ADR-023: Filter / Allowlist Policy (F4)
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Decision drivers:** F4 spec; A-v2.0-7 (nexus-strategy permanent block); fail-closed semantics; @security future-proofing for `blocked_patterns`.
+
+### Context
+
+F4 introduces an explicit allowlist policy. The Phase 0 question: per-file vs. per-category vs. hybrid allowlist. The fail-closed semantic and the nexus-strategy.md permanent block are non-negotiable.
+
+### Options Considered
+
+**Option A — Per-file allowlist:** Every allowed file listed by exact path.
+- Pros: Maximum precision. No surprises.
+- Cons: Every new upstream file requires explicit allowlist update. 30+ categories × multiple files each → many entries to maintain. PR friction is high.
+
+**Option B — Per-category allowlist:** Allow whole category folders.
+- Pros: Minimal maintenance.
+- Cons: A new file added to an allowlisted category is auto-allowlisted without review. Violates the safety differentiator.
+
+**Option C — Hybrid (recommended):** Allow folders + per-file deny override (`blocked_files`) + per-pattern deny override (`blocked_patterns`).
+
+### Decision: Option C — Hybrid
+
+`.cowork-allowlist.json` at repo root (alongside `cowork.lock.json`). Schema:
+
+```json
+{
+  "$schema_version": "1.0",
+  "allowed_categories": [
+    "academic",
+    "design",
+    "engineering",
+    "finance",
+    "marketing",
+    "paid-media",
+    "product",
+    "project-management",
+    "sales",
+    "specialized",
+    "strategy",
+    "support",
+    "testing"
+  ],
+  "blocked_files": [
+    {
+      "path": "nexus-strategy.md",
+      "reason": "Architectural collision with cowork-starter-kit orchestration model and The-Council pipeline. Permanent block — do not unblock without ADR review.",
+      "permanent": true
+    }
+  ],
+  "blocked_patterns": [],
+  "requires_review": []
+}
+```
+
+Field rationale:
+- `allowed_categories`: Folder-level allowlist. `/sync-agency` (ADR-022) only fetches files whose path's first segment matches an entry here. Default v2.0 list is the 13 categories above, drawn from the agency-agents catalog minus `game-development` and `spatial-computing` (high quality variance — deferred to v2.1 per @security audit at Phase 2).
+- `blocked_files`: Hard per-file blocks with reason + permanence flag. `nexus-strategy.md` is the inaugural entry. CI fails if any blocked file appears in `cowork.lock.json` files list.
+- `blocked_patterns`: Reserved for @security Phase 2 to populate (e.g., glob patterns matching shell-execution patterns). Empty initially. CI fails if any lock-file path matches a blocked pattern.
+- `requires_review`: Files allowlisted but flagged for user-visible WARNING at install time. Wizard surfaces "this skill is allowlisted but flagged for review by the cowork-starter-kit team — proceed with caution?" Empty initially; populated by @security audits.
+
+### Fail-Closed Semantics (invariant)
+
+Resolution order at install time:
+1. Is the file's category in `allowed_categories`? If NO → BLOCKED.
+2. Is the file path in `blocked_files`? If YES → BLOCKED (overrides category allow).
+3. Does the file path match any `blocked_patterns` glob? If YES → BLOCKED.
+4. Otherwise → ALLOWED, with a WARNING flag if the path is in `requires_review`.
+
+**Unknown is BLOCKED.** A file in an unrecognized category folder, or a file added to upstream after the lock file was written, is not surfaced. The CI's `/sync-agency` workflow only fetches files whose category is in `allowed_categories`; unknown-category files never enter the lock file in the first place.
+
+### nexus-strategy.md Permanent Block (file-level, not folder-level)
+
+Per A-v2.0-7 (CONFIRMED): `nexus-strategy.md` is a top-level file in agency-agents (no category folder), and the block is at file path level. If upstream renames it, the new path is unknown → BLOCKED by fail-closed (category mismatch — there is no allowlisted category for top-level files). If upstream moves it into a category folder (e.g., `strategy/nexus-strategy.md`), the file path differs from the blocked entry but the CI's blocked-pattern check catches the filename glob `**/nexus-strategy.md`.
+
+**To handle the rename-into-category attack, `blocked_patterns` is seeded with one entry at v2.0.0:**
+```json
+"blocked_patterns": ["**/nexus-strategy.md", "**/nexus-strategy.*"]
+```
+
+This is NOT empty at v2.0.0 — the seed is mandatory. @security Phase 2 may add more.
+
+### Update Protocol (allowlist edits require human review)
+
+Direct edits to `.cowork-allowlist.json` are permitted via PR — UNLIKE `cowork.lock.json` which is CI-only. Rationale: the allowlist encodes human policy intent; the lock file encodes CI-verified state. CONTRIBUTING.md requires:
+1. Allowlist PRs must include rationale in PR description.
+2. Allowlist PRs touching `blocked_files` removal require @security sign-off via PR review.
+3. Allowlist additions to `allowed_categories` require @security audit of ≥3 sample files from that category.
+
+### Consequences
+
+- New file: `.cowork-allowlist.json` at repo root.
+- CI validation: schema + non-empty `blocked_files` + nexus-strategy.md presence + blocked_patterns seed presence.
+- @security Phase 2 may populate `blocked_patterns` and `requires_review`. Authoritative source — no blocking logic hardcoded in wizard.
+- Rename attack mitigated by file-level + glob-pattern dual block.
+- Hybrid model balances maintenance load (per-category allow) with safety (per-file/pattern deny).
+
+---
+
+## ADR-024: Attribution Propagation Format (F5) — RESOLVES L1-1 WARNING
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Compliance source:** L1-1 WARNING from `docs/compliance-review.md` v2.0 section
+**Decision drivers:** MIT license §1 (permission notice must be included in copies); supply-chain hygiene as differentiator; product positioning ("vetted, verified, allowlisted, attribution-injected"); file-size cost vs. legal-conservatism trade-off.
+
+### Context
+
+F5 requires every installed agency-agents file to carry MIT attribution. The Phase 0 spec proposed a 5-field block. Compliance review L1-1 (WARNING) identified that a URL-only license reference does not satisfy MIT's "this permission notice shall be included" clause. Two corrected options were proposed (Option A: full embedded text; Option B: condensed notice with embedded copyright + license link).
+
+### Options Considered (verbatim from compliance-review.md)
+
+**Option A — Full embedded MIT permission paragraph in every installed agent file.**
+- Pros: Maximally legally conservative. Defensible in any jurisdiction. Aligns with supply-chain-hygiene positioning.
+- Cons: ~14 lines per file × ~50 files at typical install = ~700-line bloat. Files become heavier in user workspaces.
+
+**Option B — Condensed notice (copyright line + "Licensed under the MIT License — see <link> for full text").**
+- Pros: ~7 lines per file × ~50 files = ~350-line bloat. Used by majority of OSS projects in practice.
+- Cons: Legal sufficiency disputed in some jurisdictions; URL-only is the pattern that L1-1 identified as insufficient.
+
+### Decision: Option A — Full embedded MIT permission paragraph
+
+Rationale: the cowork-starter-kit's positioning is built on supply-chain hygiene as differentiator. Choosing the legally-conservative format aligns the architecture with the product story. The ~7-line additional cost per file vs. Option B is acceptable; ~350 extra lines across a typical Riley-class workspace install (~50 files) is small relative to the value of unambiguous compliance.
+
+### Attribution Block — VERBATIM Format
+
+The wizard injects this block at the **top of every installed file**, before any existing content. The block is delimited by `<!-- COWORK-AGENCY-ATTRIBUTION-START -->` and `<!-- COWORK-AGENCY-ATTRIBUTION-END -->` so future tooling can locate, validate, or update it.
+
+For Markdown files (`.md`):
+
+```markdown
+<!-- COWORK-AGENCY-ATTRIBUTION-START -->
+<!--
+Agency Source — msitarzewski/agency-agents
+Source: https://github.com/msitarzewski/agency-agents
+Upstream path: <ORIGINAL-FILE-PATH>
+Pinned commit: <40-CHAR-SHA>
+Lock file source: cowork.lock.json (cowork-starter-kit)
+Copyright (c) msitarzewski/agency-agents contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Full license: https://github.com/msitarzewski/agency-agents/blob/<40-CHAR-SHA>/LICENSE
+Derivative work: this file has been adapted for use with cowork-starter-kit
+-->
+<!-- COWORK-AGENCY-ATTRIBUTION-END -->
+
+```
+
+For SKILL.md files with YAML frontmatter, the attribution block sits **above the frontmatter** (HTML comment is invisible to YAML parsers). Format identical to above; the file proceeds with `---` frontmatter immediately after the closing `<!-- COWORK-AGENCY-ATTRIBUTION-END -->` line.
+
+### Six Required Fields (per ADR — extends spec's 5-field requirement with one new field)
+
+1. **License (full MIT text):** Embedded verbatim per Option A.
+2. **Upstream link:** `Source: https://github.com/msitarzewski/agency-agents`.
+3. **Commit SHA:** `Pinned commit: <40-CHAR-SHA>`.
+4. **Original file path:** `Upstream path: <ORIGINAL-FILE-PATH>`.
+5. **Copyright line:** `Copyright (c) msitarzewski/agency-agents contributors`.
+6. **Lock file source (NEW — adds auditability):** `Lock file source: cowork.lock.json (cowork-starter-kit)`. Allows a user reading an installed file to trace it back to the cowork-starter-kit lock file that mediated the install. Closes the audit chain: upstream → cowork-starter-kit lock → user workspace file.
+
+### Block Position Decision
+
+**Top of file, before any other content (including YAML frontmatter where applicable).** Rationale:
+- A user opening the file sees provenance immediately.
+- HTML comments are invisible to Markdown renderers (Cowork displays the file's rendered body normally).
+- HTML comments do not interfere with YAML frontmatter parsers.
+- Block survives user edits to the body (Riley persona requirement: edit-survives-content).
+
+### Tradeoff Analysis
+
+- **File size:** ~24 lines added per file. For a typical Riley install of 12 files (single category) → ~288 line bloat. For multi-category Riley install (3 categories × ~12 files each = ~36 files) → ~864 line bloat. This is acceptable: per-file render-cost in Cowork is dominated by the body content, not by the comment block; comments are not displayed in rendered Markdown.
+- **Maintenance:** Block is wizard-injected at install time. No human maintenance. `/sync-agency` PR bumps update the embedded SHA via re-injection on next install (or via `/setup-wizard --upgrade` per F6).
+- **Forward-compat:** Delimiter comments (`COWORK-AGENCY-ATTRIBUTION-START` / `END`) allow future tooling to locate and update the block in-place.
+
+### Recommendation Justification
+
+The product positioning (per `docs/competitive.md` v2.0 section) is: "the only workspace architect that combines upstream content breadth with supply-chain safety (SHA-pinned, checksum-verified, allowlisted, attribution-injected)." Attribution-injected is the marketing claim; Option A is the architecturally-aligned implementation. Choosing Option B would create a small but real gap between the marketing position and the legal posture — a divergence that contradicts the supply-chain hygiene story.
+
+### L1-1 Resolution
+
+This ADR's verbatim format is the corrected attribution block per L1-1. Implementation of F5 in Phase 4 must inject this exact block; no abbreviated variant is permitted. CONTRIBUTING.md updated to require the same block on community contributions that incorporate agency-agents content.
+
+### Consequences
+
+- **Invariant:** No agency-agents-derived file in a user workspace lacks the attribution block.
+- **Invariant:** Block delimiters (`COWORK-AGENCY-ATTRIBUTION-START` / `END`) survive content edits.
+- New CI job (Phase 4 deliverable): `attribution-block-check` — for any file matching `examples/**/SKILL.md` or known upstream-derived patterns, verify the delimited block exists and contains the 6 required fields. Fails if missing.
+- Wizard injection logic (Phase 4): templated string with `<ORIGINAL-FILE-PATH>` and `<40-CHAR-SHA>` placeholders, populated from lock file at install time.
+- L1-1 WARNING resolved.
+
+---
+
+## ADR-025: THIRD-PARTY-NOTICES.md (F5 supplement) — RESOLVES L1-2 WARNING
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Compliance source:** L1-2 WARNING from `docs/compliance-review.md` v2.0 section
+**Decision drivers:** MIT distribution-of-derivative-work convention; supply-chain hygiene positioning; future multi-source extensibility (v2.1+).
+
+### Context
+
+L1-2 (WARNING) noted that the cowork-starter-kit's repo-level LICENSE does not acknowledge upstream-derived content. Per industry practice, a `THIRD-PARTY-NOTICES.md` at repo root documents upstream copyright holders whose content is incorporated. Although MIT's per-file notice preservation (handled by ADR-024) is the strict legal requirement, the repo-level notices file is the standard expectation for any project distributing third-party content.
+
+### Decision: Create `THIRD-PARTY-NOTICES.md` at repo root
+
+**Location:** Repo root (alongside `LICENSE`, `README.md`, `CONTRIBUTING.md`, `cowork.lock.json`, `.cowork-allowlist.json`).
+
+**Update protocol:** Regenerated by `/sync-agency` (ADR-022) on every SHA bump. The CI workflow's "Regenerate THIRD-PARTY-NOTICES.md" step reads `cowork.lock.json` (per-file `spdx` + `license_file_sha256`) and the upstream LICENSE content (fetched at the new pinned SHA) and writes the file. This ensures the notices always reflect the lock-file's authoritative state.
+
+**Format:** Per-source block. v2.0.0 has one source (agency-agents). v2.1+ adds blocks for any new upstreams.
+
+### Content Template (Phase 4 commits this verbatim, with placeholder substitution)
+
+```markdown
+# Third-Party Notices
+
+This repository distributes content from third-party sources under their
+original licenses. Each source's copyright notice and full license text is
+preserved below. Per-file attribution is injected at install time by the
+cowork-starter-kit wizard (see `docs/architecture.md` ADR-024).
+
+This file is regenerated automatically by `.github/workflows/sync-agency.yml`
+on every upstream SHA bump. Direct edits will be overwritten — to update
+notices, update the lock file via `/sync-agency`.
+
+Last regenerated: <ISO-8601-UTC-OF-LAST-SYNC>
+Lock file: cowork.lock.json (pinned commit: <40-CHAR-SHA>)
+
+---
+
+## msitarzewski/agency-agents
+
+- **Source:** https://github.com/msitarzewski/agency-agents
+- **License:** MIT
+- **Copyright:** Copyright (c) msitarzewski/agency-agents contributors
+- **Pinned commit:** <40-CHAR-SHA>
+- **License file SHA-256:** <64-CHAR-HEX> (from `cowork.lock.json` `license_file_sha256`)
+
+### Full License Text
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### Distribution Notes
+
+Content from this source is distributed in user workspaces via the
+cowork-starter-kit wizard. Per-file attribution is injected at install time
+(see `docs/architecture.md` ADR-024 for the attribution block format).
+Content is pinned to the commit SHA above and verified against the lock file
+at install time (see ADR-020).
+
+Files distributed from this source: see `cowork.lock.json` `files` array.
+```
+
+### Update Protocol (CI-driven)
+
+`/sync-agency.yml` includes a step "Regenerate THIRD-PARTY-NOTICES.md":
+1. Reads `cowork.lock.json` (newly written) for `pinned_commit_sha` and `license_file_sha256`.
+2. Fetches `https://raw.githubusercontent.com/msitarzewski/agency-agents/<NEW_SHA>/LICENSE`.
+3. Computes SHA-256 of fetched LICENSE; verifies it matches `license_file_sha256` (sanity check).
+4. Generates `THIRD-PARTY-NOTICES.md` from a template (Phase 4 deliverable).
+5. Commits to the same sync PR branch.
+
+### v2.1+ Extensibility
+
+When a second upstream is added (e.g., MCP registry content), the regen step iterates over a `sources` array (lock file `$schema_version: "2.0"` change). Each source becomes a `## <repo>` block in the file. The format scales to N sources without restructuring.
+
+### Consequences
+
+- **Invariant:** `THIRD-PARTY-NOTICES.md` exists at repo root and reflects current lock-file state.
+- New CI step in `sync-agency.yml`: regenerate THIRD-PARTY-NOTICES.md.
+- New CI validation in `quality.yml`: file exists; contains the agency-agents block; `Last regenerated` timestamp parses as ISO-8601.
+- L1-2 WARNING resolved.
+- Future-proofs for v2.1+ multi-source upstream.
+
+---
+
+## ADR-026: Migration Story for v1.x Users (F6)
+
+**Date:** 2026-05-06
+**Status:** ACCEPTED
+**Decision drivers:** F6 spec; A-v2.0-5 (v1.x users path-friction risk LOW); preserving v1.3.x deep skill investment (Study, Research, PM); CI continuity for `skill-depth-check`; ADR-016 v1.3.3 amendment precedent.
+
+### Context
+
+F6 requires that v1.x preset users have a non-destructive migration to v2.0. The presets/ → examples/ relocation is mandated by ADR-021 to free the `presets/` namespace for the upstream-content paradigm. v1.3.0/v1.3.1/v1.3.3 have already invested 9 deep skills (Study + Research + PM) under `presets/<name>/.claude/skills/`. These cannot be silently broken.
+
+### Decision: Hard byte-identical move with one-version deprecation alias
+
+**Repo move:** `presets/<name>/` → `examples/<name>/` for all 7 v1.x presets (study, research, writing, project-management, creative, business-admin, personal-assistant). Done as a single Git mv operation per preset (preserving git blame); no content modification. CI verifies byte-identical via `git diff --stat` showing only renames + new path.
+
+**Deprecation alias (v2.0.0 only):** A repo-root `presets/` symlink → `examples/` is created. Users with `presets/study/` hardcoded paths continue to function for one minor version. Symlink removed in v2.1.0. CHANGELOG `[2.0.0]` and `[2.1.0]` document this clearly.
+
+**Windows compatibility note:** Git on Windows handles symlinks via a config flag. If the symlink approach causes Windows-clone friction, fallback is a `presets/README.md` redirect note ("This directory has moved to `examples/`. Update any hardcoded `presets/` paths."). Decision: ship symlink; add fallback README only if @qa Phase 5 surfaces Windows issues.
+
+**v2.1.0 removal:** The `presets/` symlink (or stub) is removed. CHANGELOG `[2.1.0]` documents the removal. By v2.1, users have had ~30+ days to update any scripts.
+
+### CI Path Allowlist Updates
+
+Per ADR-016 v1.3.3 amendment precedent (string-literal edits in two blocks), `quality.yml` is updated:
+
+```yaml
+# Old (v1.3.3):
+ENFORCED_PRESETS="study research project-management"
+for preset in $ENFORCED_PRESETS; do
+  skill_base="presets/${preset}/.claude/skills"
+  ...
+done
+
+# New (v2.0.0):
+ENFORCED_EXAMPLES="study research project-management"
+for example in $ENFORCED_EXAMPLES; do
+  skill_base="examples/${example}/.claude/skills"
+  ...
+done
+```
+
+Both the enforcement block AND the advisory-notice block update in a single commit (per v1.3.1/v1.3.3 amendment precedent). Variable name renamed `PRESETS` → `EXAMPLES` for clarity; comment updated to reference v2.0.0 transition.
+
+**Word-split-loop verification (inherited from v1.3.1):** `study research project-management` retains identical splitting under POSIX word-splitting. No shell-logic change.
+
+### Wizard Behavior Post-v2.0
+
+The wizard offers two starting points (per F6 AC):
+1. **"Use a preset example to get started fast"** — walks user through one of the 7 v1.x preset examples (now under `examples/`). The wizard's pointer to the example is via `examples/<name>/` paths.
+2. **"Build from the workspace library (upstream)"** — agency-agents path per ADR-021.
+
+Both paths coexist. v1.x users who prefer the curated 7 are not pushed to upstream content; new users see both options in the goal interview.
+
+### `/setup-wizard --upgrade` Flow
+
+A new wizard mode (Phase 4 deliverable). User invocation: paste a special starter file or invoke the wizard with the `--upgrade` qualifier. Wizard:
+1. Reads the user's existing workspace skills (Cowork can list them).
+2. For each skill name, queries the lock file (or runs the goal-mapper) to find an upstream equivalent in agency-agents.
+3. Presents a per-skill choice: Replace (delete current, install upstream), Keep both (install upstream alongside), Skip (no change).
+4. Never auto-replaces. User confirmation required for every change.
+
+This is a Riley persona feature primarily — Riley wants to selectively replace v1.x preset content with upstream equivalents as the lock file covers more categories.
+
+### Consequences
+
+- **Invariant:** No v1.x skill file content modified. All `examples/` content is byte-identical to v1.x `presets/`.
+- **Invariant:** Wizard never auto-replaces v1.x content; user opt-in only via `/setup-wizard --upgrade`.
+- CI `skill-depth-check` continues to enforce the 9 deep skills (Study + Research + PM) under the new path. Variable rename + path update + comment update in one commit (B4-equivalent for v2.0.0).
+- `presets/` symlink for v2.0.x; removed in v2.1. CHANGELOG documents both transitions.
+- v1.3.0/v1.3.1/v1.3.3 deep-skill investment preserved (CI continues to enforce 9-section depth).
+- A-v2.0-5 risk (v1.x friction) mitigated to LOW: byte-identical move + one-version alias + CHANGELOG.
+
+---
+
+## v2.0 Dependency Graph for Phase 4 (@dev commit sequencing)
+
+Authoritative commit order. Respects ADR-022 (CI must work before lock file is regenerated by it), ADR-021 (presets must move to examples/ before CI path update), ADR-024 (attribution block must be defined before wizard injects it), and the spec's rollout-plan two-phase split (v2.0.0 infrastructure; v2.0.1 wizard UX).
+
+### Commit Sequence
+
+```
+1. C1 — Move presets/ → examples/ (7 directories, byte-identical, single git mv per preset).
+   Use `git mv presets/<name> examples/<name>` to preserve blame.
+   Update no content. Verify with `git diff --stat` shows only renames.
+
+2. C2 — Create deprecation symlink: `ln -s examples presets` at repo root.
+   .gitignore-not-applicable (symlink is committed).
+   CHANGELOG [2.0.0] entry: "presets/ → examples/ rename; presets/ symlink retained for v2.0.x."
+
+3. C3 — Update .github/workflows/quality.yml:
+   - ENFORCED_PRESETS → ENFORCED_EXAMPLES
+   - presets/${preset}/ → examples/${example}/
+   - Both enforcement block AND advisory block (two edits, one commit per ADR-016 precedent).
+   - Comment update referencing v2.0.0.
+
+   [USER REVIEW CHECKPOINT — verify CI green before C4. Ensures all 9 deep skills
+    (Study + Research + PM) still pass skill-depth-check at new paths.]
+
+4. C4 — Create .cowork-allowlist.json (ADR-023):
+   - 13 allowed_categories (per ADR-023 list)
+   - 1 blocked_files entry (nexus-strategy.md, permanent=true)
+   - 2 blocked_patterns (**/nexus-strategy.md, **/nexus-strategy.*)
+   - Empty requires_review
+
+5. C5 — Create cowork.lock.json (ADR-020) with empty files array initially:
+   - $schema_version, upstream_repo, upstream_url, pinned_commit_sha (placeholder until first sync)
+   - pinned_at, license_file_sha256 (computed at first /sync-agency run)
+   - files: [] (populated by C7's first sync run, NOT hand-authored)
+   - Add CI validation job in quality.yml (schema check).
+
+6. C6 — Create THIRD-PARTY-NOTICES.md (ADR-025):
+   - Initial template with placeholder values (no pinned SHA yet).
+   - Will be regenerated on first /sync-agency run.
+
+7. C7 — Create .github/workflows/sync-agency.yml (ADR-022):
+   - SHA-pinned action references (per ADR-002).
+   - Hybrid trigger (cron + workflow_dispatch).
+   - All steps per ADR-022 mechanics (resolve HEAD, fetch LICENSE, compare hashes,
+     fetch allowlisted files, regen lock file, regen THIRD-PARTY-NOTICES, open PR).
+   - PR template with review checklist (LICENSE-changed branch labeling).
+
+   [FIRST /sync-agency RUN — manual workflow_dispatch — populates cowork.lock.json
+    and THIRD-PARTY-NOTICES.md with real upstream values. Opens initial PR.
+    User reviews + merges. This becomes the v2.0.0 baseline pinned SHA.]
+
+8. C8 — Wizard injection logic for attribution block (ADR-024):
+   - CLAUDE.md (or WIZARD.md per word budget) gains the attribution block template
+     with <ORIGINAL-FILE-PATH> and <40-CHAR-SHA> placeholders.
+   - Per-format injection rules (md vs. SKILL.md frontmatter).
+   - 6 required fields documented.
+
+9. C9 — Wizard FSM extension for category mapping (ADR-021):
+   - CLAUDE.md gains category-discovery state + multi-category-disambiguation prompt.
+   - Goal taxonomy seed (keyword → category map).
+   - Word-budget verification (≤350 words; offload to WIZARD.md if exceeded).
+
+10. C10 — /setup-wizard --upgrade flow (ADR-026):
+    - New wizard mode.
+    - Per-skill replace/keep-both/skip prompts.
+    - Documentation in SETUP-CHECKLIST.md and README.
+
+11. C11 — CI validation jobs (consolidated in quality.yml):
+    - cowork.lock.json schema check
+    - .cowork-allowlist.json schema + nexus-strategy.md presence check
+    - THIRD-PARTY-NOTICES.md exists + ISO-8601 timestamp check
+    - attribution-block-check on examples/** (legacy v1.x: skipped for v2.0.0;
+      activated when first agency-agents content lands in examples-equivalent location
+      OR when wizard installs to user workspace — out of CI scope)
+
+12. C12 — README.md + SETUP-CHECKLIST.md updates:
+    - v2.0 wizard flow.
+    - Migration section for v1.x users (presets/ → examples/).
+    - Symlink deprecation timeline.
+    - Attribution block explanation (Riley-targeted).
+
+13. C13 — CONTRIBUTING.md updates:
+    - cowork.lock.json: no direct edits (CI-only).
+    - .cowork-allowlist.json: PR-required, security sign-off for blocked-list edits.
+    - Attribution block requirement for community contributions touching agency-agents content.
+    - sync-agency PR review checklist.
+
+14. C14 — VERSION 2.0.0 + CHANGELOG.md [2.0.0] block + README badge update + Next-up line.
+    Per v1.3.x feedback_version_bump_completeness pattern: README badge 1.3.3 → 2.0.0
+    AND README "Next up" → v2.0.1 wizard category mapping.
+```
+
+### Hard Sequencing Constraints
+
+- **C1 (move) MUST commit before C3 (CI path update).** Otherwise CI breaks immediately. Verified via [USER REVIEW CHECKPOINT after C3].
+- **C2 (symlink) MUST commit alongside or after C1.** Otherwise users with `presets/` references break instantly.
+- **C4 + C5 (allowlist + lock file) MUST commit before C7 (sync-agency.yml).** Workflow reads both files.
+- **C6 (THIRD-PARTY-NOTICES) MUST commit before C7's first run.** Workflow regenerates the file but expects it to exist as a starting template.
+- **C7's first sync run MUST be manual workflow_dispatch.** Cron is not yet on its scheduled tick; we need a v2.0.0 baseline SHA before merging to main.
+- **C8–C10 (wizard logic) can land in parallel with C11 (CI jobs)** since they touch different files.
+- **C14 (VERSION + CHANGELOG + README) is the final commit.** Per v1.3.x precedent.
+
+### Rollout Plan Mapping (per spec)
+
+- **v2.0.0 release = C1 through C7 + C11–C14:** infrastructure (lock file, allowlist, sync workflow, attribution definition, migration). Wizard FSM extension (C8–C10) is in v2.0.1 per spec rollout table.
+- **v2.0.1 release = C8 through C10:** wizard UX change (multi-category, attribution injection at install, --upgrade flow). User-facing.
+
+The 14-step graph implements both releases. Phase 4 may be split into v2.0.0 (C1–C7 + C11–C14) and v2.0.1 (C8–C10) cycles or batched. Recommendation: separate cycles per spec rollout — allows @security to audit infrastructure independently before UX ships.
+
+---
+
+## v2.0 Anti-Pattern Scan
+
+Architectural anti-patterns evaluated against Phase 1 deliverables and dependency graph:
+
+| # | Anti-pattern | Present? | Disposition |
+|---|--------------|----------|-------------|
+| 1 | God Class/Module | No | Each ADR owns one feature; one file per concern (`cowork.lock.json` for state, `.cowork-allowlist.json` for policy, `THIRD-PARTY-NOTICES.md` for compliance, `sync-agency.yml` for sync, `quality.yml` extension for validation). No file aggregates >1 responsibility. |
+| 2 | Circular Dependencies | No | C1→C2→C3→C4→C5→C6→C7 is a linear DAG. C7 (sync-agency) reads C4+C5+C6 but does not produce content that feeds back into them at config-time (only at runtime, which is OK). C8–C10 read CLAUDE.md/SETUP-CHECKLIST.md but those don't import from the wizard. |
+| 3 | Leaky Abstraction | No | Lock file format (JSON) and attribution block format (HTML comment with delimiters) are public contracts. Wizard implementation details (LLM prompt structure) are not exposed in the schema. CI implementation details (jq commands) are encapsulated in `sync-agency.yml`. |
+| 4 | Premature Optimization | No | No caching layer; no pre-computed indexes; no parallelism in `/sync-agency`. The for-each-file loop is O(allowlisted-files), bounded by the allowlist policy. Per-file SPDX comparison is O(files); could be O(category) but the gain is negligible for current scale. |
+| 5 | Over-Engineering | One concern flagged, mitigated | The `requires_review` field in `.cowork-allowlist.json` is empty at v2.0.0 — could be argued as YAGNI. Mitigation: it is a single field in JSON; cost is one schema-allowed key. Population is @security's path post-Phase 2; pre-shaping the schema avoids a v2.1 schema migration. ACCEPTED as low-cost forward-compat. |
+| 6 | Tight Coupling | No | `cowork.lock.json` and `.cowork-allowlist.json` are decoupled: the lock file references categories and paths but does not include policy. Allowlist references files and categories but does not include hashes. `sync-agency.yml` reads both but is the only consumer; no wizard reads the allowlist directly (wizard relies on the fact that lock file's `files` are pre-filtered). The wizard reads the lock file only. |
+| 7 | Missing Separation of Concerns | No | Three layers: (a) state/data in `cowork.lock.json`, (b) policy in `.cowork-allowlist.json` + ADR-023, (c) execution in `.github/workflows/sync-agency.yml`. Each is independently reviewable. Per-file attribution (ADR-024) is install-time concern, not config-time. |
+| 8 | N+1 Query Pattern | N/A | No database. The CI loop over allowlisted files is O(N) by design — necessary work. No nested per-file CI calls. |
+| 9 | Destructive Migration | No | C1 is a hard byte-identical move (git mv preserves blame). C2 is a symlink (additive). No content deleted. v1.x preset content fully preserved at `examples/<name>/`. CHANGELOG documents the removal of the `presets/` symlink in v2.1 — that removal is non-destructive (the canonical content remains at `examples/`). |
+
+**Anti-pattern scan result: 0 blockers.** One concern (Over-Engineering #5) flagged and mitigated. v2.0 architecture is mechanically aligned with v1.x precedents (CI string-edit pattern from v1.3.3 amendment, file-rename pattern from v1.3.x release branches, JSON validation from v1.2 registry-cardinality-check). No novel risk patterns; no speculative additions.
+
+---
+
+## v2.0 Stress-Test Trace — Riley Product-Launch Flow
+
+End-to-end trace through the v2.0 architecture, per Phase 1 task brief stress-test requirement.
+
+### Setup
+- User: Riley (Prosumer Builder persona, primary v2.0 user).
+- v2.0.0 + v2.0.1 both shipped (infrastructure + wizard UX live).
+- /sync-agency last bumped 2 weeks ago (lock file is current).
+
+### Step 1 — User states goal
+Riley pastes the v2.0 starter file into a fresh Cowork Project. Wizard reads `CLAUDE.md` (≤350 words) and asks: "What would you like to use this workspace for?"
+
+Riley: "I want to ship a side project — product, project management, and engineering work."
+
+### Step 2 — Goal mapper produces categories
+Wizard's deterministic mapper (ADR-021) parses keywords (`ship`, `product`, `project management`, `engineering`):
+- `ship | launch | release` → `[product, project-management, marketing]`
+- `engineering | implement | build` → `[engineering, testing]`
+- Union: `[product, project-management, marketing, engineering, testing]` (5 categories, sorted by mapper-output order with first-keyword precedence)
+
+### Step 3 — Multi-category disambiguation prompt
+Wizard enters `multi-category-disambiguation` FSM state. Presents Riley with the 5 categories + 3 options (set up all, pick primary, walk through). Riley says "set up all 5."
+
+### Step 4 — Lock file resolution
+Wizard reads `cowork.lock.json` (ADR-020). For each of the 5 categories, finds entries matching `files[].category`:
+- `product`: 3 files
+- `project-management`: 4 files (note: cowork-starter-kit's own `examples/project-management/` is unaffected — the lock file is for upstream agency-agents content only)
+- `marketing`: 3 files
+- `engineering`: 5 files
+- `testing`: 2 files
+
+Total: 17 files to install.
+
+### Step 5 — /sync-agency status check
+Wizard checks `cowork.lock.json` `pinned_at` timestamp: 2 weeks ago (within freshness window per A-v2.0-4 monthly cadence). No staleness warning. Lock file is the trust anchor (ADR-020 Decision: Verification Mechanism, Option A).
+
+### Step 6 — Allowlist check
+For each of the 17 files, wizard verifies the file's path is present in `cowork.lock.json` `files` (it is, by definition — the lock file is pre-filtered by `/sync-agency`). The allowlist policy at `.cowork-allowlist.json` was already applied at lock-file-write time. `nexus-strategy.md` is not in the lock file (CI blocks it; ADR-023 fail-closed rule + blocked_patterns glob).
+
+### Step 7 — Per-file fetch and install
+For each of the 17 files:
+1. Wizard generates URL: `https://raw.githubusercontent.com/msitarzewski/agency-agents/<pinned_commit_sha>/<path>`
+2. Wizard fetches content (Cowork URL fetch capability).
+3. Wizard does NOT compute SHA-256 (per ADR-020 Trust Boundary; LLM cannot compute hashes).
+4. Wizard injects ADR-024 attribution block at top of file with placeholders populated:
+   - `<ORIGINAL-FILE-PATH>` = `<path>`
+   - `<40-CHAR-SHA>` = `<pinned_commit_sha>`
+5. Wizard writes injected file to user workspace, segregated by category folder name (e.g., `Workspace/skills/product/<filename>`).
+
+### Step 8 — Workspace structure summary
+Riley's workspace contains 17 installed files, each carrying full MIT attribution (ADR-024 Option A). At repo level (cowork-starter-kit), `THIRD-PARTY-NOTICES.md` reflects the same `pinned_commit_sha` Riley sees in every installed file — single point of audit.
+
+### Step 9 — Riley reads attribution
+Riley opens one installed file, sees the HTML comment block at the top:
+```
+Agency Source — msitarzewski/agency-agents
+Source: https://github.com/msitarzewski/agency-agents
+Upstream path: product/launch-strategist.md
+Pinned commit: <full SHA>
+Lock file source: cowork.lock.json (cowork-starter-kit)
+Copyright (c) msitarzewski/agency-agents contributors
+[full MIT permission paragraph]
+Full license: <URL with SHA>
+Derivative work: this file has been adapted for use with cowork-starter-kit
+```
+
+Riley confirms provenance (per persona quote: "Everything installed with a note showing exactly where it came from. I didn't have to go to GitHub once.").
+
+### Trace Verdict
+- All 6 spec features (F1–F6) exercised end-to-end.
+- ADR-020 (lock file format + verification): PASS.
+- ADR-021 (multi-category disambiguation): PASS — Riley confirms "set up all 5."
+- ADR-022 (sync-agency cadence): PASS — 2-week-old lock file is within 30-day freshness window.
+- ADR-023 (allowlist fail-closed + nexus block): PASS — nexus-strategy.md absent, all 17 files allowlisted.
+- ADR-024 (attribution Option A full embedded): PASS — Riley reads block, understands provenance.
+- ADR-025 (THIRD-PARTY-NOTICES.md): PASS — repo-level audit chain consistent with installed file SHA.
+- ADR-026 (migration story): PASS — Riley's existing Study workspace from v1.3.0 is unaffected (still in `examples/study/` since v2.0.0 release; presets/ symlink still works for v2.0.x).
+
+### Architectural gaps surfaced (carry to Open Issues for @security)
+1. The wizard's CLAUDE.md word budget post-multi-category prompt — recheck at Phase 4. If overflow, prompt moves to WIZARD.md (acceptable per ADR-021 fallback).
+2. Workspace folder structure under `Workspace/skills/<category>/<filename>` is wizard convention, not a hard ADR — acceptable as wizard freedom but should be documented in SETUP-CHECKLIST.md to prevent path drift.
+3. The first /sync-agency manual run (C7 step in dependency graph) populates the lock file with real values — until that run merges to main, `cowork.lock.json` carries placeholder zeros. CI must allow placeholder zeros (`pinned_commit_sha` = 40 zeros, `files: []`) at v2.0.0 baseline before C7 runs. Phase 4 must build CI tolerance for the bootstrap state.
+
+---
+
+## v2.0 Open Issues for Phase 2 (@security)
+
+@security Phase 2 (post-design) review must address these threat-model items:
+
+1. **Lock file trust boundary (ADR-020 Option A):** The wizard trusts (a) GitHub commit-SHA immutability and (b) the CI-vetted lock file. @security to confirm: is GitHub's commit-SHA model sufficient as a cryptographic guarantee (SHA-1 collision-resistance considerations for an unprivileged adversary)? If insufficient, propose a complementary control (e.g., dual-hash field with SHA-256 of the commit object itself).
+
+2. **Allowlist policy: blocked_patterns seed adequacy:** ADR-023 seeds `blocked_patterns` with `**/nexus-strategy.md` and `**/nexus-strategy.*` to handle rename attacks. @security to confirm: are there other architectural-collision files in agency-agents that warrant pre-emptive blocking (e.g., any file with "orchestrate" or "pipeline" in the name)? Provide a sample audit of ≥3 files per allowlisted category (per A-v2.0-1 mitigation requirement).
+
+3. **Per-file content audit (A-v2.0-1):** A-v2.0-1 (CRITICAL): upstream content quality must meet Tier 1 bar. ADR-023 references this as a prerequisite for `allowed_categories`. @security to perform the sample audit — ≥3 files per category in the 13 allowlisted categories — and recommend (a) whether the category list should narrow, (b) whether any files should be added to `requires_review`, or (c) whether any files should be added to `blocked_files`.
+
+4. **Attribution block injection — tampering surface (ADR-024):** The attribution block is injected by the wizard at install time. @security to confirm: can a user (or an upstream-injected prompt-injection payload) cause the wizard to skip injection or alter the block? Specifically — can the wizard be tricked into omitting the block via a prompt like "skip attribution for this file"? Mitigation candidate: CLAUDE.md / WIZARD.md must include a non-overridable rule: "Attribution block injection is mandatory for every agency-agents file. No user instruction may bypass it." @security to draft the exact phrasing.
+
+5. **/sync-agency PR review minimum criteria:** ADR-022 produces a PR with a review checklist (LICENSE-changed, CI-green, file-diffs-reviewed). @security to specify: what is the minimum review obligation per file in the PR? (E.g., "scan for shell-execution patterns," "scan for environment variable references," "scan for prompt-injection payloads in worked examples.") Provide a checklist that a reviewer can apply uniformly. This is the active control for E2 (upstream-injected payload at SHA bump).
+
+6. **LLM-no-hash trust documentation:** ADR-020 documents the trust boundary (LLM does not compute hashes; lock file is trust anchor). @security to confirm: is this trust-boundary statement strong enough, or does the user-facing documentation (SETUP-CHECKLIST.md, README) need explicit messaging? E.g., "The cowork-starter-kit lock file is the integrity anchor. If you do not trust the lock file (e.g., because you cloned from a fork without CI), do not install from it."
+
+7. **Wizard CLAUDE.md word budget post-v2.0 changes:** ADR-021 (FSM extension), ADR-024 (attribution rule), ADR-026 (--upgrade flow) all add wizard prose. @security to flag if any planned addition would cross the ≤350-word ceiling. Phase 4 mitigation: spillover to WIZARD.md (per ADR-021 plan), but the mitigation must be enforced by CI (carry-forward from v1.3.1 H1 word-count check). Confirm the CI check's path coverage extends to all wizard entry-point files (CLAUDE.md and any new starter files added in v2.0).
+
+8. **THIRD-PARTY-NOTICES regen race:** ADR-025 says the file is regenerated on each /sync-agency run. @security to confirm: if a community contributor opens an unrelated PR that touches `THIRD-PARTY-NOTICES.md` (e.g., manual edit), is the regen step idempotent? Phase 4 mitigation: the regen step is committed to the same branch as the sync PR; manual edits on an unrelated branch are harmless. CONTRIBUTING.md documents that manual edits to THIRD-PARTY-NOTICES.md will be overwritten.
+
+9. **Bootstrap state CI tolerance:** Per stress-test trace gap #3, the lock file carries placeholder zeros until the first /sync-agency manual run merges to main. @security to confirm: should CI accept the placeholder state, or should Phase 4 require the first sync run to land BEFORE v2.0.0 is tagged? Recommendation: bundle the first sync run into the v2.0.0 release commit chain — CI accepts placeholder for the duration of the release branch only; main never carries placeholder zeros after v2.0.0 ships.
+
+10. **Compliance L1-1 / L1-2 verification at Phase 6:** ADR-024 (attribution Option A) and ADR-025 (THIRD-PARTY-NOTICES) resolve the compliance WARNINGs. @security Phase 6 audit must independently verify: (a) the attribution block in installed files matches the verbatim format in ADR-024, (b) THIRD-PARTY-NOTICES.md exists and reflects the lock-file SHA, (c) no agency-agents file landed in any test workspace without the block. Phase 6 should treat this as a STANDARD (post-v1.3.2 SECURITY-SENSITIVE pattern) classification at minimum.
+
+---
+
+## v2.0 Phase 1 Definition of Done — Verification
+
+| DoD Item | Status |
+|----------|--------|
+| All 6 spec features (F1–F6) have at least one ADR | DONE — 6 feature ADRs (ADR-020 F1, ADR-021 F2, ADR-022 F3, ADR-023 F4, ADR-024 F5, ADR-026 F6) + 1 compliance-driven ADR (ADR-025 F5 supplement) = 7 ADRs total |
+| L1-1 (WARNING) resolved | DONE — ADR-024 chooses Option A (full embedded MIT permission text); injection format documented verbatim |
+| L1-2 (WARNING) resolved | DONE — ADR-025 establishes THIRD-PARTY-NOTICES.md at repo root with regen protocol via /sync-agency |
+| All 6 Phase 0 open architectural questions answered | DONE — Q1 (lock file format = JSON, ADR-020); Q2 (location = repo root, ADR-020); Q3 (refresh cadence = hybrid, ADR-022); Q4 (preset demotion = examples/ + symlink, ADR-021/026); Q5 (multi-category = staged install, ADR-021); Q6 (SHA-256 mechanism = trust CI-vetted lock file, ADR-020) |
+| Stress-test trace included | DONE — Riley product-launch flow, 9 steps, 6 ADRs exercised end-to-end |
+| 0 anti-pattern blockers | DONE — 0 blockers, 1 mitigated concern (Over-Engineering #5: requires_review field empty initially, accepted as forward-compat) |
+| Open issues handed off to @security with explicit threat-model framing | DONE — 10 open issues with threat-model framing |
+| Phase 1 row in pipeline.md | DEFERRED to orchestrator (this artifact: ADRs in architecture.md) |
+| Phase 1 Summary in The-Council scratchpad | DEFERRED to orchestrator |
+
+
