@@ -126,7 +126,8 @@ Create a file called `cowork-profile.md` in the user's workspace with this exact
 # My Cowork Profile
 
 **Name:** [Ask the user: "Last question — what's your name or what should I call you?"]
-**Goal preset:** [their selected preset]
+**Goal preset:** [their selected preset, or "custom" for novel objectives]
+**Objective:** [user's verbatim Phase 1 objective string, or empty if pre-v2.1 profile]
 **Role / context:** [their Q3 answer]
 **Tools in use:** [their Q4 answer]
 **Output format preference:** [their Q2 answer]
