@@ -68,7 +68,9 @@ Each entry includes:
 |------|-------------|------------|--------------|------|-----------|
 | email-drafter | Drafts professional emails matched to audience, tone, and intent from short bullet notes | builtin | 2026-04-17 | 1 | business-admin |
 | doc-summary | Summarizes long documents, reports, or proposals into executive-ready highlights | builtin | 2026-04-17 | 1 | business-admin,research,project-management |
+> `disposition: covered-by-runtime` — meeting-notes skill + Anthropic runtime DOCX/PDF skills + general Claude summarization are sufficient. No in-tree expansion planned. Source: `docs/skills-roadmap.md` §Section 1.
 | action-items | Extracts clear, assigned, deadline-tagged action items from meeting notes or email threads | builtin | 2026-04-17 | 1 | business-admin,project-management |
+> `disposition: covered-by-runtime` — meeting-notes skill already extracts action items as a workflow step. No standalone in-tree expansion planned. Source: `docs/skills-roadmap.md` §Section 1.
 
 ### Personal Assistant
 
