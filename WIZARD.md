@@ -219,6 +219,18 @@ Then resume CLAUDE.md Phase 1 routing with the user's clarified objective.
 
 When generating a one-line role description per skill (ADR-030): if the generated role line does not contain at least one keyword from the source skill's `description` field, fall back to the verbatim `description` (truncated to ≤12 words) — never produce a role that is generic or unmoored from the skill's actual purpose.
 
+**Stopword filter (AC-D2):** Before evaluating keyword presence, strip common stopwords from the description. Tokenize by lowercasing and splitting on non-alpha characters (`[^a-z]+`). Remove any token that appears in the STOPWORDS list below. If the resulting filtered token set is empty, the verbatim fallback fires unconditionally — do not attempt role generation.
+
+STOPWORDS list (64 tokens):
+a, an, and, are, as, at, be, been, being, but, by,
+can, do, does, for, from, had, has, have, he, her, his,
+i, if, in, into, is, it, its, me, my, no, nor, not,
+of, on, or, our, she, so, than, that, the, their, them,
+there, they, this, to, up, us, was, we, were, what, when,
+where, which, who, will, with, would, you, your
+
+Example: `description = "the a of"` — lowercased tokens ["the","a","of"] — all in STOPWORDS — filtered set is empty — verbatim fallback fires.
+
 ---
 
 ## Fallback — if the wizard is interrupted

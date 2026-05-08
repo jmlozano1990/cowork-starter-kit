@@ -4,6 +4,22 @@ All notable changes to this project are documented here. This project uses [Sema
 
 ---
 
+## [2.2.0] — 2026-05-08
+
+**v2.2 — Carry-Forward Closeout + Skills Roadmap Discovery**
+
+### W1 — Wizard Quality Fixes
+
+- **D2 — Stopword filter in role-generation rule (WIZARD.md, AC-D2):** Extends AC-W2-9 verbatim-fallback with a 64-token STOPWORDS list. Description is lowercased, tokenized on non-alpha chars, stopwords stripped. Empty filtered token set fires the verbatim fallback unconditionally. Prevents placeholder-quality descriptions from generating unmoored role lines. Example: `description = "the a of"` → fallback fires.
+- **D3 — SETUP-CHECKLIST.md migration annotation (AC-D3):** Adds "v2.1 migration complete — historical reference only" blockquote annotation to the `Upgrading from v2.0.x to v2.1.0` section. All original content retained for audit trail — no removal.
+- **CFP — Objective field in personal-assistant starter profile (AC-CFP):** Appends `**Objective:** Stay on top of household, family, and personal logistics so nothing important falls through the cracks.` to `examples/personal-assistant/cowork-profile-starter.md` after the `**Goal preset:**` line. Format byte-matches WIZARD.md Step 1 output template per ADR-031.
+
+### W2 — Skills Roadmap
+
+- **docs/skills-roadmap.md (AC-RM-1..4):** New planning artifact for v2.3+ cycle. Three sections: (1) per-stub ROI scan — all 12 stubs receive a COVER-BY-RUNTIME / COVER-BY-EXTERNAL / EXPAND-IN-TREE / REMOVE verdict (9 EXPAND-IN-TREE, 2 COVER-BY-RUNTIME, 0 remove); (2) persona × JTBD coverage matrix — 20 JTBDs × 6 personas with FULL/PARTIAL/RUNTIME/EMPTY cells; (3) ranked v2.3+ candidates — voice-matching in-tree expansion (score 30), daily-briefing in-tree expansion (score 25), and contract-review external import from evolsb/claude-legal-skill (score 20) as top three.
+
+---
+
 ## [2.1.0] — 2026-05-07
 
 **v2.1 — Objective-First FSM + Team-Composition Framing + Stub Markers + Symlink Removal**
