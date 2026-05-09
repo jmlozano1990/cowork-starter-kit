@@ -1,6 +1,7 @@
 ---
 name: daily-briefing
 description: Summarize today's schedule, open tasks, and pending follow-ups into a concise morning brief from local files
+tools: [claude-code]
 trigger_examples:
   - "Good morning — what does my day look like?"
   - "Daily briefing"

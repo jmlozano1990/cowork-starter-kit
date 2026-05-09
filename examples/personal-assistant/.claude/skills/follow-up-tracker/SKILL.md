@@ -1,6 +1,7 @@
 ---
 name: follow-up-tracker
 description: Log and surface pending commitments — things you owe others and things others owe you — from conversations, notes, and inbox snippets
+tools: [claude-code]
 trigger_examples:
   - "Track follow-ups from this conversation"
   - "What do I owe people from this thread?"

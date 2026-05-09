@@ -502,14 +502,60 @@ jobs:
           fi
           echo "CMP byte-mirror check passed — all pool/example skill pairs are byte-identical."
 
+      - name: "MF-3 — skills/*/SKILL.md tools: vocabulary gate"
+        run: |
+          # ADR-029 v2.5: Closed vocabulary gate for tools: frontmatter field.
+          # Allowed tokens: claude-code copilot cursor windsurf (no others at v2.5).
+          # Runs on skills/*/SKILL.md only; upstream-contribution/ excluded by path-glob shape.
+          # MF-S1 (security MUST-FIX): multi-line YAML form rejected explicitly.
+          set -o pipefail
+          ALLOWED='claude-code copilot cursor windsurf'
+          BAD_FILES=""
+          for skill_md in skills/*/SKILL.md; do
+            # Extract YAML frontmatter (between first two ---) and find tools: line
+            TOOLS_LINE=$(awk '/^---$/{c++; next} c==1 && /^tools:/' "$skill_md")
+            if [ -z "$TOOLS_LINE" ]; then
+              echo "::error::${skill_md} missing tools: frontmatter field"
+              BAD_FILES="${BAD_FILES} ${skill_md}"
+              continue
+            fi
+            # Parse list: tools: [claude-code, copilot] -> claude-code copilot
+            TOKENS=$(echo "$TOOLS_LINE" | sed -E 's/^tools:[[:space:]]*\[//; s/\][[:space:]]*$//; s/,/ /g' | tr -d ' ' | tr ',' ' ')
+            # MF-S1: Reject multi-line YAML form — tools: present but unparseable as inline array
+            if [ -z "$TOKENS" ] && [ -n "$TOOLS_LINE" ]; then
+              echo "::error::${skill_md} tools: present but unparsed (multi-line form not supported at v2.5)"
+              BAD_FILES="${BAD_FILES} ${skill_md}"
+              continue
+            fi
+            for token in $TOKENS; do
+              # Strip any remaining whitespace
+              token=$(echo "$token" | tr -d '[:space:]')
+              if [ -z "$token" ]; then continue; fi
+              if ! echo "$ALLOWED" | grep -qw "$token"; then
+                echo "::error::${skill_md} tools: contains invalid token '${token}' (allowed: ${ALLOWED})"
+                BAD_FILES="${BAD_FILES} ${skill_md}"
+              fi
+            done
+          done
+          if [ -n "$BAD_FILES" ]; then
+            echo "::error::MF-3 vocabulary gate failed on:${BAD_FILES}"
+            exit 1
+          fi
+          SKILL_COUNT=$(find skills -name "SKILL.md" | wc -l)
+          echo "MF-3 tools: vocabulary gate passed (${SKILL_COUNT} skills checked)."
+
       - name: MF-1 — selection-presets.md token vocabulary gate
         run: |
-          # S1 WARNING from v2.4 Phase 2 — MF-1 MUST-FIX.
+          # F4 v2.5 hardening (CF-v2.4-G / AC-F4-1): set -o pipefail + explicit empty-check
+          # replaces the '|| true' masking pattern. pipefail catches middle-segment pipeline
+          # failures; explicit BAD=0 assignment handles the 0-match case from grep -c.
+          # Per-step pipefail scope — does not affect other steps in the job.
+          set -o pipefail
           # selection-presets.md vocabulary gate (S1 WARNING from v2.4 Phase 2)
           if [ -f selection-presets.md ]; then
             BAD=$(awk '/^```preset$/,/^```$/' selection-presets.md \
               | grep -E '^(match_signals|skill_bundle): ' \
-              | grep -cE '[^a-z0-9, :_-]' || true)
+              | grep -cE '[^a-z0-9, :_-]') || BAD=0
             if [ "${BAD:-0}" -gt 0 ]; then
               echo "::error::selection-presets.md contains invalid token vocabulary (must match [a-z0-9, :_-])"
               exit 1
@@ -522,12 +568,45 @@ jobs:
 
       - name: MF-2 — curated-skills-registry.md goal_tags vocabulary gate
         run: |
-          # S2 WARNING from v2.4 Phase 2 — MF-2 MUST-FIX.
-          # curated-skills-registry.md goal_tags vocabulary gate (S2 WARNING from v2.4 Phase 2)
+          # F4 v2.5 hardening: set -o pipefail replaces '|| true' masking (CF-v2.4-G).
+          # MF-2 awk now uses structural header scan (CF-v2.4-B / MF-S2 MUST-FIX):
+          # finds goal_tags column by name, not position. If header absent, exits 2 (fail-closed).
+          # Per-step pipefail scope — does not affect other steps in the job.
+          set -o pipefail
           if [ -f curated-skills-registry.md ]; then
-            BAD=$(awk -F'|' '/^\| / && NR>2 { print $7 }' curated-skills-registry.md \
+            BAD=$(awk -F'|' '
+              {
+                # Structural header scan: find goal_tags column by name, not position (CF-v2.4-B / MF-S2)
+                # Scans all pipe-delimited rows for one whose cell exactly equals "goal_tags" (no backticks).
+                # Skips documentation-table rows where goal_tags appears with backticks (e.g. `goal_tags`).
+                if (header_seen == 0 && /^\| / && /goal_tags/) {
+                  found_col = 0
+                  for (i=1; i<=NF; i++) {
+                    cell = $i
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", cell)
+                    if (cell == "goal_tags") { found_col = i }
+                  }
+                  if (found_col > 0) {
+                    col = found_col
+                    header_seen = 1
+                  }
+                  # If found_col == 0, the row has goal_tags in backticks or inline — skip and keep scanning
+                  next
+                }
+                # Data rows: print goal_tags column value (only after header found)
+                if (header_seen == 1 && /^\| / && !/^\| *---/) {
+                  print $col
+                }
+              }
+              END {
+                if (header_seen == 0) {
+                  print "HEADER_MISSING_GOAL_TAGS" > "/dev/stderr"
+                  exit 2
+                }
+              }
+            ' curated-skills-registry.md \
               | grep -vE '^[[:space:]]*(goal_tags|---)' \
-              | grep -cE '[^a-z0-9, -]' || true)
+              | grep -cE '[^a-z0-9, -]') || BAD=0
             if [ "${BAD:-0}" -gt 0 ]; then
               echo "::error::curated-skills-registry.md goal_tags contains invalid token vocabulary in ${BAD} row(s)"
               exit 1
@@ -537,6 +616,45 @@ jobs:
             echo "::error::curated-skills-registry.md not found."
             exit 1
           fi
+
+      - name: MF-2 column reorder regression test (AC-F4-5)
+        run: |
+          # Verify MF-2 structural header scan finds goal_tags by name even when column is reordered.
+          # Fixture: tests/fixtures/registry-column-reorder.md has goal_tags at position 3 (not 6).
+          # A bad token 'BAD_TOKEN!' is injected in the goal_tags column — gate must fire.
+          set -o pipefail
+          if [ ! -f "tests/fixtures/registry-column-reorder.md" ]; then
+            echo "::error::Regression fixture missing: tests/fixtures/registry-column-reorder.md"
+            exit 1
+          fi
+          BAD=$(awk -F'|' '
+            {
+              if (header_seen == 0 && /^\| / && /goal_tags/) {
+                found_col = 0
+                for (i=1; i<=NF; i++) {
+                  cell = $i
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", cell)
+                  if (cell == "goal_tags") { found_col = i }
+                }
+                if (found_col > 0) { col = found_col; header_seen = 1 }
+                next
+              }
+              if (header_seen == 1 && /^\| / && !/^\| *---/) {
+                print $col
+              }
+            }
+            END {
+              if (header_seen == 0) { print "HEADER_MISSING_GOAL_TAGS" > "/dev/stderr"; exit 2 }
+            }
+          ' tests/fixtures/registry-column-reorder.md \
+            | grep -vE '^[[:space:]]*(goal_tags|---)' \
+            | grep -cE '[^a-z0-9, -]') || BAD=0
+          if [ "${BAD:-0}" -lt 1 ]; then
+            echo "::error::MF-2 column reorder regression test FAILED — BAD_TOKEN not detected when goal_tags column is reordered."
+            echo "This means MF-2 is using positional column index, not structural header scan."
+            exit 1
+          fi
+          echo "MF-2 column reorder regression test PASSED — goal_tags found by header name in reordered column, BAD=${BAD}."
 
       - name: Advisory notice for unenforced examples
         run: |
@@ -836,3 +954,83 @@ jobs:
           else
             echo "PARTIAL: accumulator contains ${FETCHED_COUNT}/2 entries (network issue — non-blocking)"
           fi
+
+  lock-content-sha-fault-injection:
+    name: Lock Content-SHA Fault Injection (AC-F1-3)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify integrity mismatch fires on poisoned content_sha256
+        run: |
+          set -euo pipefail
+          # ADR-028 fault-injection test: fixture has DEADBEEF content_sha256 on one entry.
+          # The verify logic must detect the mismatch and exit non-zero.
+          # Fixture lives at tests/fixtures/sha-fault-injection.json.
+          if [ ! -f "tests/fixtures/sha-fault-injection.json" ]; then
+            echo "::error::Fault-injection fixture missing: tests/fixtures/sha-fault-injection.json"
+            exit 1
+          fi
+          PINNED=$(jq -r '.pinned_commit_sha' tests/fixtures/sha-fault-injection.json)
+          UPSTREAM=$(jq -r '.upstream' tests/fixtures/sha-fault-injection.json)
+          MISMATCH=0
+          while IFS='|' read -r path stored_hash; do
+            if [ "$stored_hash" = "MISSING" ] || [ -z "$stored_hash" ]; then
+              continue
+            fi
+            TMPFILE=$(mktemp)
+            curl -sf "https://raw.githubusercontent.com/${UPSTREAM}/${PINNED}/${path}" -o "$TMPFILE" || {
+              echo "WARNING: Failed to fetch ${path} — skipping"
+              rm -f "$TMPFILE"
+              continue
+            }
+            ACTUAL=$(sha256sum "$TMPFILE" | awk '{print $1}')
+            rm -f "$TMPFILE"
+            if [ "$ACTUAL" != "$stored_hash" ]; then
+              echo "::error::Integrity mismatch on ${path} — stored content_sha256=${stored_hash} fetched=${ACTUAL}"
+              MISMATCH=1
+            fi
+          done < <(jq -r '.files[] | "\(.path)|\(.content_sha256 // "MISSING")"' tests/fixtures/sha-fault-injection.json)
+          if [ "$MISMATCH" -eq 0 ]; then
+            echo "::error::Fault-injection test FAILED — mismatch was NOT detected. Verify logic may be broken."
+            exit 1
+          fi
+          echo "Fault-injection test PASSED — integrity mismatch correctly detected on poisoned content_sha256."
+
+  lock-content-sha-cross-check:
+    name: lock-content-sha-cross-check (C-v2.5-19)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Cross-environment content_sha256 verification
+        run: |
+          set -euo pipefail
+          # ADR-028 deliberation A1: cross-environment trust anchor.
+          # Fetches each files[] entry from raw.githubusercontent.com at pinned_commit_sha
+          # in a clean GitHub-Actions runner. Asserts SHA-256 equality with stored content_sha256.
+          # Any mismatch fails the PR. Runs on every PR (not only sync-agency invocations).
+          PINNED=$(jq -r '.pinned_commit_sha' cowork.lock.json)
+          UPSTREAM=$(jq -r '.upstream' cowork.lock.json)
+          FAIL=0
+          CHECKED=0
+          while IFS='|' read -r path stored_hash; do
+            if [ "$stored_hash" = "MISSING" ] || [ -z "$stored_hash" ]; then
+              echo "INFO: ${path} has no content_sha256 (pre-v2.5 grace) — skipping"
+              continue
+            fi
+            curl -sf "https://raw.githubusercontent.com/${UPSTREAM}/${PINNED}/${path}" -o /tmp/x || {
+              echo "WARNING: Failed to fetch ${path} — skipping"
+              continue
+            }
+            ACTUAL=$(sha256sum /tmp/x | awk '{print $1}')
+            if [ "$ACTUAL" != "$stored_hash" ]; then
+              echo "::error::content_sha256 mismatch on ${path}: stored=${stored_hash} actual=${ACTUAL}"
+              FAIL=1
+            fi
+            CHECKED=$((CHECKED + 1))
+          done < <(jq -r '.files[] | "\(.path)|\(.content_sha256 // "MISSING")"' cowork.lock.json)
+          if [ "$FAIL" -eq 1 ]; then
+            echo "::error::lock-content-sha-cross-check FAILED — content integrity cannot be verified."
+            exit 1
+          fi
+          echo "lock-content-sha-cross-check PASSED — ${CHECKED} entries verified in clean GHA runner."

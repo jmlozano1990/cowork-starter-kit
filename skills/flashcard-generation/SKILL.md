@@ -1,6 +1,7 @@
 ---
 name: flashcard-generation
 description: Generate Anki-ready flashcards from source material using spaced-repetition best practices (atomicity, cloze deletion, minimum information principle).
+tools: [claude-code]
 trigger_examples:
   - "Make flashcards from this"
   - "Give me flashcards on [topic]"

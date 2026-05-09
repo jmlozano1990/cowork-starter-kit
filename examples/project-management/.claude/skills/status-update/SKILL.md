@@ -1,6 +1,7 @@
 ---
 name: status-update
 description: Synthesize project progress into a RAG-status update (Green/Amber/Red + 2–3 line narrative + next milestone) calibrated for the specified audience.
+tools: [claude-code]
 trigger_examples:
   - "Draft a status update for [project] for my executive stakeholder."
   - "Write a brief at-risk status update for [project] — the delay is due to [issue]."

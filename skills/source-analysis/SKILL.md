@@ -1,6 +1,7 @@
 ---
 name: source-analysis
 description: Evaluate a single source across 7 structured fields (source type, authority, methodology, evidence quality, limitations, bias, bottom line) with an explicit citation recommendation.
+tools: [claude-code]
 trigger_examples:
   - "Evaluate / critique / analyze this paper"
   - "How good is this source?"

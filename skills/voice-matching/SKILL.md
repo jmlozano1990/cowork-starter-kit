@@ -1,6 +1,7 @@
 ---
 name: voice-matching
 description: Write new content in the user's established voice and style, based on samples from their previous work
+tools: [claude-code]
 trigger_examples:
   - "Write this in my voice"
   - "Use my style for this draft"

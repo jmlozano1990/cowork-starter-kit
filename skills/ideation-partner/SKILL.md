@@ -1,6 +1,7 @@
 ---
 name: ideation-partner
 description: Generate a range of genuinely distinct creative directions for a project, brief, or open-ended creative problem
+tools: [claude-code]
 trigger_examples:
   - "I'm stuck on this campaign — give me 5 directions to explore"
   - "Brainstorm 10 angles for this product launch"

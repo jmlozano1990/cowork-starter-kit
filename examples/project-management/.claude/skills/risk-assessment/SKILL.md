@@ -1,6 +1,7 @@
 ---
 name: risk-assessment
 description: Identify and tabulate the top 5–7 project risks with likelihood, impact, and mitigation, then surface the top-2 priority risks in a short prose section.
+tools: [claude-code]
 trigger_examples:
   - "What are the top risks for [project]? We're in the planning phase."
   - "Update my risk register for [project] — we just discovered [new issue]."

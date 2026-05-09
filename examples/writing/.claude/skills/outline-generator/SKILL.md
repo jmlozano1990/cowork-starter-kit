@@ -1,6 +1,7 @@
 ---
 name: outline-generator
 description: Create a structured, specific outline for any type of written content
+tools: [claude-code]
 trigger_examples:
   - "Outline a blog post about remote work productivity"
   - "Build a talk outline on habit formation for a 20-minute slot"
