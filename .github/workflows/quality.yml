@@ -509,8 +509,8 @@ jobs:
           if [ -f selection-presets.md ]; then
             BAD=$(awk '/^```preset$/,/^```$/' selection-presets.md \
               | grep -E '^(match_signals|skill_bundle): ' \
-              | grep -cE '[^a-z0-9, :_-]')
-            if [ "$BAD" -gt 0 ]; then
+              | grep -cE '[^a-z0-9, :_-]' || true)
+            if [ "${BAD:-0}" -gt 0 ]; then
               echo "::error::selection-presets.md contains invalid token vocabulary (must match [a-z0-9, :_-])"
               exit 1
             fi
@@ -527,8 +527,8 @@ jobs:
           if [ -f curated-skills-registry.md ]; then
             BAD=$(awk -F'|' '/^\| / && NR>2 { print $7 }' curated-skills-registry.md \
               | grep -vE '^[[:space:]]*(goal_tags|---)' \
-              | grep -cE '[^a-z0-9, -]')
-            if [ "$BAD" -gt 0 ]; then
+              | grep -cE '[^a-z0-9, -]' || true)
+            if [ "${BAD:-0}" -gt 0 ]; then
               echo "::error::curated-skills-registry.md goal_tags contains invalid token vocabulary in ${BAD} row(s)"
               exit 1
             fi
