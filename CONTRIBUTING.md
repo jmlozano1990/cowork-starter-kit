@@ -29,7 +29,7 @@ Before merging a new preset PR, verify all 11 items:
 - [ ] **CI passes** — all GitHub Actions jobs pass: markdown lint, link check, shellcheck, safety-rule grep, starter-file-check, starter-safety-rule-check, skill-format-check, writing-profile-template-check
 - [ ] **`writing-profile.md` present** — file exists at `examples/<name>/context/writing-profile.md` with non-placeholder content in Tone & Voice and Anti-AI Guidance sections; must not be blank or contain only `[bracketed placeholders]`
 - [ ] **`curated-skills-registry.md` entry follows schema** — if the PR adds skills to `curated-skills-registry.md`, each entry must include: `name`, `description`, `source_url` (HTTPS only or `builtin`), `vetting_date` (ISO 8601), `tier` (1 or 2), `goal_tags`. PR description must include vetting evidence (source repo stars/health, last commit date, keyword scan result showing no flagged terms)
-- [ ] **CLAUDE.md sync** — if the PR modifies the wizard flow in any `project-instructions-starter.txt`, `CLAUDE.md` must be updated to match (and vice versa). All 7 wizard surfaces (CLAUDE.md + 6 starter files) must stay in sync. PRs that touch one must touch all.
+- [ ] **CLAUDE.md sync** — if the PR modifies the wizard flow in any `project-instructions-starter.txt`, `CLAUDE.md` must be updated to match (and vice versa). All 8 wizard surfaces (CLAUDE.md + 7 starter files) must stay in sync. PRs that touch one must touch all.
 - [ ] **No `Sample:` or `Raw sample:` field** — `writing-profile.md` files must not store raw user writing samples; wizard instructions must extract patterns only
 - [ ] **New/edited SKILL.md in depth-enforced preset contains all 9 sections** — `## When to use`, `## Triggers`, `## Instructions`, `## Output format`, `## Quality criteria`, `## Anti-patterns`, `## Example`, `## Writing-profile integration`, `## Example prompts` (per `templates/skill-template/SKILL.md`)
 - [ ] **New SKILL.md has ≥ 60 lines** — run `wc -l examples/<preset>/.claude/skills/<skill>/SKILL.md` to confirm; the `skill-depth-check` CI job enforces this for depth-enforced presets
@@ -47,7 +47,7 @@ Before merging a new preset PR, verify all 11 items:
 
 **PRs that modify `CLAUDE.md` must:**
 
-1. Also update all 6 `examples/*/project-instructions-starter.txt` files to match (wizard flow must stay in sync — ADR-010)
+1. Also update all 7 `examples/*/project-instructions-starter.txt` files to match (wizard flow must stay in sync — ADR-010)
 2. Include a clear explanation of what changed and why in the PR description
 3. Be reviewed by a maintainer before merge — treat `CLAUDE.md` edits as security-relevant changes
 
@@ -169,7 +169,7 @@ for f in examples/*/project-instructions-starter.txt; do
 done
 
 # Starter file existence check
-for preset in study research writing project-management creative business-admin; do
+for preset in study research writing project-management creative business-admin personal-assistant; do
   if [ ! -f "examples/$preset/project-instructions-starter.txt" ]; then
     echo "MISSING starter file: examples/$preset/project-instructions-starter.txt"
   fi
