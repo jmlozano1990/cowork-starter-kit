@@ -1,6 +1,7 @@
 ---
 name: editing-pass
 description: Review a draft and return specific, actionable editing suggestions at the level the writer requests
+tools: [claude-code]
 trigger_examples:
   - "Light edit this paragraph for grammar and flow"
   - "Heavy restructure this draft — the argument is unclear"

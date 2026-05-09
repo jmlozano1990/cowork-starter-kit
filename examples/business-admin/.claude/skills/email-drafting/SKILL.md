@@ -1,6 +1,7 @@
 ---
 name: email-drafting
 description: Draft professional emails in the appropriate tone and format for the recipient and desired outcome
+tools: [claude-code]
 trigger_examples:
   - "Draft an email declining the vendor's proposal professionally"
   - "Follow-up email after the meeting with the client team"

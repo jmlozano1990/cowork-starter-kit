@@ -1,6 +1,7 @@
 ---
 name: literature-review
 description: Organize multiple sources into a thematic matrix with cross-source synthesis and gap analysis, stating detected theme and source counts at the top of the output.
+tools: [claude-code]
 trigger_examples:
   - "Write a literature review on [X]"
   - "Give me a lit review of these papers"

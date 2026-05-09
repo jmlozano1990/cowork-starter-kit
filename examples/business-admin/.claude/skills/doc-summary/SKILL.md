@@ -1,6 +1,7 @@
 ---
 name: doc-summary
 description: Extract the key insight and supporting points from any business document for fast understanding and decision-making
+tools: [claude-code]
 trigger_examples:
   - "Summarize this document: [filename or paste text]"
   - "What is the key recommendation in this file?"

@@ -1,125 +1,140 @@
 ---
 name: research-synthesis
-description: Synthesize multiple sources into a structured literature-review matrix with cross-source synthesis paragraphs, auto-selecting mode from source count (1 = atomic note, 2 = compact matrix, ≥3 = full matrix).
+description: Synthesize sources at peer-review rigor using a 7-column matrix (claim, method, evidence, limitations, authority, recency, citation-network) with structured Agreements, Disagreements, Gaps, and Synthesis sections.
+tools: [claude-code]
 trigger_examples:
-  - "Synthesize / compare these papers"
-  - "Cross-reference these sources"
-  - "I'm writing a lit review on [X]"
-  - "What do these all say?"
+  - "Synthesize these papers rigorously"
+  - "Cross-reference these sources at peer-review rigor"
+  - "I'm preparing to review / referee [paper]"
+  - "Systematic review of [X]"
+  - "Meta-analysis inputs for [Z]"
 ---
 
 ## When to use
 
-Use this skill when the user supplies two or more sources — papers, abstracts, excerpts, or articles — and needs a structured comparison rather than a flat summary. Also use it when the user pastes a single source but mentions they plan to add more, so an atomic note can be linked later.
+Use this skill when the user needs a rigorous multi-source synthesis at peer-review standards — where source authority, citation networks, and methodology comparisons matter as much as the substantive claims. This skill always operates at peer-review rigor regardless of source count.
 
-Source count drives the mode. Apply the rule before reading:
+This is the **Research preset variant** of `research-synthesis`. It is intentionally distinct from the Study preset's `research-synthesis`, which auto-selects a simplified mode by source count for exam-prep use. The Research variant is always peer-review-oriented: it evaluates source authority, citation chains, and methodology explicitly. Use this skill when the output will inform a paper, thesis, systematic review, or peer-review process.
 
-| Source count | Mode | What you produce |
-|--------------|------|-----------------|
-| 1 source | Atomic note (Zettelkasten-style) | One self-contained claim block, traceable to the source, ready for later cross-linking |
-| 2 sources | Compact 2-row matrix + 1-paragraph comparison | Matrix scales down; comparison paragraph carries the cross-source weight |
-| ≥3 sources | Full matrix + synthesis paragraph(s) | Matrix surfaces patterns; synthesis extracts the insight |
-
-State the selected mode in one line at the top of every output so the user can override before reading further.
-
-If the user needs recall practice from the same sources, suggest flashcard-generation after synthesis. If they need organized notes from a single source, prefer note-taking instead.
+If you need a thematic cross-cutting review with gap analysis rather than a per-source authority evaluation, prefer literature-review instead.
 
 ## Triggers
 
-- User says "Synthesize / compare these papers" or "Cross-reference these sources" with an explicit multi-source ask — highest-confidence direct invocation.
-- User pastes 2 or more abstracts, excerpts, or links with no specific ask — proactively offer research synthesis as the primary deliverable.
-- User says "I'm writing a lit review on [X]" or "I need to cover the literature on [Y]" — offer synthesis as the primary deliverable.
-- User pastes multiple sources and asks "What do these all say?" or "Summarise these" — offer a matrix as a richer alternative to a flat summary; frame it as more useful for comparison and citation tracing.
+- User says "Synthesize these papers rigorously" or "Cross-reference these sources at peer-review rigor" — highest-confidence direct invocation.
+- User says "I'm preparing to review / referee [paper]" or "Can you steelman and check these sources?" — offer research synthesis with disagreement-surfacing emphasis.
+- User asks for a "systematic review of [X]" or "synthesis of the evidence on [Y]" — offer full matrix + gap analysis.
+- User asks for "meta-analysis inputs for [Z]" or "quantitative synthesis of [W]" — offer synthesis as qualitative prelude; surface methodology compatibility explicitly.
 
 ## Instructions
 
-1. Read all provided sources fully before choosing a mode.
-2. Count distinct sources. Apply the source-count mode rule from `## When to use`. State the selected mode in one line at the top of the output.
-3. For **1-source mode**: write a single atomic note block — one clear claim, one evidence sentence, one source attribution. Add a "Link to" line listing 1–2 related concepts for future cross-referencing.
-4. For **2-source mode**: build a 2-row matrix with columns: Source | Claim | Method | Evidence | Limitations | Links. Then write one comparison paragraph surfacing where the sources agree, where they differ, and why.
-5. For **≥3-source mode**: build a full matrix (rows = sources, columns = Claim | Method | Evidence | Limitations | Links). Then write one or more synthesis paragraphs that:
-   - Surface the cross-source insight — what the field collectively says, not each source in sequence.
-   - Explicitly surface any disagreements — methodology differences, conflicting effect sizes, or definitional gaps.
-   - Distinguish primary, secondary, and tertiary sources where relevant; note if a source is a review paper vs. an original empirical study.
-   - Call out methodology mismatches when sources use incompatible study designs that make direct comparison unreliable.
-6. Keep matrix cells terse — short noun phrases only. No prose in cells.
-7. For every claim in the synthesis, verify it traces back to at least one named matrix row before writing it.
-8. Apply the writing-profile rule from `## Writing-profile integration` to synthesis prose.
-9. Apply the BibTeX extension if the user has supplied citation keys or `.bib` entries.
+1. Read all provided sources fully before beginning the matrix.
+2. State the synthesis mode at the top of the output in one line: "Peer-review synthesis, N sources." This lets the user recalibrate before reading further.
+3. Build the 7-column matrix with rows = sources, columns = Claim | Method | Evidence | Limitations | Authority | Recency | Citation network. Keep cells terse — short noun phrases only.
+4. **Claim:** the source's central thesis or finding, in one phrase.
+5. **Method:** study design (empirical / theoretical / review / meta-analysis / simulation), sample if applicable, key measures.
+6. **Evidence:** strength of evidence supporting the claim. Note if it converges with other sources or is isolated.
+7. **Limitations:** the most significant limitation relevant to how this source will be cited. Do not leave this blank.
+8. **Authority:** author credentials, institutional standing, citation weight (approximate citation count if known), domain fit.
+9. **Recency:** publication date and replication/adoption status. Note if a source is foundational (still valid) vs. partially superseded.
+10. **Citation network:** note if the source is a foundational node (cited by most later work) or part of a citation chain (its apparent convergence may reflect chain, not independent replication).
+11. Write the synthesis section with four required subsections in this order: **Agreements**, **Disagreements**, **Gaps**, **Synthesis**.
+12. **Agreements:** where sources converge, and whether convergence reflects independent confirmation or citation chain.
+13. **Disagreements:** methodological divergences, conflicting empirical findings, competing theoretical frames. Name the divergent programs or findings explicitly — do not describe disagreements vaguely.
+14. **Gaps:** where the source set is silent or thin. Include both topical gaps (underrepresented themes) and methodological gaps (missing study designs).
+15. **Synthesis:** one closing paragraph integrating the full picture — what the field collectively says, what remains open, what a future researcher needs to address.
+16. Verify every synthesis claim traces to at least one named matrix row before writing it (no citation drift).
+17. Apply the writing-profile rule from `## Writing-profile integration` to synthesis prose.
+18. Apply the BibTeX extension if the user has supplied citation keys or `.bib` entries.
 
 ## Output format
 
 Plain GitHub-flavored markdown in the chat.
 
-**Header line (required):** One sentence stating the mode auto-selected and source count. Example: `**Mode auto-selected:** Full matrix + synthesis (3 sources).`
+**Mode line (required, at top):** One sentence stating mode and source count. Example: `**Mode auto-selected:** Peer-review synthesis, 3 sources.`
 
-**Matrix block:** Standard markdown table — rows = sources, columns = Source | Claim | Method | Evidence | Limitations | Links. For 2-source mode, same structure with two rows.
+**7-column matrix block:** Standard GitHub-flavored markdown table — rows = sources, 7 columns (Claim, Method, Evidence, Limitations, Authority, Recency, Citation network). Cells are terse noun phrases. No prose in cells.
 
-**Synthesis section:** One or more paragraphs headed `## Synthesis`. Prose, not bullets.
+**Synthesis section:** Four subsections in order: `### Agreements`, `### Disagreements`, `### Gaps`, `### Synthesis` (closing integrative paragraph). Prose, not bullets, in each subsection.
 
-**BibTeX-aware extension (conditional):** If the user supplies citation keys or `.bib` entries, render each source row with an `@key` label and use `[@key]` inline citations in the synthesis. Otherwise use `Author (Year)` format.
+**BibTeX-aware extension (conditional):** If the user supplies citation keys or `.bib` entries, render each source row with `@key` in the Source column and use `[@key]` inline citations in the synthesis. Otherwise use `Author (Year)` format.
 
-No Obsidian `[[wikilinks]]`. No JSON or YAML sidecar. No CSV export. Output is portable across Obsidian, Notion, Apple Notes, Logseq, plain text editors, and academic writing tools.
+No Obsidian `[[wikilinks]]`. No JSON or YAML sidecar. Portable across academic writing tools and plain-text editors.
 
 ## Quality criteria
 
-- Mode auto-selected per source-count rule; stated at the top of the output.
-- Every synthesis claim traces back to at least one named source row — no citation drift.
-- Disagreements between sources explicitly surfaced, not glossed over.
-- Primary, secondary, and tertiary sources distinguished where possible (noted in matrix or synthesis).
-- Methodology differences called out when sources use incompatible study designs.
-- Synthesis produces a cross-source insight — not a concatenated restatement of each source.
-- Matrix cells terse; synthesis prose adapts to writing-profile.md.
+1. Mode line states "Peer-review synthesis, N sources" at the top of the output.
+2. All 7 matrix columns populated for every source — no column skipped.
+3. Authority column addresses credentials, domain fit, and citation weight.
+4. Citation-network column notes whether convergence reflects independent replication or citation chain.
+5. Agreements, Disagreements, Gaps, and Synthesis sections all present — no section collapsed to "N/A" without explanation.
+6. Disagreements section names the divergent research programs or conflicting findings explicitly, not vaguely.
+7. Every synthesis claim traces to at least one matrix cell — no citation drift.
 
 ## Anti-patterns
 
-- Source-by-source summary with no cross-linking — matrix rows never reference each other.
-- No disagreement surfaced — treating all sources as agreeing when they differ on methodology or conclusions.
-- No distinction between primary, secondary, and tertiary sources — treating a review paper identically to an original empirical study.
-- Ignoring methodology differences — comparing effect sizes across incompatible study designs without noting the mismatch.
-- Citation drift — a claim in the synthesis cannot be traced back to a specific source row.
-- Recency blindness — old and new sources weighted equally when the field has moved.
-- Synthesis = concatenation — restating each source in sequence instead of producing a new cross-source insight.
+- Equal-authority treatment — weighting a dissertation and a Nobel laureate's RCT identically.
+- No citation-network analysis — failing to note when a claim appears in 3 sources that all cite a single foundational paper (apparent convergence is actually a citation chain).
+- Ignoring publication venue rigor — treating a conference poster and a *Nature* paper as equivalent evidence strength.
+- No methodology comparison across sources — ignoring that empirical, theoretical, and simulation studies produce different kinds of evidence.
+- Citation drift — a synthesis claim cannot be traced to a specific matrix cell.
+- Recency bias — treating older sources as outdated without checking replication status; treating newer sources as superseding older ones without checking whether they address the same question.
+- Synthesis = concatenation — restating each source in sequence instead of producing cross-source insight that no single source stated.
 
 ## Example
 
-**Input (3 abstracts):**
+**Input (3 sources, evaluated at research-rigor level):**
 
-> **Miller (1956).** "The Magical Number Seven, Plus or Minus Two." Reviews span-of-attention and immediate-memory experiments. Concludes short-term memory capacity is approximately 7±2 items across modalities.
+> **Miller (1956).** "The Magical Number Seven, Plus or Minus Two." *Psychological Review*, 63(2), 81–97. Review article. Miller: Harvard, co-founder of cognitive science. ~35,000 citations. Method: narrative review of span-of-attention experiments.
 >
-> **Baddeley (2000).** "The Episodic Buffer." Extends the 1974 Baddeley & Hitch working-memory model with a fourth component — the episodic buffer — a limited-capacity store that integrates information from the phonological loop, visuospatial sketchpad, and long-term memory.
+> **Baddeley (2000).** "The Episodic Buffer." *Trends in Cognitive Sciences*, 4(11), 417–423. Theoretical paper. Baddeley: Cambridge/York; h-index >130; originator of the dominant working-memory model. ~7,000 citations. Method: theoretical synthesis motivating a new model component.
 >
-> **Cowan (2001).** "The Magical Number 4 in Short-Term Memory." Reviews evidence from multiple paradigms (visual arrays, running span, auditory recall) and argues the true capacity of active focus is ~4 items, with higher counts reflecting chunking or rehearsal rather than raw capacity.
+> **Cowan (2001).** "The Magical Number 4 in Short-Term Memory." *Behavioral and Brain Sciences*, 24(1), 87–114. BBS target article with peer commentary. Cowan: Missouri; primary attentional-focus theorist. ~8,000 citations. Method: multi-paradigm review + re-analysis.
 
 **Output:**
 
 ```markdown
-# Research synthesis: Working-memory capacity estimates
+# Research synthesis: Working-memory capacity
 
-**Mode auto-selected:** Full matrix + synthesis (3 sources).
+**Mode auto-selected:** Peer-review synthesis, 3 sources.
 
-| Source | Claim | Method | Evidence | Limitations | Links |
-|--------|-------|--------|----------|-------------|-------|
-| Miller (1956) | Capacity ≈ 7±2 items | Review of span & immediate-memory tasks | Convergence across modalities | Conflates chunked & unchunked units | Superseded by Cowan (2001) on raw capacity |
-| Baddeley (2000) | 4-component working-memory model (adds episodic buffer) | Theoretical extension of Baddeley & Hitch (1974) | Integrates LTM with WM subsystems | Component boundaries under-specified | Orthogonal to Miller/Cowan capacity debate |
-| Cowan (2001) | Raw capacity ≈ 4 items | Cross-paradigm review controlling for chunking/rehearsal | Visual arrays, running span, auditory recall | Focused on active-focus capacity, not total WM | Revises Miller (1956) downward |
+| Source | Claim | Method | Evidence | Limitations | Authority | Recency | Citation network |
+|--------|-------|--------|----------|-------------|-----------|---------|------------------|
+| Miller (1956) | Capacity ~7±2 items | Narrative review | Convergence across span tasks & modalities | Conflates chunked & unchunked units; no direct capacity isolation | Harvard, ~35K cites, foundational | 70 years old; partially superseded | Cited by nearly all subsequent WM work — foundational node |
+| Baddeley (2000) | 4-component WM model (adds episodic buffer) | Theoretical synthesis | Accounts for cross-modal binding + amnesiac integration | No direct empirical test of buffer-as-structure | Cambridge/York, h>130, model originator | 25 years old; widely adopted | Extends Baddeley & Hitch (1974); cited by downstream component-model work |
+| Cowan (2001) | Raw capacity ~4 items | Multi-paradigm review + re-analysis | Converges across visual arrays, running span, auditory recall | Active-focus framing, not total-WM framing | Missouri, ~8K cites, primary attentional theorist | 25 years old; widely cited; replication ongoing | Target article with 60+ peer commentaries — independent scrutiny node |
 
-## Synthesis
+## Peer-review synthesis
 
-The field has shifted from Miller's (1956) 7±2 estimate toward Cowan's (2001) tighter ~4-item bound once chunking and rehearsal are controlled for — the two are not contradictory but operate at different levels of analysis (Miller measured observable span; Cowan measured underlying focus capacity). Baddeley's (2000) episodic-buffer extension is orthogonal to this capacity debate: it addresses what working memory integrates rather than how much. A modern summary: short-term storage spans ~4 items of active focus, extensible via chunking and long-term-memory integration through the episodic buffer.
+### Agreements
+
+The field converges on the view that observable short-term span overstates raw capacity. Miller's 7±2 is widely understood as an upper bound including chunking, while Cowan's ~4 approximates the underlying focus. Independent methodological streams (span tasks in Miller; chunking-controlled paradigms in Cowan) reach compatible conclusions — this is not a citation-chain artifact but genuine convergence from different methods.
+
+### Disagreements
+
+Baddeley (2000) and Cowan (2001) represent divergent research programs. Baddeley treats working memory as structurally partitioned (multiple stores + a binding buffer). Cowan treats it as attention-limited (a focus window gating long-term memory). The two programs account for overlapping empirical anomalies (cross-modal binding, prose recall) with different architectures, and the field has not converged on either. Methodologically, Baddeley relies on theoretical synthesis; Cowan relies on paradigm convergence — neither decisively adjudicates between structural and attentional framings.
+
+### Gaps
+
+Despite extensive citation cross-referencing, no source in this set is neuroimaging-based. The structural/attentional debate has proceeded largely behaviorally; fMRI/EEG evidence that might adjudicate the Baddeley–Cowan divide is not represented. A modern synthesis would incorporate work like Postle (2006) or D'Esposito & Postle (2015) to ground the debate in biological evidence.
+
+### Synthesis
+
+The short-term-memory capacity literature has matured from observable-span estimates (Miller) toward refined theoretical frameworks (Baddeley's structural; Cowan's attentional) that agree on capacity magnitude (~4 items active focus) but diverge on underlying architecture. The divergence is substantive, not semantic, and remains open absent neuroimaging evidence.
 ```
 
 ## Writing-profile integration
 
-Three-tier rule based on output section:
+Four-tier rule based on output section:
 
 - **Matrix cells:** Always terse — short noun phrases, no prose. `context/writing-profile.md` is not consulted; cells are structured data, not sentences.
-- **Mode line** (top of output): one-sentence factual statement; profile-neutral.
-- **Synthesis paragraph(s):** Full writing-profile consultation applies — tone, sentence-length preferences, and pet peeves from `context/writing-profile.md`. Synthesis paragraphs typically exceed 100 words, triggering the v1.2 adapt-to-profile rule. Apply the user's style to cross-source prose, not to matrix rows.
+- **Mode line** (top of output): one-sentence factual statement, profile-neutral.
+- **Agreements / Disagreements / Gaps paragraphs:** Full writing-profile consultation applies — tone, sentence-length preferences, and pet peeves from `context/writing-profile.md`.
+- **Disagreement framing sentences** (e.g., "Baddeley and Cowan represent divergent research programs"): profile-neutral — clarity and neutrality take precedence over voice to avoid the synthesis appearing to take a side.
+- **Closing Synthesis paragraph:** Full writing-profile consultation applies.
 
 ## Example prompts
 
-- "Synthesize the papers in my Papers/ folder on [topic]."
-- "I have three papers on protein folding. What do they agree on and where do they differ?"
-- "I'm writing a lit review on attention and working memory — can you compare these abstracts?"
-- "What do these two articles say? I want something I can cite."
+- "Synthesize these papers on protein folding at peer-review rigor."
+- "I'm preparing to referee this paper — can you cross-reference its sources?"
+- "Give me a systematic review of the evidence on [topic] from my Literature/ folder."
+- "I need meta-analysis inputs on [topic] — synthesize these sources qualitatively first."

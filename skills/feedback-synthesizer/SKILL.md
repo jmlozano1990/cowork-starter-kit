@@ -1,6 +1,7 @@
 ---
 name: feedback-synthesizer
 description: Combine feedback from multiple sources into a clear, prioritized creative direction for the next iteration
+tools: [claude-code]
 trigger_examples:
   - "Synthesize this feedback round — three reviewers gave conflicting notes"
   - "Three reviewers gave mixed feedback — pull the themes and prioritize"

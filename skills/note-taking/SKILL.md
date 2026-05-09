@@ -1,6 +1,7 @@
 ---
 name: note-taking
 description: Convert reading material into organized, concise study notes using a hybrid framework auto-selected from source type (Cornell, Outline, Zettelkasten, or Lightweight bulleted).
+tools: [claude-code]
 trigger_examples:
   - "Take notes on this"
   - "Make notes from [source]"

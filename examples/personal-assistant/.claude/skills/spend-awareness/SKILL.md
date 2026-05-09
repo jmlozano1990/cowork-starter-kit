@@ -1,6 +1,7 @@
 ---
 name: spend-awareness
 description: Summarize pasted transaction data by category in plain language to surface spending patterns — descriptive only, does not provide investment advice, budgeting recommendations, or savings plans
+tools: [claude-code]
 trigger_examples:
   - "Categorize my spending from these transactions"
   - "Where did my money go last month?"

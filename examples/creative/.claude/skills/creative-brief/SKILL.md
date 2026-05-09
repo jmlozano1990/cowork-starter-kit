@@ -1,6 +1,7 @@
 ---
 name: creative-brief
 description: Structure a vague project problem into a clear, actionable creative brief with audience, principles, and constraints
+tools: [claude-code]
 trigger_examples:
   - "Write a creative brief for our product launch campaign"
   - "Sharpen this client brief — it's too vague to work from"

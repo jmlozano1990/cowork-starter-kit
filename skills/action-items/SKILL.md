@@ -1,6 +1,7 @@
 ---
 name: action-items
 description: Identify and structure action items from a meeting, email thread, or document into a clear, owned list
+tools: [claude-code]
 trigger_examples:
   - "What are the action items from this meeting? [paste notes or transcript]"
   - "What files are in my Inbox/ folder? Draft a prioritized action list for today"

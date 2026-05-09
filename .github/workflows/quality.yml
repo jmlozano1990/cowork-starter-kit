@@ -502,6 +502,48 @@ jobs:
           fi
           echo "CMP byte-mirror check passed — all pool/example skill pairs are byte-identical."
 
+      - name: MF-3 — skills/*/SKILL.md tools: vocabulary gate
+        run: |
+          # ADR-029 v2.5: Closed vocabulary gate for tools: frontmatter field.
+          # Allowed tokens: claude-code copilot cursor windsurf (no others at v2.5).
+          # Runs on skills/*/SKILL.md only; upstream-contribution/ excluded by path-glob shape.
+          # MF-S1 (security MUST-FIX): multi-line YAML form rejected explicitly.
+          set -o pipefail
+          ALLOWED='claude-code copilot cursor windsurf'
+          BAD_FILES=""
+          for skill_md in skills/*/SKILL.md; do
+            # Extract YAML frontmatter (between first two ---) and find tools: line
+            TOOLS_LINE=$(awk '/^---$/{c++; next} c==1 && /^tools:/' "$skill_md")
+            if [ -z "$TOOLS_LINE" ]; then
+              echo "::error::${skill_md} missing tools: frontmatter field"
+              BAD_FILES="${BAD_FILES} ${skill_md}"
+              continue
+            fi
+            # Parse list: tools: [claude-code, copilot] -> claude-code copilot
+            TOKENS=$(echo "$TOOLS_LINE" | sed -E 's/^tools:[[:space:]]*\[//; s/\][[:space:]]*$//; s/,/ /g' | tr -d ' ' | tr ',' ' ')
+            # MF-S1: Reject multi-line YAML form — tools: present but unparseable as inline array
+            if [ -z "$TOKENS" ] && [ -n "$TOOLS_LINE" ]; then
+              echo "::error::${skill_md} tools: present but unparsed (multi-line form not supported at v2.5)"
+              BAD_FILES="${BAD_FILES} ${skill_md}"
+              continue
+            fi
+            for token in $TOKENS; do
+              # Strip any remaining whitespace
+              token=$(echo "$token" | tr -d '[:space:]')
+              if [ -z "$token" ]; then continue; fi
+              if ! echo "$ALLOWED" | grep -qw "$token"; then
+                echo "::error::${skill_md} tools: contains invalid token '${token}' (allowed: ${ALLOWED})"
+                BAD_FILES="${BAD_FILES} ${skill_md}"
+              fi
+            done
+          done
+          if [ -n "$BAD_FILES" ]; then
+            echo "::error::MF-3 vocabulary gate failed on:${BAD_FILES}"
+            exit 1
+          fi
+          SKILL_COUNT=$(find skills -name "SKILL.md" | wc -l)
+          echo "MF-3 tools: vocabulary gate passed (${SKILL_COUNT} skills checked)."
+
       - name: MF-1 — selection-presets.md token vocabulary gate
         run: |
           # S1 WARNING from v2.4 Phase 2 — MF-1 MUST-FIX.

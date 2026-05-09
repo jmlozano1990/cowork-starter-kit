@@ -1,6 +1,7 @@
 ---
 name: research-synthesis
 description: Synthesize sources at peer-review rigor using a 7-column matrix (claim, method, evidence, limitations, authority, recency, citation-network) with structured Agreements, Disagreements, Gaps, and Synthesis sections.
+tools: [claude-code]
 trigger_examples:
   - "Synthesize these papers rigorously"
   - "Cross-reference these sources at peer-review rigor"

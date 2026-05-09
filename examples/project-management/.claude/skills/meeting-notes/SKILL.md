@@ -1,6 +1,7 @@
 ---
 name: meeting-notes
 description: Extract structured decisions, action items, and open questions from a meeting transcript or rough notes into a clean 4-section summary.
+tools: [claude-code]
 trigger_examples:
   - "Capture meeting notes from this transcript: [paste]"
   - "I just finished a meeting — here's what I remember: [notes]. Structure this."
