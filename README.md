@@ -68,7 +68,7 @@ You                                Cowork
 
 That's it. Cowork reads the project instructions and walks you through personalized setup.
 
-> **Alternative paths:** Type `/setup-wizard` to run or redo setup explicitly. Or paste your preset's `project-instructions-starter.txt` into Project Settings > Custom Instructions for preset-specific behavior from message one.
+> **Alternative paths:** Type `/setup-wizard` to run or redo setup explicitly. Or paste `examples/<name>/project-instructions-starter.txt` into Project Settings > Custom Instructions for preset-suggested onboarding from message one.
 >
 > **No Cowork yet?** Use the manual path: open `SETUP-CHECKLIST.md` and follow every step by hand.
 
@@ -113,7 +113,7 @@ You describe your goal in plain language. The wizard routes to the closest prese
 - `connector-checklist.md` — which connectors to authorize and why
 - `skills-as-prompts.md` — skill content as copy-paste prompts if skill upload is unavailable
 - `folder-structure.md` — recommended folder layout for your workspace
-- `.claude/skills/<skill-name>/SKILL.md` — 3 preset skills in Cowork-native format
+- `.claude/skills/<skill-name>/SKILL.md` — 3 deprecation-stub skills (canonical versions live in the unified `skills/` pool)
 
 ---
 
