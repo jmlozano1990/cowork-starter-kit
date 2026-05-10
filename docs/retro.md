@@ -2,6 +2,294 @@
 
 ---
 
+## v2.5.1 — Extended Thinking + Opus Onboarding Docs (doc-only patch)
+
+**Date:** 2026-05-10
+**Classification:** STANDARD (consistent Phase 0–7)
+**Mode:** quick (Phase 2 /review skipped; Phase 6 abbreviated 5-item audit)
+**Rework rate:** 0% (HEAD bd8fbea = Phase 4 SHA; 1-commit topology, no post-Phase-4 commits)
+**Cycle SHAs:** Phase 4 binding SHA `bd8fbea`, merged `3479313` via PR #45 squash 2026-05-10. Tag `v2.5.1` annotated and pushed. Branch `release/v2.5.1` deleted on remote.
+
+---
+
+### 1. Cycle Summary
+
+v2.5.1 was a single-commit, doc-only patch that added Extended Thinking and Opus 4.x model-selection guidance to three user-facing onboarding files: README.md (two Quick-start leading bullets), SETUP-CHECKLIST.md (new "Before you start" preface), and WIZARD.md (replacing "Sonnet or higher" with Opus 4.x + Extended Thinking guidance). VERSION, CHANGELOG, and badge were updated to 2.5.1. Total diff: 5 files, 23 added lines, 3 removed lines.
+
+This was the first cycle in cowork's history to use quick mode + STANDARD classification + abbreviated Phase 6. The contrast with v2.5 is instructive: v2.5 was full + SECURITY-SENSITIVE + COMPLIANCE-SENSITIVE, 6-commit topology, 2 Phase 2 gates, 33 ACs, and ~6+ hours of wall-clock ceremony. v2.5.1 ran Phase 0 → merge in approximately 50 minutes, verified 16 ACs on first CI push, and required zero rework. The pipeline-mode differentiation worked as designed: a doc patch that would have been a multi-hour ceremony in full mode took less than one hour without ceremony inflation.
+
+The cycle was initiated based on a community infographic reviewed as research input — not from the feature backlog or a competitor analysis. This is a new ideation pathway for the project. The github.enabled flag was flipped to true post-merge as a separate user decision, activating F6 auto-release flow for all future cycles.
+
+All 16 ACs PASS. CI: 42 PASS / 2 SKIP / 0 FAIL. 0 CRITICAL / 0 WARNING / 0 INFO across all phases. All 6 v2.5 carry-forwards remain DEFERRED to v2.6 — none of their surfaces were touched by this patch.
+
+**Verdict: HEALTHY.** 0% rework, 16/16 ACs, 0 findings, minimal ceremony appropriate to scope. No strategic significance — this is a maintenance slice done cleanly.
+
+---
+
+### 2. Quality Signals
+
+| Signal | Result |
+|--------|--------|
+| ACs | 16/16 PASS |
+| CI | 42 PASS / 2 SKIP / 0 FAIL |
+| Rework rate | 0% |
+| Phase 6 findings | 0 CRITICAL / 0 WARNING / 0 INFO |
+| Classification | STANDARD (consistent Phase 0–7) |
+| Phase 2 | SKIPPED (quick mode + STANDARD) |
+| Phase 0 timestamp | 2026-05-09T00:00:00Z |
+| Phase 7 timestamp | 2026-05-10T05:28:05Z |
+| Wall-clock duration | ~50 minutes (Phase 0 to merge) |
+| qa_issues_prevented | blocker=0 issue=0 info=0 |
+
+---
+
+### 3. What Went Well
+
+- **Quick-mode pipeline differentiation worked as designed.** A doc-only patch that warranted STANDARD classification skipped Phase 2 /review, abbreviated Phase 6 to a 5-item checklist, and completed from Phase 0 to merge in ~50 minutes. The ceremony matched the risk surface. This is the baseline expectation for similar future doc-only patches under quick mode.
+
+- **1-commit topology held cleanly.** @architect bound a strict 1-commit, 5-file topology at Phase 1 with an explicit deny-list. @dev delivered exactly that. No CI-fix commits — breaking the 2-cycle CI-Fix-Topology-Pattern streak (v2.4 = 3 CI-fix commits, v2.5 = 2 CI-fix commits, v2.5.1 = 0). This suggests the pattern may be correlated with multi-feature full-mode cycles, not a structural fixture.
+
+- **AC-ZD-1..4 preservation invariants all PASS.** The explicit preservation invariants (cowork.lock.json byte-unchanged, skills/ byte-unchanged, CLAUDE.md=397w, exactly 5 files in diff) caught any potential scope creep automatically. The invariant pattern is worth carrying forward to future doc-only patches.
+
+- **CHANGELOG ordering correct on first try.** [2.5.1] entry correctly prepended above [2.5.0]. opusplan notes in WIZARD.md preserved. "Before you start" preface added without displacing existing content. All adversarial checks PASS on first push — no rework cycle.
+
+- **Phase 6 abbreviated audit appropriate and clean.** 5-item abbreviated check (information-disclosure in copy, prompt-injection vectors, preservation invariants, no new external URLs, diff-only content review) covered the relevant risk surface for a doc-only patch. 0 findings at every level.
+
+---
+
+### 4. What's Worth Watching
+
+- **github.enabled flip post-merge.** The user activated github.enabled=true at merge time with repo=jmlozano1990/Cowork-Starter-Kit + release{enabled:true, scheme:semver}. All future cowork cycles will now get F6 auto-release flow. This was not in v2.5.1's binding scope (correctly so — the flag change is a registry decision, not a repo change). Watch for: (a) the first full-mode cycle where F6 auto-fires — verify the release body is enriched (not empty); (b) ensure bump_type detection works correctly with cowork's semver scheme (v2.5.1 is patch; next minor will be v2.6.0).
+
+- **Community infographic as research input pattern.** v2.5.1 was initiated based on a community infographic studied as research input — not a feature backlog item or competitive analysis. The idea-to-plan-to-first-slice path was: infographic reviewed → patch series planned → v2.5.1 first slice shipped. This is a new ideation pathway. Worth tracking whether future slices (D-2 prompt-gate, D-3 correcting-course) ship as v2.5.2 in a similar cadence.
+
+- **Carry-forward continuity: all 6 v2.5 carry-forwards remain DEFERRED to v2.6.** CF-v2.5-A (MF-S1 message), CF-v2.5-B (F5 identity guard), CF-v2.5-D (2FA), CF-v2.5-E (MD035), CF-v2.5-F (F3 60-day watch — escalate 2026-07-08), CF-v2.5-G (MF-3 ALLOWED governance) are all untouched. The v2.6 docket inherits them cleanly.
+
+---
+
+### 5. Carry-Forwards
+
+All v2.5 carry-forwards reaffirmed DEFERRED to v2.6. No new carry-forwards generated by v2.5.1.
+
+| Item | Source | Status | v2.6 Priority |
+|------|--------|--------|---------------|
+| CF-v2.5-A: MF-S1 message imprecision | Phase 6 INFO | DEFERRED | LOW |
+| CF-v2.5-B: F5 no cowork-checkout identity guard | Phase 6 INFO | DEFERRED | LOW |
+| CF-v2.5-D: GitHub 2FA on contributor account | Phase 6 INFO | DEFERRED | MEDIUM |
+| CF-v2.5-E: MD035 sentinel | Phase 6 INFO | DEFERRED | LOW |
+| CF-v2.5-F: F3 60-day acknowledgement window (escalate 2026-07-08) | Phase 6 INFO | WATCH ACTIVE | HIGH |
+| CF-v2.5-G: MF-3 ALLOWED list governance for v3.0 | Phase 6 INFO | DEFERRED | MEDIUM |
+
+---
+
+### 6. Council Self-Improve Candidates
+
+No new candidates surfaced from this doc-only patch. The v2.5 candidates (C1 stale-cycle-regex-bug, C2 public-artifact-hygiene, C3 F7-temporal-gap, C4 CI-fix-topology) carry forward from the v2.5 retro.
+
+One observation specific to v2.5.1: the post-merge github.enabled flip creates a new surface for C2 (public-artifact-hygiene). The first minor+ release with github.enabled=true will be the validation test for whether G1 auto-fire works as designed. If the release body is empty on that cycle, it confirms C2 is still unresolved.
+
+---
+
+### 7. Tier 1 Agent Quality Baseline Assessment
+
+Quality baselines from `.claude/skills/*/quality-baseline.json` (v23.0, pass threshold 0.80). Quick mode + doc-only is a narrow surface — several baseline scenarios are N/A for this cycle.
+
+| Agent | Scenarios | Observed Behavior | Assessment |
+|-------|-----------|-------------------|------------|
+| @pm | QP1 (ambiguous intent), QP2 (self-validation), QP3 (conflicting requirements) | Quick-mode spec correctly scoped to 16 ACs (8 D1 + 4 REL + 4 ZD). D-2/D-3 correctly deferred with rationale ("scope-to-fit first slice"). Classification STANDARD correctly identified at Phase 0. No spec produced from ambiguous intent — QP1 N/A (prompt was well-formed). | PASS (2/2 applicable; QP1 N/A for this cycle) |
+| @architect | QA1 (anti-pattern), QA3 (speculative abstraction), QA4/QA5 (Hyrum's Law, deprecation) | Quick-mode impact statement correctly bounded to schema=none, auth=none, 5 files, explicit deny-list. No speculative abstractions added (QA3 PASS). Strict 1-commit topology enforced as binding constraint. QA1/QA4/QA5 N/A (no schema, no API, no migration in scope). | PASS (1/1 applicable; 3 scenarios N/A) |
+| @security | QS1 (guard modification), QS2 (prompt injection), QS3 (fail-closed/fail-open) | Abbreviated Phase 6 audit correctly scoped: (1) checked prompt-injection vectors in onboarding text (QS2 applied — found CLEAN); (2) confirmed no fail-open CI or guard surface (QS3 N/A — no guard changes); (3) independently re-verified STANDARD classification (V10-S2). QS1 N/A (no guard modifications). No over- or under-classification. | PASS (1/1 applicable; 2 scenarios N/A) |
+| @qa | QQ1 (flaky test), QQ2 (AC coverage), QQ3 (rework rate) | 16/16 ACs verified with grep/wc/git-diff evidence table. Rework rate 0% documented at Phase 7 with git diff evidence (QQ3 PASS). No flaky tests (all CI deterministic, QQ1 N/A). AC coverage complete — no gaps (QQ2 PASS). Classification Signal written before Phase 5 complete. | PASS (2/2 applicable; QQ1 N/A) |
+
+**Overall: 4/4 agents PASS on applicable scenarios.** Narrow surface means several QP/QA/QS/QQ scenarios were N/A — this is correct for a doc-only patch and should not be treated as coverage reduction. Applicable behaviors observed in all four agents were consistent with the 0.80 baseline.
+
+---
+
+## v2.5 — v3.0-Gate Prep (ADR-028 + tools: frontmatter + First Upstream Contribution)
+
+**Date:** 2026-05-09
+**Classification:** SECURITY-SENSITIVE + COMPLIANCE-SENSITIVE (consistent Phase 0–7)
+**Mode:** full (OWASP+LLM Top 10 + @compliance full review — combined-path NOT eligible)
+**Rework rate:** 0.17% (11 lines / 5 files post-Phase-4 SHA `81b9f391`; 2 CI-fix commits — YAML quote, MD034, MD025/026 disables — non-functional scope only)
+**Cycle SHAs:** Phase 4 binding SHA `81b9f391`, Phase 5/7 HEAD `5a09f12`, merged `7a85ae6` via PR #44 squash 2026-05-09. Tag `v2.5.0` annotated and pushed. F3 upstream PR #521 OPEN (60-day acknowledgement window).
+
+---
+
+### 1. Cycle Summary
+
+v2.5 delivered five features across two strategic tracks: supply-chain integrity (F1: `content_sha256` per-file field + verify step in `sync-agency.yml`, closing the 3-cycle ADR-028 deferral) and v3.0 readiness seams (F2: `tools:` SKILL.md frontmatter on all 20 skills + MF-3 CI vocab gate; F3: first upstream contribution PR `meeting-notes` to msitarzewski/agency-agents repository; F4: MF-1/MF-2 `grep-c` hardening + awk structural refactor; F5: local markdownlint pre-commit hook).
+
+This cycle was the first to classify COMPLIANCE-SENSITIVE, triggering a full @compliance review alongside @security at Phase 2. The compliance gate caught two carry-forwards before @dev started: CF-L1-1 (writing-profile contamination strip, bound to AC-F3-3) and CF-L4-1 (PR description attribution requirement). Both would have shipped without the Phase 2 gate. @security caught MF-S1 (multi-line YAML gate bypass) and MF-S2 (positional awk fragility) at Phase 2 — also bound as MUST-FIX before Phase 4. Together these four items represent the qa_issues_prevented count at Phase 7.
+
+The 6-commit topology was BINDING. @dev self-reported 9 total commits (6 binding + 2 CI-fix + 1 pre-branch commit) against the binding 6. Phase 5 classified this as INFO CF-v2.5-C — the CI-fix topology deviation is now confirmed 2-cycle (v2.4 had 3 CI-fix commits). The F3 upstream PR remained OPEN at cycle close; v3.0 trigger clock starts 2026-05-09 (escalate 2026-07-08 per CF-v2.5-F).
+
+The mid-Phase-1 PC restart did not cause scope drift. @architect detected a partial ADR Index state on recovery and completed the design body in a second pass — no agent or phase boundary was crossed during recovery. The recovery validated the artifact-on-disk audit approach and the scratchpad partial-state preservation pattern.
+
+All 33 ACs PASS. All 23 constraints PASS (19 C-v2.5-N + 4 MUST-FIX). CI: 42 PASS / 2 SKIPPED / 0 FAIL at HEAD `5a09f12`.
+
+**Verdict: HEALTHY-with-strategic-significance.** 0.17% rework (CI-fix scope only), 33/33 ACs PASS, 23/23 constraints PASS, 0 CRITICAL across Phase 2/6 (both Phase 2 gates + full OWASP+LLM Top 10 Phase 6 audit), ADR-028 3-cycle deferral closed, first upstream contribution shipped, OWASP A08 + LLM05 supply-chain posture strengthened. This cycle's compliance gate pattern and upstream contribution model are now precedent.
+
+---
+
+### 2. What Went Well
+
+- **Dual-gate Phase 2 worked cleanly:** COMPLIANCE-SENSITIVE + SECURITY-SENSITIVE triggered both @compliance and @security at Phase 2. No sequencing conflict. @compliance's CF-L1-1 and CF-L4-1 findings were correctly bound into architect constraints C-v2.5-11 and C-v2.5-13 before @dev started. This is the first cycle where the compliance gate caught would-be blockers before implementation — validates the Phase 2 dual-gate pattern for COMPLIANCE-SENSITIVE cycles.
+
+- **MF-S1 and MF-S2 caught at Phase 2 (not Phase 6):** Both @security MUST-FIX items were identified during architecture review with concrete bash patch text. @dev implemented both in the binding 6-commit topology. Phase 6 confirmed MF-S1 as security-property-met (ALLOWED-token fallthrough) and MF-S2 as structural scan correct. Without the Phase 2 security gate, both would have shipped with the original fail-open and positional-fragility behaviors.
+
+- **ADR-028 closed cleanly (3-cycle deferral resolved):** `content_sha256` backfill (110 entries at pinned commit `783f6a72`) + verify step + cross-check CI job (`lock-content-sha-cross-check`, 21s) all shipped in one PR. OWASP A08 + LLM05 strengthened with 3 independent proofs of bytes — SHA at fetch + verify pass + cross-check. No partial implementation.
+
+- **First upstream contribution validated the outbound governance model:** F3 met all four compliance gate requirements: writing-profile strip (CF-L1-1), attribution verbatim in PR body (CF-L4-1), upstream CONTRIBUTING.md reviewed (no IP preconditions), and public-copy hygiene scope correct. Information-disclosure clean (no Cowork-internal architecture, naming, or paths beyond intentional provenance). PR #521 OPEN — governance handoff PASS.
+
+- **v3.0 readiness seams all functional:** `tools: [claude-code]` on all 20 skills + MF-3 CI vocab gate + closed-allowlist (ALLOWED list) + shell-metachar/multi-line attack coverage all shipped. `tools:` is now the structural seam for a v3.0 tool-routing feature. ADR-029 and ADR-030 lock the contract.
+
+- **0.17% rework — first-push norm holds:** CI-fix commits were non-functional (YAML quote, MD034, MD025/026 linting disables). All 33 ACs passed at Phase 4 binding SHA. Third consecutive SECURITY-SENSITIVE cycle under 1% rework.
+
+- **Mid-Phase-1 PC restart recovered without scope drift:** @architect detected partial ADR Index state after restart. Second-pass completed design body atomically. No phase boundary crossed, no scope deviation. Artifact-on-disk audit + partial-state preservation in next agent brief was the recovery mechanism — this pattern works.
+
+---
+
+### 3. What Didn't Go Well
+
+- **CI-fix commit topology: 9 commits vs 6-commit binding (2nd consecutive cycle):** v2.4 had 3 CI-fix commits; v2.5 had 2 CI-fix commits. Both cycles had binding commit topologies that required post-Phase-4 CI-fix commits. Phase 5 classified these correctly as INFO CF-v2.5-C. The pattern is now 2-cycle confirmed. The CI-fix commits were non-functional in both cases, but the binding topology is being consistently violated post-Phase-4. See Section 8 — CI-Fix-Topology-Pattern promoted to WATCH (2/3) this cycle.
+
+- **MF-S1 message imprecision (INFO carry-forward):** The multi-line YAML rejection works correctly via ALLOWED-token fallthrough — the security property is preserved. However, the MF-3 guard message does not explicitly say "rejected because multi-line YAML `tools:` form produces empty TOKENS." A future operator inspecting CI logs for a multi-line YAML rejection will see an `ALLOWED`-token mismatch, not an explicit multi-line-rejection message. CF-v2.5-A carries to v2.6.
+
+- **2FA on contributor account and MD035 sentinel (persistent INFO carries):** CF-v2.5-D (2FA) and CF-v2.5-E (MD035) both originated in Phase 2 and carried through all phases. Neither is exploitable, but 2FA in particular requires an external action (@personal-handle) outside the pipeline. These will carry until resolved at the account level.
+
+- **F7-temporal-gap still open:** v2.5 Phase 6 docs landed in Commit 6 of PR #44 — the same PR — which is progress over v2.4's PR #42 follow-up. However, this was achieved by delaying the commit to include docs written post-Phase-5/6. The topology was structurally correct but Phase 5/6 docs were appended to an existing commit rather than a purpose-built post-Phase-6 slot. The 9-commit topology option from Section 9 C2 is still the cleaner resolution.
+
+---
+
+### 4. AC Difficulty Assessment
+
+| Feature | ACs | Classification | Notes |
+|---------|-----|----------------|-------|
+| F1 — content_sha256 integrity | AC-F1-1..5 | Medium | Verify step placement (inside existing loop, between L216/L237) was precisely constrained; fault-injection fixture required adversarial CI design |
+| F2 — tools: frontmatter | AC-F2-1..5 | Easy | Closed-vocabulary, mechanical application across 20+21 SKILL.md files; MF-3 gate straightforward |
+| F3 — upstream contribution | AC-F3-1..5 | Hard | Contamination strip (CF-L1-1) required precise verification; attribution verbatim check required exact match; PR URL HTTP 200 required live network access |
+| F4 — MF-1/MF-2 hardening | AC-F4-1..5 | Medium | Per-step `set -o pipefail` + `||BAD=0` pattern; awk structural header scan replacing positional `$7` — column-reorder fixture provided concrete adversarial verification |
+| F5 — local markdownlint pre-commit | AC-F5-1..5 | Easy | `set -euo pipefail` + `git rev-parse --show-toplevel` + existing-hook backup pattern is established; opt-in trust model pre-accepted |
+| AC-ZD-1..4 | Zero-diff constraints | Easy | Preservation invariants: byte-unchanged items deterministic via grep/cmp |
+| AC-REL-1..4 | Release artifacts | Easy | ADR-033 pattern established v2.1+; executed cleanly in Commit 6 |
+| MF-S1 + MF-S2 MUST-FIX | Security constraints | Hard | MF-S1 fallthrough pattern non-obvious at implementation time; MF-S2 structural header scan required new test fixture (registry-column-reorder.md) |
+
+**Hardest AC:** AC-F3-3 (writing-profile contamination strip) — required identifying the exact optional-field reference location, stripping without altering surrounding YAML structure, and verifying via both grep and prose-read (CF-L1-1 paraphrase-escape compensating control).
+
+---
+
+### 5. Security and Compliance Findings Summary
+
+| ID | Phase | Severity | Surface | Description | Resolution |
+|----|-------|----------|---------|-------------|------------|
+| MF-S1 | 2 | WARNING→MUST-FIX | configuration | MF-3 multi-line YAML `tools:` form — sed/tr pipeline produces empty TOKENS, gate passes silently | RESOLVED via ALLOWED-token fallthrough (security property preserved; message imprecision as INFO CF-v2.5-A) |
+| MF-S2 | 2 | WARNING→MUST-FIX | configuration | MF-2 awk positional `$7` — leading blank/comment above registry header causes fail-closed but misleading error | RESOLVED via `header_seen` structural scan + column-reorder fixture (AC-F4-3/4/5) |
+| CF-L1-1 | 2 (compliance) | WARNING→MUST-FIX | contribution | writing-profile reference in upstream-format file would contaminate outbound submission | RESOLVED — 0 hits literal + paraphrase at Phase 6 audit |
+| CF-L4-1 | 2 (compliance) | WARNING→MUST-FIX | contribution | PR description attribution line required for upstream contribution | RESOLVED — verbatim attribution confirmed in PR #521 body |
+| CF-v2.5-A | 6 | INFO | configuration | MF-S1 rejection message imprecision — multi-line YAML rejected via ALLOWED fallthrough, not explicit guard message | DEFERRED v2.6 |
+| CF-v2.5-B | 6 | INFO | configuration | F5 no cowork-checkout guard — opt-in trust model acceptable | ACCEPTED |
+| CF-v2.5-D | 6 | INFO | supply-chain | 2FA on contributor account — external action required | DEFERRED (external dependency) |
+| CF-v2.5-E | 6 | INFO | configuration | MD035 sentinel carry — verified safe under current template | WATCH |
+| CF-v2.5-F | 6 | INFO | governance | F3 60-day acknowledgement window — escalate 2026-07-08 | WATCH |
+| CF-v2.5-G | 6 | INFO | configuration | MF-3 ALLOWED list governance for v3.0 | DEFERRED v3.0 |
+
+**Phase 2 result:** 0 CRITICAL · 2 WARNING (security) + 0 CRITICAL · 1 WARNING (compliance). Full OWASP A01-A10 + LLM Top 10 + full compliance L1-L6 review completed. Combined-path NOT eligible. Reaffirmed SECURITY-SENSITIVE + COMPLIANCE-SENSITIVE independently.
+
+**Phase 6 result:** 0 CRITICAL · 0 WARNING · 6 INFO. Full OWASP A01-A10 + LLM Top 10 audit. All 14 Phase 2 audit handoff items PASS. SECURITY-SENSITIVE classification re-confirmed.
+
+---
+
+### 6. Issues Prevented
+
+| Category | Count | Details |
+|----------|-------|---------|
+| Blocker | 2 | MF-S1 (multi-line YAML gate bypass) + MF-S2 (positional awk fragility) — caught Phase 2, bound as MUST-FIX; would have shipped without @security Phase 2 gate |
+| Issue | 2 | CF-L1-1 (writing-profile contamination in upstream contribution) + CF-L4-1 (missing attribution line) — caught by @compliance Phase 2; both compliance violations that would have invalidated the upstream contribution |
+| Info | 6 | CF-v2.5-A (MF-S1 message imprecision), CF-v2.5-B (F5 no checkout guard), CF-v2.5-D (2FA carry), CF-v2.5-E (MD035 sentinel), CF-v2.5-F (60-day watch), CF-v2.5-G (ALLOWED list governance) — all surfaced at Phase 6; none would have blocked the cycle but 3 carry to v2.6 docket |
+
+**Phase 2 compliance gate validation:** This is the first cycle where @compliance Phase 2 review prevented a would-be PR submission that would have contaminated the upstream with Cowork-internal references. The dual-gate pattern (compliance + security at Phase 2) is confirmed effective for COMPLIANCE-SENSITIVE cycles.
+
+---
+
+### 7. Tier 1 Agent Quality Baseline Assessment
+
+Quality baselines from `.claude/skills/*/quality-baseline.json` (v23.0, pass threshold 0.80).
+
+| Agent | Scenarios Evaluated | Observed Behavior | Assessment |
+|-------|---------------------|-------------------|------------|
+| @pm | QP1 (ambiguous intent), QP2 (self-validation gates), QP3 (conflicting requirements) | Full-mode PRD produced 33 ACs across 5 features. Classification SECURITY-SENSITIVE + COMPLIANCE-SENSITIVE correctly identified at Phase 0 (F1 lock integrity + F3 outbound contribution). OQ-1..5 correctly surfaced for @architect. v3.0 trigger clock correctly encoded in ACs. WILL-NOT-DO list (2 re-deferred items) properly scoped. No silent conflict resolutions. Upstream contribution candidate selection (meeting-notes: lowest Cowork entanglement) is defensible reasoning. | PASS (3/3) |
+| @architect | QA1 (anti-pattern scan), QA3 (speculative abstraction), QA4 (Hyrum's Law), QA5 (deprecation) | ADR-028 PROPOSED→ACCEPTED with implementation specifics (verify step placement inside existing loop L216/L237 — Hyrum's Law applied to existing hook points). 2 new ADRs (ADR-029 tools: contract, ADR-030 outbound contribution model). ADR-007 + ADR-016 amended with additive v2.4/v2.5 blocks. Mid-Phase-1 PC restart: partial ADR Index detected, design body completed in second pass without scope drift — discipline under adversarial conditions. C-v2.5-19 backfill cross-check added in Round 1 deliberation — responsive to @security concern. Anti-pattern scan: 0 blockers. | PASS (4/5; mid-restart recovery is extra credit — no baseline scenario for this) |
+| @security | QS1 (guard modification), QS2 (prompt injection vector), QS3 (fail-closed/fail-open) | Phase 2: MF-S1 multi-line YAML gate bypass (QS3 applied: fail-open = WARNING) + MF-S2 positional awk fragility — both with concrete patch text. Independent SECURITY-SENSITIVE re-verification at Phase 2 and Phase 6 (V10-S2). LLM05 supply-chain integrity analysis at Phase 6 (3 independent proofs of bytes). CF-L1-1 paraphrase-escape false-negative window identified (Phase 6 prose-read compensating control). All 14 Phase 2 audit handoff items independently re-verified at Phase 6. No over- or under-classification. | PASS (3/3) |
+| @qa | QQ1 (flaky test), QQ2 (AC coverage), QQ3 (rework rate) | 33/33 ACs verified with grep/wc/CI output evidence. 23/23 constraints verified. Adversarial test suite (fault-injection on F1, F2, F3 contamination, F4 column-reorder) complete. Rework rate correctly computed at 0.17% (11 lines / 5 files post-Phase-4 SHA — CI-fix scope identified and labelled). ADR-100 4-item Phase 7 checklist fully executed. INFO items correctly classified (CF-v2.5-A imprecise message vs. correct implementation). Classification Signal written in-cycle. | PASS (3/3) |
+
+**Overall: 4/4 agents PASS on applicable scenarios.** Pass rate exceeds 0.80 threshold across all tiers. @qa Classification Signal miss from v2.4 not repeated in v2.5 — closed.
+
+---
+
+### 8. Quality Patterns
+
+#### Pattern Updates: WATCH Evaluation
+
+**CI-Fix-Topology-Pattern** — WATCH 2/3 (new pattern, first cycle-confirmed progression)
+
+v2.4: 8 binding + 3 CI-fix commits. v2.5: 6 binding + 2 CI-fix commits (+ 1 pre-branch). Both cycles had binding commit topologies declared at Phase 1, both required post-Phase-4 CI-fix commits. CI-fix commits are consistently non-functional (linting, YAML quoting) but they violate the stated binding topology. The count improved (3→2), suggesting CI-fix commits are a structural fixture of the pipeline rather than a quality problem. Pattern is now 2-cycle confirmed — promoting to WATCH 2/3.
+
+**Public-Artifact-Hygiene-Gap** — WATCH 2/3 (PROGRESSING)
+
+v2.5: CHANGELOG, README badge, and "Next up v2.6" teaser all shipped in Commit 6 of PR #44 — same PR, not a follow-up. This is a direct improvement on v2.4's PR #42 paperwork follow-up. Public-facing docs describe the current architecture. PROGRESSING — tick to 2/3.
+
+**Verifier-Phrasing-Gap** — WATCH 2/3 (PROGRESSING, but evidence mixed)
+
+v2.5 Phase 5 had CF-v2.5-A (MF-S1 message imprecision flagged by @qa) — this was a genuine imprecision (message text, not verifier grep). The structural verifier patterns for F1 (grep `content_sha256`), F2 (`grep -rl "^tools:"` / `grep -c`), F4 (`grep -c '\$7'`) all used @dev-idiomatic patterns from the constraint specification. No false-pass verifier issues observed. PROGRESSING — tick to 2/3, with the note that the remaining INFO (CF-v2.5-A) is a runtime message, not a verifier pattern.
+
+**F7-temporal-gap sub-pattern** — WATCH 2/3 (PROGRESSING)
+
+v2.5 Phase 5/6 docs (qa-report-v2.5.md, security-audit-v2.5.md) landed in Commit 6 of PR #44 — the same PR, not a follow-up PR. This is direct progress: down from 2 PRs (v2.4) to 1 PR (v2.5). The mechanism used was appending to the topology commit rather than a dedicated post-Phase-6 slot — structurally correct but informally done. The 9-commit topology option (C2) remains the clean resolution. PROGRESSING — tick to 2/3.
+
+**Paperwork-Follow-Up-PR-Pattern** — WATCH 3-cycle CONFIRMED (v2.3.0, v2.3.1, v2.4) — **RESOLVED in v2.5**
+
+v2.5 required no follow-up paperwork PR. All docs shipped in PR #44. The v2.4 F7 mandatory-paperwork-commit topology + improved post-Phase-6 doc inclusion in Commit 6 eliminated the follow-up PR. After 3-cycle CONFIRMED promotion, this pattern is now RESOLVED as of v2.5.
+
+**P-COWORK-1: local-lint-vs-CI-divergence** — WATCH (continues)
+
+v2.5 shipped F5 `scripts/install-pre-commit.sh` — the local markdownlint pre-commit hook that was the proposed mitigation for 4 consecutive cycles. The structural tooling gap is now CLOSED at the tool level (opt-in hook available). No CI lint failures in v2.5 cycle. The pattern transitions from "tooling gap open" to "mitigation shipped; watch for adoption drift."
+
+---
+
+### 9. Council /self-improve Candidates
+
+**C1: Stale-Cycle Regex Bug** (HIGH — block-grade, occurred twice this session)
+
+`scripts/check-stale-cycle.sh` regex `/v[0-9]+/` truncates `v2.4` to `v2`, causing false STALE detection on every cowork minor-version transition. `/spec` was blocked twice this session; workaround was to manually overwrite the cycle-reset.marker with `v2`. Brief filed at `~/.claude/plans/council-stale-cycle-regex-fix.md`. Memory entry `council-stale-cycle-regex-bug` created. Fix: change regex to capture full semver (`v[0-9]+(\.[0-9]+)*`) or extract the full version token via the same method as pipeline.md `## Current Task` header parsing. Severity HIGH — blocks every new cycle on projects with minor-version cycle names.
+
+**C2: council-public-artifact-hygiene** (HIGH — subsumed from v2.4 C1; G1 audit skipped v2.5 due to github.enabled=false)
+
+For minor+ releases: Phase 7 should include a mandatory public-artifact audit step. G1 was correctly skipped this cycle (github.enabled=false), but the v2.5 artifacts were updated in Commit 6 — manual discipline, not automated enforcement. The automated G1 path should activate when github is enabled.
+
+**C3: F7-temporal-gap fix — 9-commit topology** (MEDIUM — 2-cycle progressing, v2.5 informally resolved it but no formal topology change)
+
+F7-temporal-gap is PROGRESSING (2/3) but not formally closed. The Commit-6 append mechanism worked in v2.5 but is not bound in any ADR or Phase 1 constraint. Formalizing a "Commit-N (post-Phase-6)" slot in the binding commit topology would close the sub-pattern cleanly. Estimate: 1-cycle to design + encode.
+
+**C4: CI-Fix-Topology allowance** (LOW — 2-cycle WATCH, evaluate at 3)
+
+Binding commit topologies are declared at Phase 1 but consistently require 2-3 post-Phase-4 CI-fix commits. Both cycles (v2.4, v2.5) had non-functional CI-fix commits (linting, YAML). Options: (a) build a +2 CI-fix commit allowance into the binding topology definition, (b) require @dev to run CI checks locally before pushing (F5 pre-commit hook precedent), or (c) accept as structural fixture with explicit INFO classification. Currently classified INFO — evaluate at 3-cycle if pattern continues.
+
+---
+
+### 10. Carry-Forwards into v2.6
+
+| Item | Source | Priority | Disposition |
+|------|--------|----------|-------------|
+| CF-v2.5-A: MF-S1 message imprecision | Phase 6 INFO | LOW | Multi-line YAML rejection message should explicitly state rejection reason, not rely on ALLOWED fallthrough. Minor UX fix for CI log readability. |
+| CF-v2.5-D: 2FA on contributor account | Phase 6 INFO | MEDIUM | External action required. Escalate if upstream PR activity involves merge review. |
+| CF-v2.5-E: MD035 sentinel | Phase 6 INFO | LOW | Defense-in-depth: add sentinel check to MF-3 if tools: frontmatter ever uses MD035-adjacent constructs. Watch only. |
+| CF-v2.5-F: F3 60-day acknowledgement window | Phase 6 INFO | HIGH | PR #521 OPEN. Escalate 2026-07-08 if no acknowledgement from upstream. v3.0 trigger clock running. |
+| CF-v2.5-G: MF-3 ALLOWED list governance | Phase 6 INFO | MEDIUM | Closed-allowlist for `tools:` vocabulary (claude-code, copilot, cursor, windsurf) needs governance decision before v3.0 adds new tools. Design at Phase 1 when v3.0 scope is clear. |
+| CF-v2.4-D: Selection-preset community PR contribution workflow | v2.4 WILL-NOT-DO, re-deferred | LOW | PR checklist + validator for community-contributed preset blocks. Condition not met in v2.5 scope. |
+| CF-v2.4-E: LLM-based goal matching | v2.4 WILL-NOT-DO, backlog | LOW | Only if keyword-match <80% in field testing. Backlog. |
+
+---
+
 ## v2.4 — Dynamic Workspace Architect
 
 **Date:** 2026-05-09
