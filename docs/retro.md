@@ -2,6 +2,168 @@
 
 ---
 
+## v2.5.2 — Quality Loop (D-2 prompt-gate + D-3 correcting-course)
+
+**Date:** 2026-05-10
+**Classification:** COMPLIANCE-SENSITIVE (consistent Phase 0–7)
+**Mode:** full (Phase 2 /legal @compliance required; Phase 6 abbreviated audit — COMPLIANCE-SENSITIVE, no SECURITY surface)
+**Rework rate:** 0% (HEAD b31ccce = Phase 4 SHA; 2-commit topology, no post-Phase-4 commits)
+**Cycle SHAs:** Phase 4 binding SHA `b31cccecc8021586aae0255b49b2a17f051a4dae`, merged `5ce67633` via PR #46 squash 2026-05-10. Tag `v2.5.2` annotated and pushed. Branch `release/v2.5.2` deleted on remote.
+
+---
+
+### 1. Phase Findings Summary
+
+| Phase | Agent | Findings Count | Severity Breakdown |
+|-------|-------|---------------|-------------------|
+| 0. Requirements | @pm | 0 | — |
+| 2. Compliance Review | @compliance | 6 | 0 CRITICAL / 2 WARNING (MUST-FIX) / 4 INFO |
+| 1. Design | @architect | 0 | — (4 INFO open issues for Phase 6) |
+| 3. User Gate | User | 0 | APPROVED as-designed |
+| 4. Implementation | @dev | 0 | 21/21 ACs self-verified |
+| 5. Testing | @qa | 0 | 21/21 PASS, 6/6 CI gates PASS |
+| 6. Code Audit | @security | 0 | 0 CRITICAL / 0 WARNING / 0 INFO net-new |
+| 7. Final Approval | @qa | 0 | APPROVED, rework rate 0% |
+
+**Net-new findings across the full cycle:** 2 WARNING (compliance, resolved before Phase 4), 0 findings at Phase 6. Clean execution.
+
+---
+
+### 2. AC Difficulty Assessment
+
+| AC | Description | Classification |
+|----|-------------|---------------|
+| AC-D2-1 | SKILL.md exists, CI depth-check PASS | Easy — auto-detected by CI glob |
+| AC-D2-2 | 4-phase workflow present | Easy — structural, grep-verifiable |
+| AC-D2-3 | `*` prefix bypass documented | Easy — single section |
+| AC-D2-4 | Missing/placeholder file detection + chips | Easy — explicit spec from architecture |
+| AC-D2-5 | Self-evaluation gate documented | Easy — prose rule |
+| AC-D2-6 | MIT attribution block (Option A self-contained) | Hard — required @compliance gate to resolve format; two binding options debated; Option A chosen over Option B for supply-chain independence |
+| AC-D2-7 | All 7 presets contain prompt-gate reference | Easy — byte-identical injection verified by SHA |
+| AC-D2-8 | curated-skills-registry.md row | Easy — template-driven |
+| AC-D2-9 | Irrelevant file silently skipped (edge case) | Easy — documented in SKILL.md |
+| AC-D2-10 | All context present: skip Phase 1 | Easy — documented in SKILL.md |
+| AC-D2-11 | Trivial prompt bypass with examples | Easy — documented in SKILL.md |
+| AC-D3-1 | prompts/correcting-course.md exists with chips | Easy — verbatim from architecture §4.2 |
+| AC-D3-2 | "Other" free-text chip | Easy — included in file body |
+| AC-D3-3 | All 7 presets contain correcting-course reference | Easy — byte-identical injection |
+| AC-D3-4 | Cascading correction behavior | Easy — prose rule in file |
+| AC-REL-1 | VERSION = 2.5.2 | Easy |
+| AC-REL-2 | README badge | Easy |
+| AC-REL-3 | "Next up (v2.6)" byte-identical | Hard — hard invariant; required explicit Phase 4 preservation check; passed cleanly |
+| AC-REL-4 | CHANGELOG [2.5.2] order + content | Easy |
+| AC-REL-5 | Patch-Level Exception note in CHANGELOG | Easy — verbatim from spec |
+| AC-REL-6 | CHANGELOG version order correct | Easy |
+| AC-ZD-1 | cowork.lock.json byte-unchanged | Easy |
+| AC-ZD-2 | CLAUDE.md ≤ 400 words | Easy — no CLAUDE.md edits; 397w confirmed |
+| AC-ZD-3 | No preset core content modified | Easy — deny-list bound at Phase 1 |
+| AC-ZD-4 | ADR count unchanged at 32 | Hard — re-interpretation required (append-only record vs empty diff); binding re-interpretation contract written and agreed by user at Phase 1. Third consecutive cycle requiring this re-interpretation. |
+| AC-ZD-5 | CI workflow files unchanged | Easy — CI auto-detects via glob; no edits needed |
+
+**Hardest ACs this cycle:** AC-D2-6 (attribution format resolution — required compliance gate), AC-REL-3 (hard lock enforcement), AC-ZD-4 (re-interpretation contract, 3rd consecutive cycle).
+
+---
+
+### 3. Token Cost Actuals
+
+| Model Tier | Agent Invocations | Notes |
+|------------|------------------|-------|
+| opus | @architect (Phase 1), @security (Phase 6) | 2 opus invocations |
+| sonnet | @pm (Phase 0), @compliance (Phase 2), @dev (Phase 4 × 2), @qa (Phase 5, Phase 7), orchestrator (coordination) | ~8+ sonnet invocations |
+| haiku | 0 | No haiku-tier sub-tasks |
+
+**Token cost estimate:** Instrumentation gap — all records show `model_raw: "unknown"`. Per cycle 17 Phase 7 metrics.json record: `qa_issues_prevented: {blocker:1, issue:1, info:2}`. Cost estimate unavailable due to instrumentation gap.
+
+**Comparison to prior cycle (v2.5.1):** v2.5.1 was quick-mode, ~50 minutes. v2.5.2 is full-mode with compliance gate; wall-clock significantly longer. Token volume proportionally higher given full Phase 2 + Phase 6 audit + 2-commit topology. Exact delta unavailable.
+
+---
+
+### 4. Phase Durations
+
+| Phase | Start | End | Duration | Notes |
+|-------|-------|-----|----------|-------|
+| 0. Requirements | 2026-05-10T00:00:00Z | 2026-05-10T00:00:00Z | < 30 min | Single-session spec append |
+| 2. Compliance Review | 2026-05-10T00:00:00Z | 2026-05-10T01:00:00Z | ~60 min | Full @compliance review; 2 MUST-FIX resolved at design |
+| 1. Design | 2026-05-10T01:00:00Z | 2026-05-10T08:30:00Z | ~7.5 hr | Includes user review gap; design body ~460 lines |
+| 3. User Gate | 2026-05-10T08:30:00Z | 2026-05-10T09:30:00Z | ~60 min | Includes registry-path fix delay |
+| 4. Implementation | 2026-05-10T09:30:00Z | 2026-05-10T11:00:00Z | ~90 min | 2 commits, 16 files; @dev self-verified 21/21 ACs |
+| 5. Testing | 2026-05-10T11:00:00Z | 2026-05-10T11:30:00Z | ~30 min | 6 local CI gates + 21 AC table |
+| 6. Code Audit | 2026-05-10T11:30:00Z | 2026-05-10T12:00:00Z | ~30 min | Abbreviated audit; combined-path eligible |
+| 7. Final Approval | 2026-05-10T12:00:00Z | 2026-05-10T12:00:00Z | < 30 min | Combined-path from Phase 6 |
+
+**Flag:** Phase 1 → Phase 3 gap (~7.5 hours) is the cycle outlier. Contributing factor: user review cadence + registry-path mismatch friction. This is not a pipeline performance issue; it reflects real-world async gate timing.
+
+---
+
+### 5. Phases Abbreviated
+
+- **Phase 6:** Abbreviated (not full OWASP A01-A10 + LLM Top 10). Rationale: COMPLIANCE-SENSITIVE classification with independently re-confirmed zero SECURITY surface. 4 abbreviated checks only. Per V10-S2 protocol.
+- **Combined-path:** Phase 6 declared "combined-path: eligible" but Phase 7 ran as a separate `/approve` invocation (sequential same-session calls). Functionally equivalent — Phase 6 APPROVED and Phase 7 APPROVED were both performed with fresh evidence. No ceremony deficit.
+- All other phases ran at full ceremony for full-mode classification.
+
+---
+
+### 6. Rework Rate and Causes
+
+**Rework rate: 0%**
+
+`git diff b31ccce HEAD | wc -l` = 0 at Phase 7. HEAD equals Phase 4 SHA throughout Phases 5, 6, and 7. No commits after Phase 4.
+
+This is the 2nd consecutive 0% rework cycle (v2.5.1: 0%, v2.5.2: 0%). The V45-A3 discipline — running local CI replication before pushing — was applied at Phase 5 as a pre-Phase-7 smoke step. Result: PR CI was green on first push. No CI-fix commits entered the topology. This breaks the 2-cycle CI-Fix-Topology-Pattern streak cleanly for the second consecutive time (v2.5.1 also broke it). Pattern disposition updated to WATCH-reset.
+
+**Contributing factors to 0% rework:**
+1. Architecture §4 verbatim specs for all 3 new files reduced implementation ambiguity to near zero.
+2. Byte-identical injection verified locally before push.
+3. Local CI replication (V45-A3) confirmed gate pass before PR.
+
+---
+
+### 7. Issues Prevented
+
+`qa_issues_prevented`: **blocker=1, issue=1, info=2**
+
+| Category | Count | What Would Have Shipped |
+|----------|-------|------------------------|
+| Blocker | 1 | MIT attribution omission — CF-L1-1 + CF-L1-2 MUST-FIX items would have shipped without the @compliance Phase 2 gate. The `skills/prompt-gate/SKILL.md` footer and `THIRD-PARTY-NOTICES.md` addyosmani entry would both have been absent, creating a license compliance gap. |
+| Issue | 1 | O-1 sync-agency.yml regeneration risk — identified at Phase 4 verification. Without flagging, the `## Direct Pattern Incorporations` section would be silently wiped on the next upstream agency-agents sync run. DO-NOT-REGENERATE guard added; v2.5.3 follow-up bound. |
+| Info | 2 | O-2 PII read-only disposition (CLEAN) and O-4 cross-repo port policy documented as guidance (ACCEPTED). Both confirmed non-blocking with explicit disposition. |
+
+**Compliance finding catch is the headline:** The COMPLIANCE-SENSITIVE gate caught a real attribution gap before Phase 1 was finalized. This is the pipeline working as designed — gate fires early (Phase 2 /legal before /design), compliance MUST-FIX items bound to Phase 4 constraints, both resolved at implementation, independently verified at Phase 6.
+
+---
+
+### 8. Pattern Detection
+
+Examining the last 3 cycles at WARNING+ severity in Phase 6 summaries:
+
+- **v2.5 (cycle 15):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 INFO net-new (PASS)
+- **v2.5.1 (cycle 16):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 INFO (abbreviated, PASS)
+- **v2.5.2 (cycle 17):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 INFO net-new (PASS)
+
+No WARNING+ keywords (`auth`, `RLS`, `permissions`, `scope`, `guard`, `configuration`, `injection`) appear in Phase 6 summaries for any of these 3 consecutive APPROVED cycles. **No 3-cycle WARNING+ pattern detected.**
+
+**Pattern updates this cycle (3 entries, per orchestrator brief):**
+
+1. **"Worktree path mismatch with project registry"** — NEW WATCH (1st instance). Phase 4 @dev hit scope guard because registry pointed at `/home/user/claude-cowork-config` while the worktree lived at `/home/user/claude-cowork-config-v252-worktree` (sibling dir, not nested). User updated registry to fix. Threshold: 3 cycles.
+
+2. **"V45-A3 pre-Phase-7 CI smoke effectiveness"** — IMPROVEMENT-VALIDATED signal (1st instance proved effective). Local CI replication before push resulted in green CI on first push. Compare to v2.5 which had CI-fix commits; v2.5.2 had none. This is the first external-project application of the V45-A3 lesson.
+
+3. **"Direct Pattern Incorporations attribution"** — NEW pattern entry (1st use). Option A self-contained MIT block in SKILL.md footer + `## Direct Pattern Incorporations` section in THIRD-PARTY-NOTICES.md + `<!-- DO-NOT-REGENERATE -->` guard. Useful precedent for future MIT pattern incorporations into cowork or similar config-kit projects.
+
+No self-improve suggestion generated (no 3-cycle WARNING+ surface detected).
+
+---
+
+### 9. Retrospective Verdict
+
+**HEALTHY.** v2.5.2 is the cleanest full-mode cycle in recent cowork history by several measures: 0% rework, 21/21 ACs on first verification pass, 0 Phase 6 findings, CI green on first PR push, and 0 post-Phase-4 commits. The compliance gate did its job — catching a real MIT attribution obligation before design was finalized and binding it as a Phase 4 must-fix before a line of content was written. Both attribution artifacts (Option A self-contained SKILL.md footer and Direct Pattern Incorporations in THIRD-PARTY-NOTICES.md) are belt-and-suspenders: the MIT obligation is satisfied even if the sync-agency.yml regeneration wipes the THIRD-PARTY-NOTICES.md tail on the next upstream sync.
+
+Two carry-forwards deserve attention going forward. O-1 (sync-agency.yml regeneration risk) is the only open item and has a clear v2.5.3 fix path (template update). The AC-ZD-4 re-interpretation is now in its third consecutive cycle — the convention of append-only Phase 1 architecture records is established practice, but the spec AC literal still says "empty diff." A future spec revision should align the literal with the convention rather than requiring per-cycle re-interpretation.
+
+The V45-A3 cross-project pattern transfer (pre-push local CI replication) validated in a single cycle. The registry-path mismatch is a new friction point worth watching over the next 2 cycles — if it recurs on external-project worktree cycles, a pre-Phase-4 registry verification step should be added to the agent brief template.
+
+---
+
 ## v2.5.1 — Extended Thinking + Opus Onboarding Docs (doc-only patch)
 
 **Date:** 2026-05-10
