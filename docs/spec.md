@@ -417,8 +417,345 @@ These gates are not ACs for v2.5 (they are prospective). They are recorded here 
 
 No other modifications. All 33 spec ACs achievable as-written.
 
+### v2.5.2 modifications
+
+*Populated by @architect at v2.5.2 Phase 1 close — 2026-05-10T00:00:00Z.*
+
+- AC: AC-ZD-4 (`docs/architecture.md` git diff empty) → Re-interpreted as "no new ADRs, no ADR mutations, no rewrite of existing ADR sections; append-only Phase 1 design record permitted." — Reason: Project pipeline convention from v2.0 onward appends a per-cycle Phase 1 design record under a `## v<cycle> Phase 1` heading (precedents: v2.0, v2.0.2, v2.0.3, v2.3.0, v2.3.1, v2.5.1). Strict literal AC-ZD-4 verification (empty `git diff`) conflicts with this established record-keeping. The literal interpretation would suppress the architectural ledger that downstream agents bind against. Phase 4 verification: `awk '/^## ADR-[0-9]+/{print}' docs/architecture.md` returns 32 entries (ADRs and amendments matching `^## ADR-`); count and ID set unchanged from v2.5.1 HEAD); the only diff is the appended `## v2.5.2 Phase 1 — Quality Loop Design` section. See `docs/architecture.md` v2.5.2 Phase 1 § 2 for the full re-interpretation contract.
+
+No other v2.5.2 modifications. All 21 v2.5.2 spec ACs achievable as-written.
+
 ---
 
 ## Proposed Changes
 
 *Reserved for /spec --revise cycles. Not applicable at initial Phase 0.*
+
+---
+
+---
+
+# Product Spec — Claude Cowork Config (v2.5.1)
+
+> **Cycle:** Extended Thinking + Opus Onboarding Docs
+> **Version bump:** v2.5.0 → v2.5.1 (patch — doc-only)
+> **Status:** Phase 0 — Requirements
+> **Date:** 2026-05-09T00:00:00Z
+> **Prior cycle:** v2.5.0 MERGED sha:7a85ae6, tag v2.5.0, PR #44. Retro DONE 2026-05-09T23:30:00Z.
+> **Classification:** STANDARD (doc-only, no security/compliance surface)
+> **Mode:** quick
+
+---
+
+## Problem
+
+Every user who opens the cowork-starter-kit today and does not enable Extended Thinking, or who runs on Sonnet instead of Opus, is leaving measurable quality on the table. The kit's onboarding (README Quick-start, SETUP-CHECKLIST, WIZARD) never instructs users to flip these two decisive quality knobs. This gap was identified from studying how experienced Claude users approach model quality — both Extended Thinking and Opus selection are consistently cited as the highest-leverage session-setup steps.
+
+---
+
+## Target Users
+
+**Primary:** First-time kit users following the Quick-start or SETUP-CHECKLIST. They need the two setup instructions on screen before they type their first prompt.
+
+**Secondary:** Returning users who open WIZARD.md for model guidance. They need Opus + Extended Thinking framing to replace the vague "Sonnet or higher" prior recommendation.
+
+---
+
+## Core Features (MVP)
+
+### D-1a — README.md Quick-start Leading Bullets
+
+Add two leading bullets at the top of the Quick-start section (before existing steps):
+- "Toggle Extended Thinking ON in Cowork before you start"
+- "Select Opus 4.x in the model dropdown"
+
+- AC: AC-D1-1: `grep -ic "extended thinking" README.md` >= 1
+- AC: AC-D1-4: `grep -ic "opus" README.md` >= 1 (model selection guidance)
+
+### D-1b — SETUP-CHECKLIST.md "Before you start" Preface
+
+Add a "Before you start" section above the existing 10-step checklist containing the same two items (Extended Thinking toggle + Opus selection).
+
+- AC: AC-D1-2: `grep -ic "extended thinking" SETUP-CHECKLIST.md` >= 1
+- AC: AC-D1-5: `grep -ic "opus" SETUP-CHECKLIST.md` >= 1
+- AC: AC-D1-7: SETUP-CHECKLIST.md contains a "Before you start" section header at the top
+
+### D-1c — WIZARD.md Model Guidance Update
+
+Replace the current "Sonnet or higher" model recommendation with explicit Opus + Extended Thinking guidance. The existing `opusplan` notes for cost-sensitive presets (Research / Writing / Project-Management) are preserved — they remain valid cost-sensitive guidance.
+
+- AC: AC-D1-3: `grep -ic "extended thinking" WIZARD.md` >= 1
+- AC: AC-D1-6: `grep -ic "opus" WIZARD.md` >= 1
+- AC: AC-D1-8: WIZARD.md does NOT contain the verbatim string "Sonnet or higher" (replaced)
+
+---
+
+## Out of Scope (v2.5.1)
+
+- No new files
+- No skill changes (skills/ pool untouched)
+- No global-instructions.md changes (per-preset files untouched)
+- No CI/quality.yml changes
+- No CLAUDE.md word-count changes
+- No cowork.lock.json changes
+- No "Next up" teaser rewrite (stays v2.6 multi-tool)
+- D-2 (prompt-gate skill) and D-3 (correcting-course rule) deferred to v2.5.2
+
+---
+
+## Technical Constraints
+
+- **Stack:** Markdown + bash scripts. No application runtime.
+- **CLAUDE.md word count:** Untouched. Must remain at 397 words (v2.5.0 value per AC-ZD-3 baseline).
+- **"Next up" teaser:** README.md teaser pointing to v2.6 multi-tool authoring is UNCHANGED. Published commitment is binding.
+- **cowork.lock.json:** Byte-unchanged (zero-diff).
+- **skills/ pool:** Byte-unchanged (zero-diff).
+- **ADR-033 release pattern:** VERSION + CHANGELOG + README badge + "Next up" teaser as atomic release commit.
+- **Branch:** release/v2.5.1
+
+---
+
+## User Stories
+
+- As a first-time user reading the README Quick-start, I see a reminder to toggle Extended Thinking ON and select Opus before I begin, so I get the best quality output from my first session.
+- As a user running through the SETUP-CHECKLIST, I encounter a "Before you start" preface with Extended Thinking and Opus guidance before the 10-step checklist begins, so I configure the session correctly before proceeding.
+- As a user consulting WIZARD.md for model guidance, I see explicit Opus + Extended Thinking instructions rather than a vague "Sonnet or higher" recommendation, so I know exactly what to set.
+
+---
+
+## Acceptance Criteria
+
+| ID | Surface | Criterion | Verification |
+|----|---------|-----------|--------------|
+| AC-D1-1 | README.md | Extended Thinking mentioned | `grep -ic "extended thinking" README.md` >= 1 |
+| AC-D1-2 | SETUP-CHECKLIST.md | Extended Thinking mentioned | `grep -ic "extended thinking" SETUP-CHECKLIST.md` >= 1 |
+| AC-D1-3 | WIZARD.md | Extended Thinking mentioned | `grep -ic "extended thinking" WIZARD.md` >= 1 |
+| AC-D1-4 | README.md | Opus mentioned (model selection) | `grep -ic "opus" README.md` >= 1 |
+| AC-D1-5 | SETUP-CHECKLIST.md | Opus mentioned | `grep -ic "opus" SETUP-CHECKLIST.md` >= 1 |
+| AC-D1-6 | WIZARD.md | Opus mentioned | `grep -ic "opus" WIZARD.md` >= 1 |
+| AC-D1-7 | SETUP-CHECKLIST.md | "Before you start" section header at top | `grep -ic "before you start" SETUP-CHECKLIST.md` >= 1 |
+| AC-D1-8 | WIZARD.md | "Sonnet or higher" string removed | `grep -c "Sonnet or higher" WIZARD.md` = 0 |
+| AC-REL-1 | VERSION | Patch bump applied | `cat VERSION` = `2.5.1` |
+| AC-REL-2 | CHANGELOG.md | v2.5.1 entry present | `head CHANGELOG.md \| grep -c '## \[2.5.1\]'` = 1 |
+| AC-REL-3 | README.md | Badge updated | `grep -c 'version-2.5.1-green' README.md` = 1 |
+| AC-REL-4 | README.md | "Next up" teaser unchanged | `grep -c 'Next up (v2.6)' README.md` >= 1 |
+| AC-ZD-1 | cowork.lock.json | Byte-unchanged | `cmp` exit 0 vs v2.5.0 HEAD |
+| AC-ZD-2 | skills/ pool | No SKILL.md edits | `cmp` exit 0 for all skills/ |
+| AC-ZD-3 | CLAUDE.md | Word count unchanged | `wc -w CLAUDE.md` = 397 |
+| AC-ZD-4 | Changed files | Only 5 files changed | `git diff main..release/v2.5.1 --stat` shows ONLY: README.md, SETUP-CHECKLIST.md, WIZARD.md, VERSION, CHANGELOG.md |
+
+**Total: 8 D1 ACs + 4 REL ACs + 4 ZD ACs = 16 ACs**
+
+---
+
+## Edge Cases
+
+**EC-1 — opusplan notes preservation:** WIZARD.md cost-sensitive preset notes referencing `opusplan` must NOT be removed. Verify `grep -c "opusplan" WIZARD.md` equals v2.5.0 baseline count post-edit.
+
+**EC-2 — "Next up" teaser integrity:** README.md teaser line must contain "v2.6" literally. Any accidental edit during badge bump fails AC-REL-4.
+
+**EC-3 — Section placement in SETUP-CHECKLIST.md:** "Before you start" must appear ABOVE the existing numbered checklist. If placed below, AC-D1-7 passes but the user intent (pre-checklist setup gate) is defeated. @qa verifies section ordering by line number during Phase 5.
+
+**EC-4 — WIZARD.md partial replacement:** If "Sonnet or higher" is removed but Extended Thinking / Opus guidance is NOT added in its place, AC-D1-8 passes but AC-D1-3/D1-6 fail. @qa must verify all three WIZARD.md ACs together.
+
+---
+
+## Success Metrics
+
+- **Primary:** 5-file diff on first push to release/v2.5.1. CI green. Zero rework.
+- **Secondary:** All 16 ACs verified by @qa at Phase 5. No findings.
+- **Tertiary:** "Before you start" guidance visible within the first screen of SETUP-CHECKLIST.md — user encounters Extended Thinking + Opus framing before reading any setup step.
+
+---
+
+## Assumptions
+
+- **[CONFIRMED]** v2.5.0 shipped 2026-05-09. Retro complete. Cycle-reset marker absent — new cycle starts clean.
+- **[CONFIRMED]** "Next up (v2.6): Multi-tool skill authoring" is publicly committed in README.md. This teaser stays unchanged.
+- **[CONFIRMED]** WIZARD.md contains the string "Sonnet or higher" at v2.5.0 HEAD — to be replaced.
+- **[CONFIRMED]** D-2 (prompt-gate skill) and D-3 (correcting-course rule) are deferred to v2.5.2 per approved plan at ~/.claude/plans/self-is-working-in-immutable-meerkat.md.
+- **[ESTIMATED]** Doc edits to three files take less than 30 minutes of @dev time.
+- **[UNTESTED]** Users who follow the "Before you start" guidance see measurably better output quality. No user data yet — this is the hypothesis.
+
+---
+
+## v2.5.2 Cycle — Quality Loop (D-2 + D-3)
+
+> **Cycle:** v2.5.2 — Quality Loop
+> **Version bump:** v2.5.1 → v2.5.2 (PATCH — opt-in new skill; see Patch-Level Exception note)
+> **Status:** Phase 0 — Requirements
+> **Date:** 2026-05-10T00:00:00Z
+> **Replaces:** v2.5.1 spec (doc-only patch)
+> **Classification:** COMPLIANCE-SENSITIVE
+> **Routing:** Phase 2 `/legal` (@compliance) REQUIRED before `/design` — prompt-gate skill traces to external MIT-licensed pattern (addyosmani/agent-skills). Attribution preservation must be verified by @compliance before architecture is finalized.
+> **Mode:** full
+
+---
+
+### Problem
+
+Two quality-of-interaction gaps exist for every user who opens the kit:
+
+1. **Vague prompts get generic answers.** When a user types an ambiguous or context-thin request, Claude has no automated path to enrich that request before executing. The `context/about-me.md`, `writing-profile.md`, and `working-rules.md` files exist precisely to inform execution — but Claude only reads them if the user or a SKILL.md rule directs it to. No automated gate bridges the gap between a vague prompt and those context files.
+
+2. **Output corrections require full retyping.** When a user says "this is off" or "not quite right," the current behavior is to ask the user to re-describe what they want — forcing them to reproduce context they already provided. This is friction. A structured correction form with chips (tone / scope / format / depth / sources) lets users steer without retyping.
+
+Both gaps compound over every session. A kit user who gets consistently generic answers from vague prompts is a kit user who stops using the kit.
+
+---
+
+### Scope
+
+**D-2 — `skills/prompt-gate/SKILL.md` (NEW)**
+
+A Cowork-native port of The-Council's prompt-gate pattern. Four-phase workflow:
+
+1. **Context check** — read `context/about-me.md`, `writing-profile.md`, `working-rules.md`. If any file is missing OR contains unfilled template placeholders AND is clearly relevant to the requested task → emit AskUserQuestion with chips "Fill now" / "Skip" / "Run the wizard". If the file is irrelevant to the task → silently skip.
+2. **Workspace research** — scan PROJECTS/TEMPLATES and any cowork-profile.md for context relevant to the request.
+3. **Clarify** — emit 1–3 AskUserQuestion items grounded in Phase 1 + Phase 2 findings. Never ask a question answerable from the context files.
+4. **Execute** — proceed with enriched understanding. Do not re-surface resolved questions.
+
+Self-evaluation gate: the skill must decide whether to fire at all. Trivial prompts (clear intent, bounded scope, no context dependency) proceed directly to Phase 4. The `*` prefix bypass is preserved (Council convention: `*` prefix = skip evaluation, execute directly).
+
+Wired into all 7 presets' `global-instructions.md` — kit auto-loading carries the rule into every session without user paste.
+
+**D-3 — `prompts/correcting-course.md` (NEW) + global-instructions injection**
+
+A correction-handling rule: "When the user says output is off, do not ask them to re-type. Generate an AskUserQuestion form with concrete adjustment chips (tone / scope / format / depth / sources). Free-text remains the escape hatch via an 'Other' chip."
+
+Stored as `prompts/correcting-course.md` and injected by reference into all 7 presets' `global-instructions.md`.
+
+**Release artifacts**
+
+- `VERSION` bump: 2.5.1 → 2.5.2
+- `README.md` badge: version badge value rotates 2.5.1 → 2.5.2
+- `CHANGELOG.md` [2.5.2] entry: lists prompt-gate + correcting-course in user terms; includes Patch-Level Exception note
+- `README.md` "Next up (v2.6)" teaser: UNCHANGED (locked — multi-tool is publicly committed)
+- GitHub release body: cites prompt-gate + correcting-course in plain language; flags patch exception
+
+**Patch-Level Exception note (required in release artifacts):**
+> "A new opt-in skill (prompt-gate) ships at patch level here because the v2.6 minor slot is publicly committed to multi-tool skill authoring. The skill is auto-loaded via global-instructions but can be removed from any preset's global-instructions.md without other changes. Future new-skill cycles default back to minor version bumps."
+
+---
+
+### Acceptance Criteria
+
+**D-2 — prompt-gate skill**
+
+- **AC-D2-1:** `skills/prompt-gate/SKILL.md` exists and passes the existing CI `skill-depth-check` gate (9-section structure, ≥60 line floor, `tools: [claude-code]` frontmatter field present). `grep -c "tools:" skills/prompt-gate/SKILL.md` = 1.
+- **AC-D2-2:** Prompt-gate 4-phase workflow is present in SKILL.md: Phase 1 context check, Phase 2 workspace research, Phase 3 clarify (1–3 questions), Phase 4 execute. Each phase heading appears as a heading in the file.
+- **AC-D2-3:** `*` prefix bypass is documented in SKILL.md: a section or note explicitly states that prompts beginning with `*` skip evaluation and execute directly.
+- **AC-D2-4:** Missing/placeholder file detection is documented: SKILL.md specifies that if `context/about-me.md`, `writing-profile.md`, or `working-rules.md` is absent OR contains unfilled template placeholders AND is relevant to the task, the skill emits an AskUserQuestion with chips "Fill now" / "Skip" / "Run the wizard".
+- **AC-D2-5:** Self-evaluation gate is documented: SKILL.md includes guidance on when NOT to fire (trivial prompts — clear intent, bounded scope, no context dependency).
+- **AC-D2-6:** Attribution block is present in SKILL.md tracing the 4-phase pattern to the MIT-licensed source (addyosmani/agent-skills), matching the format used in The-Council's prompt-gate SKILL.md.
+- **AC-D2-7:** All 7 presets' `global-instructions.md` files contain a prompt-gate reference block. `grep -rl "prompt-gate" examples/*/global-instructions.md | wc -l` = 7.
+- **AC-D2-8:** `curated-skills-registry.md` contains a row for `prompt-gate` under an appropriate section (all goal_tags, Tier 1, source_url = builtin). `grep -c "prompt-gate" curated-skills-registry.md` = 1.
+- **AC-D2-9 (edge case — irrelevant file):** SKILL.md documents that if a context file exists but is irrelevant to the task (e.g., writing-profile.md exists but the task is a math calculation), the skill silently skips that file rather than surfacing it.
+- **AC-D2-10 (edge case — all context present):** SKILL.md documents behavior when all context files are present and filled: skip Phase 1 bootstrap offer entirely, proceed to Phase 2.
+- **AC-D2-11 (edge case — trivial prompt):** SKILL.md documents what constitutes a trivial prompt that bypasses enrichment (example: "What time is it?", "Summarize this paragraph:" with content attached).
+
+**D-3 — correcting-course**
+
+- **AC-D3-1:** `prompts/correcting-course.md` exists. File defines the correction-handling rule: when user says output is off, do not ask for retyping; emit AskUserQuestion form with adjustment chips covering at minimum: tone, scope, format, depth, sources.
+- **AC-D3-2:** An "Other" free-text escape chip is documented in `prompts/correcting-course.md`.
+- **AC-D3-3:** All 7 presets' `global-instructions.md` files contain a correcting-course reference block. `grep -rl "correcting-course" examples/*/global-instructions.md | wc -l` = 7.
+- **AC-D3-4 (edge case — cascading correction):** `prompts/correcting-course.md` documents behavior for multiple consecutive corrections: each correction generates a fresh AskUserQuestion form; prior unanswered form chips do not persist.
+
+**Release artifacts**
+
+- **AC-REL-1:** `VERSION` file contains exactly `2.5.2`. `cat VERSION` = `2.5.2`.
+- **AC-REL-2:** `README.md` version badge URL value contains `2.5.2`. `grep "version-2.5.2" README.md` returns a match.
+- **AC-REL-3:** `README.md` "Next up (v2.6)" line is byte-identical to HEAD v2.5.1. `grep "Next up" README.md` = `**Next up (v2.6):** Multi-tool skill authoring (v3.0 routing intent) — individual skills validated for Copilot/Cursor/Windsurf and widened beyond \`claude-code\`.` (exact).
+- **AC-REL-4:** `CHANGELOG.md` contains a `## [2.5.2]` section prepended above `## [2.5.1]`. Section mentions prompt-gate and correcting-course by name.
+- **AC-REL-5:** `CHANGELOG.md` [2.5.2] section contains the Patch-Level Exception note explaining why a new skill ships at patch level.
+- **AC-REL-6 (edge case — ordering):** `CHANGELOG.md` version order is: [2.5.2] above [2.5.1] above [2.5.0]. No version entry is out of sequence.
+
+**Preservation invariants (zero-diff)**
+
+- **AC-ZD-1:** `cowork.lock.json` is byte-unchanged from v2.5.1 HEAD. `cmp cowork.lock.json <v2.5.1-HEAD-cowork.lock.json>` exits 0.
+- **AC-ZD-2:** `CLAUDE.md` word count ≤ 400. `wc -w CLAUDE.md` ≤ 400.
+- **AC-ZD-3:** No existing preset's core content files (other than `global-instructions.md`) are modified. Only `global-instructions.md` changes in each preset folder.
+- **AC-ZD-4:** `docs/architecture.md` is unchanged (no new ADRs this cycle — prompt-gate is a skill, not an architectural decision requiring an ADR). `git diff HEAD -- docs/architecture.md` is empty.
+- **AC-ZD-5:** CI workflow files (`.github/workflows/`) are unchanged except for any strictly required update to register the new skill in the CI depth-check `POOL` loop if `skills/prompt-gate/SKILL.md` is not auto-detected. If a CI change IS required: it is limited to adding `prompt-gate` to the POOL allowlist only. No other CI changes.
+
+---
+
+### Will-Not-Do (v2.5.2)
+
+- v2.6 multi-tool skill authoring work — any change that widens the `tools:` vocabulary or adds Copilot/Cursor/Windsurf validation
+- v2.5.3 v43 framework application (deferred — separate cycle)
+- Any fix for open Issues #18–23 (separate cycles; these are v2.0.1 tech-debt and hallucinated SHA items)
+- Changes to `cowork.lock.json`, `docs/architecture.md` (no new ADRs), or CI workflow files beyond the strict minimum in AC-ZD-5
+- Changes to any preset's core content files other than `global-instructions.md`
+- Any prompt-gate behavior that modifies user files without explicit user confirmation
+- Adding a new `prompts/` directory if it requires CLAUDE.md changes beyond the word-count ceiling
+
+---
+
+### Classification
+
+**COMPLIANCE-SENSITIVE.**
+
+External content detection fired: The-Council's prompt-gate SKILL.md carries an attribution block tracing the 4-phase context-enrichment pattern to `addyosmani/agent-skills` (`skills/context-engineering/SKILL.md` @ commit `9534f44c5448086fcc0046f9d83752c654c81930`, MIT License). Porting this pattern to cowork's `skills/prompt-gate/SKILL.md` carries forward the same attribution obligation.
+
+**Both repos (The-Council + cowork-starter-kit) are owned by the same author.** This is not a third-party import. However:
+1. The underlying pattern is MIT-licensed from a third party (Addy Osmani).
+2. The MIT License requires attribution preservation in any derived work.
+3. Per `docs/pipeline-policy.md#ThirdPartyContentImport`, @compliance must verify attribution format before architecture is finalized.
+
+**Required action:** Run `/legal` (Phase 2 @compliance) before `/design`. @compliance must confirm: (a) attribution block format in SKILL.md is sufficient for MIT license compliance, (b) `docs/ATTRIBUTIONS.md` in cowork should reference the same upstream source, and (c) no additional license obligations apply.
+
+Classification is NOT SECURITY-SENSITIVE. The prompt-gate is opt-in via global-instructions, introduces no auth/RLS/schema/external-API surface, and handles no sensitive data. Standard STANDARD-tier security checks apply at Phase 6.
+
+---
+
+### Technical Constraints
+
+- **Stack:** Markdown-only. No code, no dependencies, no package manager.
+- **Skill format:** Must pass existing CI `skill-depth-check` gate: 9-section SKILL.md structure, ≥60 lines, `tools: [claude-code]` frontmatter.
+- **Preset injection:** `global-instructions.md` is auto-loaded by Cowork when the preset folder is opened as a project. Injection must be additive (append new sections) — existing proactive-skill sections and session-start behaviors are not modified.
+- **`prompts/` directory:** Does not currently exist. @architect must decide whether to create it as a bare directory or document its convention in `docs/architecture.md`. See AC-ZD-4 (no ADR required — prompt directory is a convention, not an architectural decision; a comment in CONTRIBUTING.md is sufficient).
+- **CI impact:** The existing `skill-depth-check` CI job validates all `skills/*/SKILL.md` files. `prompt-gate` must either auto-pass or require only a minimal POOL allowlist addition (see AC-ZD-5).
+- **Attribution:** The Cowork SKILL.md's attribution block must match the format used in The-Council's `docs/ATTRIBUTIONS.md` and the inline attribution in The-Council's prompt-gate SKILL.md.
+- **Word budget:** `CLAUDE.md` must stay ≤ 400 words (AC-ZD-2). Prompt-gate and correcting-course are referenced from `global-instructions.md`, not CLAUDE.md — no CLAUDE.md changes expected.
+
+---
+
+### User Stories
+
+- As a Cowork user opening a preset workspace with an unfilled context file, I want an automatic offer to fill it before my first task runs, so I don't get generic output because I forgot to configure my profile.
+- As a Cowork user typing a vague request, I want Claude to ask 1–3 grounded clarifying questions before executing, so the output matches what I actually needed.
+- As a Cowork user whose output missed the mark, I want a structured correction form with preset chips, so I can steer the next output without retyping my full context.
+- As a Cowork user who knows exactly what they want, I want to prefix my message with `*` to skip the enrichment gate entirely, so I'm never blocked by a gate I don't need.
+- As a Cowork preset user, I want prompt-gate and correcting-course behavior automatically loaded into every session, so I don't have to paste or configure anything.
+
+---
+
+### Success Metrics
+
+- **Primary:** Prompt-gate fires on vague prompts in all 7 presets without user configuration (verified by AC-D2-7 grep pass).
+- **Secondary:** Zero rework commits post-Phase-4 (target: 0% rework rate, consistent with v2.5.1 clean cycle).
+- **Secondary:** CI passes on first push (42+ PASS / 0 FAIL target, consistent with v2.5.1 baseline).
+- **Lagging (post-launch, unmeasured):** [UNTESTED] Users who receive a prompt-gate clarification form report better output relevance than users who do not. No measurement tooling exists yet.
+
+---
+
+### Risks
+
+- **R1 [MEDIUM]:** Prompt-gate fires on trivial prompts, generating friction for experienced users. Mitigation: explicit self-evaluation gate in SKILL.md (AC-D2-5) + `*` prefix bypass (AC-D2-3). @security review at Phase 6 to verify no prompt-injection surface is introduced by AskUserQuestion chip options.
+- **R2 [LOW]:** CI `skill-depth-check` rejects `prompt-gate` due to unrecognized structure or POOL allowlist gap. Mitigation: AC-ZD-5 explicitly scopes the allowed CI change. @dev must verify CI locally before pushing.
+- **R3 [LOW]:** `prompts/` directory creation triggers an unexpected CI lint failure (new directory pattern not covered by existing gates). Mitigation: @architect assesses CI impact at Phase 1.
+- **R4 [LOW-MEDIUM]:** Attribution block format in cowork's SKILL.md is insufficient for MIT license compliance (different repo context, no ATTRIBUTIONS.md equivalent yet). Mitigation: @compliance verifies at Phase 2 `/legal` before @architect finalizes the SKILL.md template.
+
+---
+
+### Assumptions
+
+- **[CONFIRMED]** v2.5.1 Phase 8 complete. Cycle-reset marker present. Pipeline unblocked for v2.5.2.
+- **[CONFIRMED]** The-Council prompt-gate SKILL.md carries attribution to `addyosmani/agent-skills` MIT License — porting requires attribution preservation. @compliance review mandatory.
+- **[CONFIRMED]** All 7 preset folders are: `business-admin`, `creative`, `personal-assistant`, `project-management`, `research`, `study`, `writing`. Each has a `global-instructions.md`.
+- **[CONFIRMED]** `prompts/` directory does not exist in the repo at v2.5.1 HEAD.
+- **[CONFIRMED]** `README.md` "Next up (v2.6)" teaser is publicly committed and must be preserved byte-identical.
+- **[CONFIRMED]** Existing CI `skill-depth-check` validates `skills/*/SKILL.md` pool. New `prompt-gate` skill must pass or require only POOL allowlist addition.
+- **[ESTIMATED]** Prompt-gate and correcting-course rules together take @dev ≤ 2 hours to implement (markdown files, no code).
+- **[UNTESTED]** The prompt-gate self-evaluation gate reliably skips trivial prompts without user instruction. Requires manual behavioral testing at Phase 5.
