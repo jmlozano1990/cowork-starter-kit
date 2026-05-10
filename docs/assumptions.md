@@ -395,7 +395,6 @@ _Added: 2026-05-06T00:00:00Z — v2.0 Dynamic Workspace Architect via agency-age
 **Mitigation:** N/A — confirmed.
 **Validation path:** At Phase 4, @dev confirms no open issues labeled v2.0.1 remain on GitHub. If any are found open (GitHub label lag), they are closed by @dev with a comment referencing the resolving CHANGELOG entry — no code change required.
 
-
 ## v2.2 Assumptions
 
 _Added: 2026-05-08T00:00:00Z — v2.2 Carry-Forward Closeout + Skills Roadmap Discovery_
