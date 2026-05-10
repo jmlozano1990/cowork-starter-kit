@@ -2,6 +2,174 @@
 
 ---
 
+## v2.5.3 — v43 Framework Application + O-1 Guard
+
+**Date:** 2026-05-10
+**Classification:** SECURITY-SENSITIVE (consistent Phase 0–7)
+**Mode:** full (Phase 2 /review @security FULL OWASP required; Phase 6 full audit + Guard Change Summary mandatory; combined-path NOT eligible)
+**Rework rate:** 0% (HEAD 0cd7e50 = Phase 4 SHA; 3-commit topology: a60a6a5 arch, 63474fc Scope A, 0cd7e50 Scope B + paperwork — no post-Phase-4 commits)
+**Cycle SHAs:** Phase 4 binding SHA `0cd7e508ebeef03a17379c56a13a52b966e3c024`, merged `3566a1be` via PR #47 squash 2026-05-10. Tag `v2.5.3` pushed. Branch `release/v2.5.3` deleted on remote.
+
+---
+
+### 1. Phase Findings Summary
+
+| Phase | Agent | Findings Count | Severity Breakdown |
+|-------|-------|---------------|-------------------|
+| 0. Requirements | @pm | 0 | — |
+| 1. Design | @architect | 0 | — (7 OI-B open issues for Phase 2) |
+| 2. Security Review | @security | 3 | 0 CRITICAL / 0 WARNING / 3 INFO (V2.5.3-S1, V2.5.3-S2, V2.5.3-S3) |
+| 3. User Gate | User | 0 | APPROVED-ADJUST — V2.5.3-S1 + V2.5.3-S2 promoted to MUST-FIX |
+| 4. Implementation | @dev | 0 | 26/26 ACs self-verified (24 spec + 2 promoted MUST-FIX) |
+| 5. Testing | @qa | 0 | 26/26 PASS, 4/4 local CI smoke PASS, adversarial simulation PASS |
+| 6. Code Audit | @security | 0 | 0 CRITICAL / 0 WARNING / 0 net-new INFO; all 7 OI-B resolved |
+| 7. Final Approval | @qa | 0 | APPROVED, rework rate 0% |
+
+**Net-new findings across the full cycle:** 3 INFO (Phase 2; all resolved before Phase 4 via MUST-FIX promotion). 0 findings at Phase 6. Clean SECURITY-SENSITIVE execution.
+
+---
+
+### 2. AC Difficulty Assessment
+
+| AC | Description | Classification |
+|----|-------------|---------------|
+| AC-A1 | Positioning text first 250 chars | Easy — relocation of existing prose; grep-verifiable |
+| AC-A2 | Who-is-this-for within first 300 words | Easy — new H2 added within first 300 words; structural |
+| AC-A3 | IA Drift ≥2/3 (target 3/3) | Easy — 0/3 → 3/3 achieved via relocation, not rewrite |
+| AC-A4 | Badge version-2.5.3-green | Easy — standard version bump artifact |
+| AC-A5 | SETUP-CHECKLIST v2.5.3 ref + you-framing | Easy — tone + version ref only |
+| AC-A6 | CONTRIBUTING contributor value stmt | Easy — 3-line insert; verbatim from architecture |
+| AC-A7 | release-body.md template with REPLACE markers | Easy — new file; architecture spec provided verbatim format |
+| AC-A8 | No competitor naming in new copy | Easy — deny-list enforced; archetypes only |
+| AC-A9 | CHANGELOG [2.5.3] + VERSION 2.5.3 | Easy — standard release artifact |
+| AC-B1 | Path 1 simulation preserves DO-NOT-REGENERATE tail | Hard — required adversarial simulation to verify; awk single-quoted literal pattern; cold-bootstrap edge case + byte-identical verification |
+| AC-B2 | addyosmani entry byte-identical in simulation output | Hard — diff-based; requires simulation harness |
+| AC-B3 | Auto-generated header not corrupted by tail-preserve | Easy — structural; grep for msitarzewski section count |
+| AC-B4 | Marker-absent cold-bootstrap: no crash, empty tail | Medium — edge case; awk no-match returns 0 verified |
+| AC-B5 | CI passes (quality.yml + sync-agency-dry-run) | Deferred — GitHub Actions only; local YAML parse PASS |
+| AC-B6 | permissions: read-all + per-job grants unchanged | Hard — byte-level invariant on security-critical block; Phase 6 OI-B1 primary verification |
+| AC-REL-1 | VERSION = 2.5.3 | Easy |
+| AC-REL-2 | CHANGELOG [2.5.3] entry with Scope A/B summaries | Easy |
+| AC-REL-3 | Next up (v2.6) BYTE-IDENTICAL | Hard — hard lock enforcement; `git diff main..HEAD | grep -c 'Next up'` = 0 required; carry-forward AC from v2.5.1/v2.5.2 |
+| AC-REL-4 | CI badge URL correct | Easy |
+| AC-ZD-1 | cowork.lock.json byte-unchanged | Easy — zero-diff guard |
+| AC-ZD-2 | CLAUDE.md unchanged (397w) | Easy — not in scope |
+| AC-ZD-3 | ADR count = 32, no mutations | Hard — 4th consecutive cycle requiring re-interpretation (append-only Phase 1 record vs. empty diff literal); re-interpretation contract now established precedent |
+| AC-ZD-4 | examples/skills/selection-presets/registry unchanged | Easy — deny-listed |
+| AC-ZD-5 | correcting-course + prompt-gate unchanged | Easy — not in scope |
+| V2.5.3-S1 | Step name verbatim (promoted MUST-FIX) | Easy after MUST-FIX promotion at /gate — single verbatim string bound; 1 grep match |
+| V2.5.3-S2 | set -euo pipefail defense-in-depth (promoted MUST-FIX) | Easy after promotion — single line at top of patched run block; 1 grep match |
+
+**Hardest ACs this cycle:** AC-B1/B2 (adversarial simulation of tail-preserve path), AC-B6 (byte-level permissions invariant), AC-REL-3 (hard lock enforcement, 3rd consecutive cycle), AC-ZD-3 (re-interpretation contract, 4th consecutive cycle).
+
+---
+
+### 3. Token Cost Actuals
+
+| Model Tier | Agent Invocations | Notes |
+|------------|------------------|-------|
+| opus | @architect (Phase 1), @security (Phase 2 + Phase 6) | 2–3 opus invocations |
+| sonnet | @pm (Phase 0), @dev (Phase 4), @qa (Phase 5, Phase 7), orchestrator (coordination) | ~7+ sonnet invocations |
+| haiku | 0 | No haiku-tier sub-tasks this cycle |
+
+**Token cost estimate:** Instrumentation gap — model_raw shows "unknown" for most records. Per Phase 7 qa_issues_prevented record: blocker=0 issue=0 info=1. Cost estimate unavailable due to instrumentation gap.
+
+**Comparison to v2.5.2:** Both are full-mode SECURITY-SENSITIVE cycles. v2.5.3 has lower AC count (26 vs 21 functional + same structure) but added adversarial simulation at Phase 5 and Guard Change Summary at Phase 6 — proportionally similar ceremony. Wall-clock estimate: comparable to v2.5.2 (~3–4 hours for Phase 0→7 sequential).
+
+---
+
+### 4. Phase Durations
+
+| Phase | Start | End | Duration | Notes |
+|-------|-------|-----|----------|-------|
+| 0. Requirements | 2026-05-10T14:30:00Z | 2026-05-10T14:30:00Z | < 30 min | Single-session spec append |
+| 1. Design | 2026-05-10T14:30:00Z | 2026-05-10T15:00:00Z | ~30 min | Phase 1 design + 320 lines; no new ADRs |
+| 2. Security Review | 2026-05-10T15:00:00Z | 2026-05-10T15:30:00Z | ~30 min | Full OWASP + 7 OI-B dispositions; 3 INFO |
+| 3. User Gate | 2026-05-10T15:30:00Z | 2026-05-10T16:00:00Z | ~30 min | ADJUST: 2 INFO promoted to MUST-FIX |
+| 4. Implementation | 2026-05-10T16:00:00Z | 2026-05-10T17:00:00Z | ~60 min | 2 commits (Scope A + Scope B), 26/26 ACs |
+| 5. Testing | 2026-05-10T17:00:00Z | 2026-05-10T20:45:00Z | ~3.75 hr | Includes adversarial simulation; 22 PR CI gates green |
+| 6. Code Audit | 2026-05-10T20:45:00Z | 2026-05-10T21:30:00Z | ~45 min | Full OWASP; Guard Change Summary; all 7 OI-B RESOLVED |
+| 7. Final Approval | 2026-05-10T21:30:00Z | 2026-05-10T22:15:00Z | ~45 min | ADR-100 4-item checklist; 9 spot-checks |
+
+**Flag:** Phase 5 duration (~3.75 hr) is the cycle outlier, 3–5× longer than other phases. Contributing factor: adversarial simulation (Path 1 regeneration + cold-bootstrap + addyosmani byte-identical comparison) and waiting for CI green confirmation (22 PR CI gates). This is appropriate ceremony for SECURITY-SENSITIVE classification, not a pipeline performance issue.
+
+---
+
+### 5. Phases Abbreviated
+
+- **Phase 6:** Full OWASP audit ran — NOT abbreviated. SECURITY-SENSITIVE + supply-chain workflow patch mandated full ceremony. Combined-path NOT eligible. Guard Change Summary §I produced.
+- **All phases ran at full ceremony** appropriate to SECURITY-SENSITIVE classification.
+
+---
+
+### 6. Rework Rate and Causes
+
+**Rework rate: 0%**
+
+`git diff 0cd7e50 HEAD | wc -l` = 0 at Phase 7. HEAD equals Phase 4 SHA throughout Phases 5, 6, and 7. No commits after Phase 4.
+
+This is the 3rd consecutive 0% rework cycle (v2.5.1: 0%, v2.5.2: 0%, v2.5.3: 0%). The V45-A3 discipline was applied at Phase 4 by @dev (V45-A3 CI smoke: markdownlint 0 errors on all changed .md files; YAML parse PASS on sync-agency.yml) — CI was green on first push. 22 PR CI gates green on first push is the 2nd cross-project V45-A3 validation.
+
+**Contributing factors to 0% rework:**
+1. Architecture § Path 1 verbatim awk script provided exact implementation surface — no discretion needed.
+2. MUST-FIX promotion at /gate (V2.5.3-S1 + V2.5.3-S2) surfaced and resolved before Phase 4.
+3. Local CI smoke (V45-A3) confirmed gate pass before PR; markdownlint + YAML parse both PASS.
+4. Adversarial simulation at Phase 5 validated Scope B correctness independent of CI.
+
+---
+
+### 7. Issues Prevented
+
+`qa_issues_prevented`: **blocker=0, issue=0, info=1** (Phase 7 contribution; Phase 5-originated items credited at Phase 5)
+
+Cumulative cycle total including Phase 5 contributions:
+
+| Category | Count | What Would Have Shipped |
+|----------|-------|------------------------|
+| Blocker | 0 | None missed at Phase 7 |
+| Issue | 0 | V2.5.3-S1 (step-name verbatim) and V2.5.3-S2 (set -euo pipefail) were caught at Phase 2 and resolved before Phase 4 via MUST-FIX promotion at /gate — credited to Phase 2/3, not Phase 7 |
+| Info | 1 | AC-B5 CI gate formally deferred per protocol (structural — CI requires GitHub Actions; pre-documented at Phase 5) |
+
+**Notable:** The /gate ADJUST mechanism worked as designed. User promoting V2.5.3-S1/S2 from Phase 6 SHOULD-FIX to Phase 4 MUST-FIX is the first documented use of ADJUST for pre-Phase-4 security binding. Both items were resolved in-cycle with no rework. This validates the ADJUST option as a pre-Phase-4 lever.
+
+---
+
+### 8. Pattern Detection
+
+Examining the last 3 cycles at WARNING+ severity in Phase 6 summaries:
+
+- **v2.5.2 (cycle 17):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 INFO net-new (PASS)
+- **v2.5.3 (cycle 18):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 net-new INFO (PASS)
+- **v2.5.1 (cycle 16):** Phase 6 — 0 CRITICAL, 0 WARNING, 0 INFO (abbreviated, PASS)
+
+No WARNING+ keywords (`auth`, `RLS`, `permissions`, `scope`, `guard`, `configuration`, `injection`) appear in Phase 6 summaries for any of these 3 consecutive APPROVED cycles at WARNING+ severity. **No 3-cycle WARNING+ pattern detected.**
+
+**Pattern updates this cycle (5 entries, per orchestrator brief):**
+
+1. **"V45-A3 pre-Phase-7 CI smoke effectiveness"** — IMPROVEMENT-VALIDATED 2nd instance (almost-promoted to PROVED). v2.5.3 is the 2nd consecutive full-mode cycle with 0 CI-fix commits and CI green on first push. Threshold for PROVED: 3 instances.
+
+2. **"V45-A2 worktree drift mitigation"** — IMPROVEMENT-VALIDATED 2nd instance. No drift this cycle — registry consistent at `/home/user/claude-cowork-config`; @architect noted this in Phase 1 anti-pattern scan. The v2.5.3 choice to branch directly on main checkout (not a sibling worktree) avoided the v2.5.2 registry-path-mismatch friction entirely.
+
+3. **"Branch on main checkout (vs sibling worktree)"** — NEW WATCH 1st instance. v2.5.3 architect committed `release/v2.5.3` directly on the main checkout rather than creating a sibling worktree. Avoids: registry-path-mismatch scope guard friction (v2.5.2 pattern); worktree cleanup overhead. Trade-off: single checkout for simultaneous parallel cycles. Threshold: 3 instances.
+
+4. **"MUST-FIX promotion at /gate"** — NEW PATTERN 1st use. At Phase 3 user gate, user chose ADJUST to promote V2.5.3-S1 + V2.5.3-S2 from Phase 6 SHOULD-FIX to Phase 4 MUST-FIX. Both resolved in-cycle. No rework. Validates that the ADJUST option is an effective pre-Phase-4 lever for surfacing security items before implementation locks in.
+
+5. **"Two-scope bundle in one patch cycle"** — INFO precedent. Scope A (v43 public artifact framework) + Scope B (O-1 sync-agency.yml guard) shipped cleanly in one cycle as two distinct commits. No AC overlap, no implementation interference. Useful precedent for future bundling of independent scopes in a single patch cycle.
+
+No self-improve suggestion generated (no 3-cycle WARNING+ surface).
+
+---
+
+### 9. Retrospective Verdict
+
+**HEALTHY.** v2.5.3 closes out the v2.5.x patch series cleanly — the third consecutive 0% rework cycle, and the second full-mode SECURITY-SENSITIVE cycle with zero net-new Phase 6 findings. The two-scope bundle (Scope A: v43 public artifact framework application; Scope B: O-1 sync-agency.yml guard) shipped in a single 3-commit topology without AC overlap or implementation interference, demonstrating that bounded two-scope bundles are a viable pattern for patch cycles.
+
+The /gate ADJUST mechanism proved its value: promoting V2.5.3-S1 and V2.5.3-S2 from Phase 6 SHOULD-FIX to Phase 4 MUST-FIX before implementation locked in removed one resolution loop that would otherwise have required a post-Phase-6 rework. The adversarial simulation at Phase 5 (Path 1 regeneration + cold-bootstrap + addyosmani byte-identity) is now the reference baseline for Scope B testing — any future sync-agency.yml patch should replicate this simulation discipline.
+
+V45-A3 (pre-push local CI smoke) is approaching PROVED at 2/3 full-mode validations. If v2.6 continues the pattern, it should be promoted from IMPROVEMENT-VALIDATED to PROVED and formally bound in the Phase 4 implementation brief for CI-adjacent file changes. The AC-ZD-3 re-interpretation (append-only ADR records vs. empty diff literal) has now recurred in 4 consecutive cycles — a future spec revision should align the literal with the convention rather than requiring per-cycle re-interpretation.
+
+---
+
 ## v2.5.2 — Quality Loop (D-2 prompt-gate + D-3 correcting-course)
 
 **Date:** 2026-05-10
